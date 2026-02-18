@@ -1,0 +1,195 @@
+/* =============================
+   GLOBAL THEME VARIABLES
+   ============================= */
+:root {
+  --bg-color: #ffffff;
+  --text-color: #111827;
+  --card-bg: #f9fafb;
+  --accent-color: #e0bf03;
+  --accent-light: #E0ECFF;
+  --border-color: #e5e7eb;
+  --color-icon: #111827;
+  --loading-bg: #ffffff;
+}
+
+[data-theme='dark'] {
+  --bg-color: #010308;
+  --text-color: #f8fafc;
+  --text-muted: #b5b5b5;
+  --card-bg: #060b14;
+  --accent-color: #FFD700;
+  --accent-light: #0a0a0a;
+  --border-color: #333;
+  --color-icon: #f8fafc;
+  --loading-bg: #060607;
+}
+
+/* =============================
+   BASE ELEMENTS
+   ============================= */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  width: 100%;
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-weight: 400;
+  line-height: 1.5;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* =============================
+   HEADINGS & TEXT
+   ============================= */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0 0 0.5em 0;
+  color: var(--text-color);
+}
+
+p {
+  margin: 0 0 1em 0;
+  color: var(--text-color);
+}
+
+/* =============================
+   LINKS
+   ============================= */
+a {
+  font-weight: 500;
+  color: var(--accent-color);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: none;
+}
+
+/* =============================
+   BUTTONS
+   ============================= */
+button {
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  cursor: pointer;
+  transition: background-color 0.25s, border-color 0.25s;
+}
+
+button:hover {
+  border-color: var(--accent-color);
+}
+
+button:focus,
+button:focus-visible {
+  outline: 3px solid var(--accent-color);
+}
+
+/* =============================
+   UTILITY CLASSES
+   ============================= */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+  color: var(--text-color);
+}
+
+.fullscreen {
+  min-height: 100vh;
+  background: var(--bg-color);
+  color: var(--text-color);
+}
+
+/* =============================
+   PAGE WRAPPERS
+   ============================= */
+.page-content,
+#home-page {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  min-height: 100vh;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+/* Section dividers */
+.divider {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 1rem 0;
+}
+
+/* Inherit theme for key sections */
+section,
+.header,
+.search-bar,
+.categories,
+.flash-sale,
+.features {
+  background: transparent;
+  color: inherit;
+}
+
+/* =============================
+   ANIMATIONS
+   ============================= */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+input:focus {
+  animation: pulse 0.2s ease-out;
+}
+
+/* =============================
+   SPLASH SCREEN
+   ============================= */
+.splash-wrapper {
+  position: fixed;
+  inset: 0;
+  background: #012a63;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  transition: opacity 1s ease, visibility 1s ease;
+}
+
+.fade-in {
+  opacity: 1;
+  visibility: visible;
+}
+
+.fade-out {
+  opacity: 0;
+  visibility: hidden;
+}
+/* ================= THEME SYSTEM ================= */
+

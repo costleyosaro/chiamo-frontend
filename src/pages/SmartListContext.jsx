@@ -1,0 +1,296 @@
+// ✅ src/context/SmartListContext.jsx
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
+import API from "../services/api";
+import { useAuth } from "../context/AuthContext";
+import { fetchProducts } from "../services/products";
+
+const SmartListContext = createContext();
+
+export function SmartListProvider({ children }) {
+  const { user, refreshUser, loading: authLoading } = useAuth(); // ✅ Sync with AuthContext
+  const [lists, setLists] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState([]);
+  const [error, setError] = useState(null);
+
+  /** 🔹 Load backend products once */
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const data = await fetchProducts();
+        console.debug("📦 SmartList loaded products:", data.length);
+        setProducts(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("❌ Failed to load backend products:", err);
+        setProducts([]);
+      }
+    };
+    loadProducts();
+  }, []);
+
+  /** 🔹 Normalize product shape */
+  const normalizeProduct = (p) => {
+    if (!p || typeof p !== "object") return null;
+    return {
+      id: p.id ?? null,
+      name: p.name ?? "Unnamed Product",
+      price: Number(p.price ?? 0),
+      image:
+        p.image_url ||
+        (typeof p.image === "string" ? p.image : p.image?.url) ||
+        "/assets/images/placeholder.png",
+      category:
+        typeof p.category === "object"
+          ? p.category?.name ?? "Uncategorized"
+          : p.category ?? "Uncategorized",
+    };
+  };
+
+  /** 🔹 Enrich item with normalized product data */
+  const enrichItem = (item) => {
+    if (!item) return null;
+    let product = item.product;
+    if (!product && item.product_id) {
+      product = products.find((p) => String(p.id) === String(item.product_id));
+    }
+
+    return {
+      id: item.id ?? Math.random(),
+      quantity: Number(item.quantity ?? 1),
+      product: normalizeProduct(product) ?? {
+        id: item.product_id ?? null,
+        name: item.name ?? "Unnamed Product",
+        price: Number(item.price ?? 0),
+        image: "/assets/images/placeholder.png",
+        category: "Unknown",
+      },
+    };
+  };
+
+  /** 📋 Fetch SmartLists for logged-in user */
+  const fetchLists = useCallback(
+    async (activeUser = user) => {
+      if (!activeUser) {
+        setLists([]);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const res = await API.get("/orders/smartlists/");
+        const data = Array.isArray(res.data?.results)
+          ? res.data.results
+          : Array.isArray(res.data)
+          ? res.data
+          : [];
+
+        const mapped = data.map((list) => ({
+          id: list.id,
+          name: list.name ?? "Unnamed SmartList",
+          created_at: list.created_at,
+          updated_at: list.updated_at,
+          items: (list.items || []).map(enrichItem),
+        }));
+
+        setLists(mapped);
+        localStorage.setItem(`smartlists_${activeUser.id}`, JSON.stringify(mapped));
+      } catch (err) {
+        console.error("❌ fetchLists failed:", err);
+        const cached = localStorage.getItem(`smartlists_${activeUser?.id}`);
+        if (cached) setLists(JSON.parse(cached));
+        else setLists([]);
+        setError("Unable to load smartlists.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user, products]
+  );
+
+  /** 🚀 Sync SmartLists whenever user changes (like CartContext) */
+  useEffect(() => {
+    (async () => {
+      if (authLoading) return; // Wait for AuthContext first
+      if (user) {
+        const cached = localStorage.getItem(`smartlists_${user.id}`);
+        if (cached) {
+          console.debug("💾 Loaded cached smartlists");
+          setLists(JSON.parse(cached));
+        }
+        await fetchLists(user);
+      } else {
+        setLists([]);
+        setLoading(false);
+      }
+    })();
+  }, [user, authLoading, fetchLists]);
+
+  /** 🧩 Add item to a SmartList */
+  const addItemToList = async (listId, productId, quantity = 1) => {
+    if (!user) throw new Error("You must be logged in to modify SmartLists");
+    if (!listId || !productId) throw new Error("Missing parameters for addItem");
+    try {
+      const res = await API.post(`/orders/smartlists/${listId}/add_item/`, {
+        product_id: productId,
+        quantity,
+      });
+
+      const newItem = enrichItem(res.data);
+      setLists((prev) =>
+        prev.map((l) =>
+          l.id === listId ? { ...l, items: [...l.items, newItem] } : l
+        )
+      );
+      await fetchLists(user);
+    } catch (err) {
+      console.error("❌ addItemToList failed:", err);
+      await fetchLists(user);
+    }
+  };
+
+  /** ❌ Remove item */
+  const removeItem = async (listId, itemId) => {
+    if (!user) throw new Error("You must be logged in to modify SmartLists");
+    try {
+      await API.post(`/orders/smartlists/${listId}/remove_item/`, { item_id: itemId });
+      setLists((prev) =>
+        prev.map((l) =>
+          l.id === listId
+            ? { ...l, items: l.items.filter((i) => i.id !== itemId) }
+            : l
+        )
+      );
+    } catch (err) {
+      console.error("❌ removeItem failed:", err);
+    }
+  };
+
+  /** ➕ Create SmartList */
+  const createList = async (name) => {
+    if (!user) throw new Error("You must be logged in to create a SmartList");
+    try {
+      const res = await API.post("/orders/smartlists/", { name });
+      const newList = { id: res.data.id, name, items: [] };
+      setLists((prev) => [newList, ...prev]);
+      return newList;
+    } catch (err) {
+      console.error("❌ createList failed:", err);
+      throw err;
+    }
+  };
+
+  /** 🗑️ Delete SmartList */
+  const deleteList = async (id) => {
+    if (!user) throw new Error("You must be logged in to delete a SmartList");
+    try {
+      await API.delete(`/orders/smartlists/${id}/`);
+      setLists((prev) => prev.filter((l) => l.id !== id));
+    } catch (err) {
+      console.error("❌ deleteList failed:", err);
+    }
+  };
+
+  /** 🛍️ Order all items */
+  const orderAll = async (listId) => {
+    if (!user) throw new Error("You must be logged in to order");
+    try {
+      const res = await API.post(`/orders/smartlists/${listId}/order_all/`);
+      await fetchLists(user);
+      return res.data;
+    } catch (err) {
+      console.error("❌ orderAll failed:", err);
+    }
+  };
+
+  /** 🔢 Update quantity */
+  const syncQty = async (listId, itemId, newQty) => {
+    try {
+      await API.post(`/orders/smartlists/${listId}/update_item/`, {
+        item_id: itemId,
+        quantity: newQty,
+      });
+    } catch (err) {
+      console.error("syncQty failed:", err);
+    }
+  };
+
+  const increaseQty = (listId, itemId) => {
+    setLists((prev) =>
+      prev.map((l) =>
+        l.id === listId
+          ? {
+              ...l,
+              items: l.items.map((i) =>
+                i.id === itemId ? { ...i, quantity: Number(i.quantity) + 1 } : i
+              ),
+            }
+          : l
+      )
+    );
+    const item = lists.find((l) => l.id === listId)?.items.find((i) => i.id === itemId);
+    if (item) syncQty(listId, itemId, item.quantity + 1);
+  };
+
+  const decreaseQty = (listId, itemId) => {
+    setLists((prev) =>
+      prev.map((l) =>
+        l.id === listId
+          ? {
+              ...l,
+              items: l.items.map((i) =>
+                i.id === itemId && i.quantity > 1
+                  ? { ...i, quantity: Number(i.quantity) - 1 }
+                  : i
+              ),
+            }
+          : l
+      )
+    );
+    const item = lists.find((l) => l.id === listId)?.items.find((i) => i.id === itemId);
+    if (item && item.quantity > 1) syncQty(listId, itemId, item.quantity - 1);
+  };
+
+  /** 📊 Summary counts for SmartLists */
+  const totalSmartListCount = lists.length;
+  const totalSmartListItems = lists.reduce(
+    (sum, l) => sum + (l.items?.reduce((s, i) => s + (i.quantity || 0), 0) || 0),
+    0
+  );
+
+  return (
+    <SmartListContext.Provider
+      value={{
+        user,
+        lists,
+        loading,
+        error,
+        products,
+        fetchLists,
+        createList,
+        deleteList,
+        addItemToList,
+        removeItem,
+        increaseQty,
+        decreaseQty,
+        orderAll,
+        totalSmartListCount,
+        totalSmartListItems,
+        refreshUser, // ✅ included for cross-sync
+      }}
+    >
+      {children}
+    </SmartListContext.Provider>
+  );
+}
+
+export function useSmartLists() {
+  return useContext(SmartListContext);
+}
+

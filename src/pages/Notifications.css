@@ -1,0 +1,150 @@
+/* === NOTIFICATIONS PAGE (Professional Redesign) === */
+:root {
+  --notif-primary: #0077ff;
+  --notif-accent: #f8d142;
+  --notif-bg-light: #f6f8fc;
+  --notif-bg-dark: #0b0b0b;
+  --notif-card-light: #ffffff;
+  --notif-card-dark: #1a1a1a;
+}
+
+/* === WRAPPER === */
+.notifications-wrapper {
+  min-height: 100vh;
+  width: 100%;
+  background: var(--notif-bg-light);
+  padding: 40px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: background 0.3s ease;
+}
+
+[data-theme="dark"] .notifications-wrapper {
+  background: var(--notif-bg-dark);
+}
+
+/* === HEADER === */
+.notifications-header {
+  width: 100%;
+  max-width: 700px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.notifications-back {
+  color: var(--notif-primary);
+  background: transparent;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: color 0.3s ease;
+}
+
+.notifications-back:hover {
+  color: #005fd1;
+}
+
+[data-theme="dark"] .notifications-back {
+  color: var(--notif-accent);
+}
+
+/* === TITLE === */
+.notifications-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #0a3d62;
+}
+
+[data-theme="dark"] .notifications-title {
+  color: var(--notif-accent);
+}
+
+/* === LIST CONTAINER === */
+.notifications-list {
+  width: 100%;
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* === INDIVIDUAL CARD === */
+.notification-card {
+  background: var(--notif-card-light);
+  border-radius: 14px;
+  padding: 18px 20px;
+  border: 1px solid #e5e8ef;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.notification-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .notification-card {
+  background: var(--notif-card-dark);
+  border-color: #333;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+}
+
+/* === TITLE & MESSAGE === */
+.notification-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #1a1a1a;
+  margin-bottom: 6px;
+}
+
+.notification-message {
+  color: #555;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+[data-theme="dark"] .notification-title {
+  color: #fff;
+}
+
+[data-theme="dark"] .notification-message {
+  color: #bbb;
+}
+
+/* === READ STATE === */
+.notification-card.unread {
+  border-left: 4px solid var(--notif-primary);
+  background: #f0f6ff;
+}
+
+[data-theme="dark"] .notification-card.unread {
+  border-left: 4px solid var(--notif-accent);
+  background: #1a1a00;
+}
+
+/* === EMPTY STATE === */
+.notifications-empty {
+  text-align: center;
+  color: #777;
+  margin-top: 40px;
+  font-size: 1rem;
+}
+
+[data-theme="dark"] .notifications-empty {
+  color: #aaa;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 600px) {
+  .notifications-title {
+    font-size: 1.5rem;
+  }
+  .notification-card {
+    padding: 16px;
+  }
+}

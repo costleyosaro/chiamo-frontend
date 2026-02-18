@@ -1,0 +1,256 @@
+/* ============================================
+   CHIAMO ORDER - CLEAN PROFESSIONAL SPLASH
+   Inspired by OPay's minimal design
+   ============================================ */
+
+/* ============ VARIABLES ============ */
+:root {
+  --splash-bg: #07102a;
+  --splash-primary: #ffd84a;
+  --splash-white: #ffffff;
+  --splash-white-muted: rgba(255, 255, 255, 0.6);
+  --splash-white-dim: rgba(255, 255, 255, 0.4);
+}
+
+/* ============ MAIN CONTAINER ============ */
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  background-color: var(--splash-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* ============ MAIN CONTENT ============ */
+.splash-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 2rem;
+  width: 100%;
+  max-width: 500px;
+}
+
+/* ============ LOGO ============ */
+.logo-wrapper {
+  margin-bottom: 1.5rem;
+}
+
+.splash-logo {
+  width: clamp(140px, 35vw, 200px);
+  height: clamp(140px, 35vw, 200px);
+  object-fit: contain;
+}
+
+/* ============ TITLE ============ */
+.title-container {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.title-letter {
+  display: inline-block;
+  font-size: clamp(2rem, 7vw, 3.5rem);
+  font-weight: 800;
+  color: var(--splash-primary);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* ============ TAGLINE ============ */
+.splash-tagline {
+  font-size: clamp(0.95rem, 3vw, 1.15rem);
+  font-weight: 500;
+  color: var(--splash-white);
+  text-align: center;
+  margin: 0 0 2rem 0;
+  letter-spacing: 0.5px;
+}
+
+/* ============ LOADING DOTS ============ */
+.loading-wrapper {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-dots {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  background-color: var(--splash-primary);
+  border-radius: 50%;
+}
+
+/* ============ FOOTER ============ */
+.splash-footer {
+  width: 100%;
+  padding: 1.5rem 2rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.powered-by {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--splash-white-muted);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin: 0;
+}
+
+.partner-logos {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(1.25rem, 5vw, 2rem);
+}
+
+.partner-logo {
+  width: clamp(45px, 12vw, 65px);
+  height: auto;
+  object-fit: contain;
+  opacity: 0.9;
+}
+
+/* ============ SKIP HINT ============ */
+.skip-hint {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  color: var(--splash-white-dim);
+  letter-spacing: 0.5px;
+}
+
+/* ============ RESPONSIVE ============ */
+
+/* Tablets */
+@media (max-width: 768px) {
+  .splash-main {
+    padding: 1.5rem;
+  }
+
+  .splash-footer {
+    padding: 1.25rem 1.5rem 1.75rem;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .logo-wrapper {
+    margin-bottom: 1.25rem;
+  }
+
+  .splash-tagline {
+    margin-bottom: 1.5rem;
+    padding: 0 1rem;
+  }
+
+  .loading-wrapper {
+    height: 25px;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .partner-logos {
+    gap: 1rem;
+  }
+
+  .skip-hint {
+    bottom: 0.75rem;
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 360px) {
+  .splash-main {
+    padding: 1rem;
+  }
+
+  .splash-footer {
+    padding: 1rem;
+  }
+
+  .partner-logo {
+    width: 40px;
+  }
+}
+
+/* Landscape */
+@media (max-height: 500px) and (orientation: landscape) {
+  .splash-main {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .logo-wrapper {
+    margin-bottom: 0;
+  }
+
+  .splash-logo {
+    width: 100px;
+    height: 100px;
+  }
+
+  .title-container {
+    margin-bottom: 0;
+  }
+
+  .splash-tagline,
+  .loading-wrapper {
+    display: none;
+  }
+
+  .splash-footer {
+    position: absolute;
+    bottom: 0;
+    padding: 0.75rem;
+  }
+
+  .powered-by {
+    display: none;
+  }
+
+  .partner-logo {
+    width: 40px;
+  }
+
+  .skip-hint {
+    display: none;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .dot {
+    animation: none;
+    opacity: 1;
+  }
+}

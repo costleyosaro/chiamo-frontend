@@ -222,8 +222,8 @@ body {
 
 .logo-text {
   font-family: var(--font-display);
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 650;
   color: var(--primary);
 }
 

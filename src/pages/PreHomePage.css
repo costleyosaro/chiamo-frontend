@@ -201,6 +201,7 @@ body {
   max-width: var(--container-width);
   margin: 0 auto;
   padding: 16px var(--container-padding);
+  padding-left: 10px;                        /* ADD: Reduce left padding */
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -210,20 +211,21 @@ body {
 .navbar-logo {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;                                  /* CHANGED: Smaller gap */
   cursor: pointer;
+  margin-left: 0;                            /* ADD: Ensure no left margin */
 }
 
 .logo-image {
-  width: 50px;
-  height: 50px;
+  width: 45px;                               /* CHANGED: Slightly smaller */
+  height: 45px;
   object-fit: contain;
 }
 
 .logo-text {
   font-family: var(--font-display);
-  font-size: 16px;
-  font-weight: 650;
+  font-size: 9px;                            /* CHANGED: Smaller text */
+  font-weight: 400;
   color: var(--primary);
 }
 
@@ -231,6 +233,21 @@ body {
   color: var(--secondary);
 }
 
+/* ADD: Responsive - Move even more left on mobile */
+@media (max-width: 768px) {
+  .navbar-container {
+    padding-left: 5px;
+  }
+  
+  .logo-image {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .logo-text {
+    font-size: 8px;
+  }
+}
 /* Nav Links */
 .navbar-links {
   display: flex;

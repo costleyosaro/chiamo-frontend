@@ -38,6 +38,17 @@ dist/
 .next/
 out/
 
+public/assets/images/
+*.png
+*.PNG
+*.jpg
+*.JPG
+*.jpeg
+*.JPEG
+*.gif
+*.webp
+*.mp4
+*.ico
 
 
 # Environment

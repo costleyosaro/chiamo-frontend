@@ -3,9 +3,8 @@ import axios from "axios";
 
 // ✅ Create the axios instance
 const API = axios.create({
-  baseURL: "http://127.0.0.1:8000/api/",
-});
-
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api/",
+})
 // =============================
 // 🔹 TOKEN MANAGEMENT HELPERS
 // =============================
@@ -62,8 +61,7 @@ async function refreshAccessToken() {
   }
 
   try {
-    const res = await axios.post("http://127.0.0.1:8000/api/token/refresh/", {
-      refresh,
+    const res = await axios.post(`${import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api"}/token/refresh/`, {
     });
     const newAccess = res.data.access;
     if (newAccess) {

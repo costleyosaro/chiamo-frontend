@@ -842,11 +842,13 @@ body {
   font-size: 32px;
   font-weight: 700;
   margin-bottom: 2px;
+  color: var(--white);
 }
 
 .stat-label {
   font-size: 14px;
   opacity: 0.85;
+  color: var(--white);
 }
 
 /* ============ SECTION STYLES ============ */

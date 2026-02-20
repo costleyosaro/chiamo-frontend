@@ -111,7 +111,7 @@
 
 .powered-by {
   font-size: 0.8rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--splash-white-muted);
   text-transform: uppercase;
   letter-spacing: 2px;
@@ -129,7 +129,7 @@
   width: clamp(45px, 12vw, 65px);
   height: auto;
   object-fit: contain;
-  opacity: 0.9;
+
 }
 
 /* ============ SKIP HINT ============ */

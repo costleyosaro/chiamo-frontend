@@ -842,8 +842,8 @@ const ContactSection = () => (
             <FaPhone />
           </div>
           <h3>Call Us</h3>
-          <p>+234 7018329357</p>
-          <a href="tel:+2347018329357">Make Call</a>
+          <p>+234 7032410362</p>
+          <a href="tel:+2347032410362">Make Call</a>
         </div>
         <div className="contact-card">
           <div className="contact-icon">
@@ -851,7 +851,7 @@ const ContactSection = () => (
           </div>
           <h3>WhatsApp</h3>
           <p>Chat with us instantly</p>
-          <a href="https://wa.me/2347018329357" target="_blank" rel="noreferrer">
+          <a href="https://wa.me/2347032410362" target="_blank" rel="noreferrer">
             Start Chat
           </a>
         </div>

@@ -7,53 +7,32 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { useNavigate } from "react-router-dom";
-// Add these icon imports at the top
 import {
-  FiSearch,
-  FiX,
-  FiGrid,
-  FiList,
-  FiShoppingCart,
-  FiHeart,
-  FiEye,
-  FiChevronLeft,
-  FiChevronRight,
-  FiArrowUp,
-  FiFilter,
-  FiChevronDown,
-  FiHome,
-  FiStar,
-  FiPackage,
-  FiTruck,
-  FiShield,
-  FiMoon,
-  FiSun,
-  FiDroplet,    // For beverages/drinks
-  FiBox,        // For all products
+  FiSearch, FiX, FiGrid, FiList, FiShoppingCart, FiHeart,
+  FiEye, FiChevronLeft, FiChevronRight, FiArrowUp, FiFilter,
+  FiChevronDown, FiHome, FiStar, FiPackage, FiTruck, FiShield,
+  FiMoon, FiSun, FiDroplet, FiBox,
 } from "react-icons/fi";
 import {
-  FaStar,
-  FaStarHalfAlt,
-  FaRegStar,
-  FaFire,
-  FaLeaf,
-  FaCrown,
+  FaStar, FaStarHalfAlt, FaRegStar, FaFire, FaLeaf, FaCrown,
 } from "react-icons/fa";
-import {
-  BiCookie,       // For food/sweets
-  BiSprayCan,     // For care/detergent
-  BiDrink,        // Alternative for drinks
-} from "react-icons/bi";
-import {
-  RiDrinks2Line,  // For Zizou drinks
-} from "react-icons/ri";
-import {
-  IoSparkles,     // For beauty
-} from "react-icons/io5";
+import { BiCookie, BiSprayCan, BiDrink } from "react-icons/bi";
+import { RiDrinks2Line } from "react-icons/ri";
+import { IoSparkles } from "react-icons/io5";
 import { HiOutlineSparkles } from "react-icons/hi";
 import { BiSortAlt2 } from "react-icons/bi";
 import { MdLocalDrink, MdCleaningServices } from "react-icons/md";
 import { GiLipstick, GiCookie, GiSodaCan } from "react-icons/gi";
+
+// ============================================================
+// 🔥 ADD YOUR IMAGEKIT BASE URL HERE (CHANGE THIS!)
+// ============================================================
+const IMG_BASE = "https://ik.imagekit.io/ljwnlcbqyu";
+
+// ✅ Placeholder as a simple colored SVG (NO external file needed!)
+const PLACEHOLDER_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect fill='%23f0f0f0' width='400' height='400'/%3E%3Ctext fill='%23999' font-family='Arial' font-size='18' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3EImage Not Available%3C/text%3E%3C/svg%3E";
+
+const PLACEHOLDER_BANNER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='400' viewBox='0 0 1200 400'%3E%3Crect fill='%23e8e8e8' width='1200' height='400'/%3E%3Ctext fill='%23999' font-family='Arial' font-size='24' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3EBanner Loading...%3C/text%3E%3C/svg%3E";
 
 // ============ SIMPLIFIED CATEGORIES ============
 const CATEGORIES = [
@@ -98,6 +77,37 @@ const getRandomReviews = () => Math.floor(Math.random() * 500) + 10;
 const getRandomBadge = () => {
   const badges = ["hot", "new", "sale", "organic", "premium", null, null, null];
   return badges[Math.floor(Math.random() * badges.length)];
+};
+
+// ============================================================
+// ✅ FIXED: Universal image source handler
+// ============================================================
+const getImageSrc = (raw, cat) => {
+  if (!raw) return PLACEHOLDER_IMG;
+  let val = String(raw).trim();
+
+  // ✅ Already a full URL (ImageKit, Cloudinary, etc.) — use as-is
+  if (/^https?:\/\//i.test(val)) return val;
+
+  // ✅ Still a local path? Convert to ImageKit URL
+  // Remove leading slash or "assets/images/categories/" prefix
+  val = val
+    .replace(/^\/+/, "")
+    .replace(/^assets\/images\/categories\//, "")
+    .replace(/^assets\/images\//, "");
+
+  return encodeURI(`${IMG_BASE}/${val}`);
+};
+
+// ✅ FIXED: Error handler that NEVER causes infinite loop
+const handleImgError = (e) => {
+  e.currentTarget.onerror = null; // prevent infinite loop
+  e.currentTarget.src = PLACEHOLDER_IMG;
+};
+
+const handleBannerError = (e) => {
+  e.currentTarget.onerror = null; // prevent infinite loop
+  e.currentTarget.src = PLACEHOLDER_BANNER;
 };
 
 // ============ THEME TOGGLE COMPONENT ============
@@ -197,7 +207,6 @@ const CategoryPills = ({ categories, selected, onSelect }) => {
           <FiChevronLeft />
         </button>
       )}
-      
       <div
         className="category-pills-wrapper"
         ref={scrollRef}
@@ -217,7 +226,6 @@ const CategoryPills = ({ categories, selected, onSelect }) => {
           );
         })}
       </div>
-      
       {showRightArrow && (
         <button
           className="category-scroll-btn right"
@@ -234,7 +242,6 @@ const CategoryPills = ({ categories, selected, onSelect }) => {
 // ============ PRODUCT BADGE COMPONENT ============
 const ProductBadge = ({ type }) => {
   if (!type) return null;
-
   const badges = {
     hot: { icon: <FaFire />, text: "Hot", className: "badge-hot" },
     new: { icon: <HiOutlineSparkles />, text: "New", className: "badge-new" },
@@ -242,10 +249,8 @@ const ProductBadge = ({ type }) => {
     organic: { icon: <FaLeaf />, text: "Organic", className: "badge-organic" },
     premium: { icon: <FaCrown />, text: "Premium", className: "badge-premium" },
   };
-
   const badge = badges[type];
   if (!badge) return null;
-
   return (
     <span className={`product-badge ${badge.className}`}>
       {badge.icon}
@@ -259,7 +264,6 @@ const RatingStars = ({ rating, reviews }) => {
   const fullStars = Math.floor(rating);
   const hasHalf = rating % 1 >= 0.5;
   const emptyStars = 5 - fullStars - (hasHalf ? 1 : 0);
-
   return (
     <div className="rating-container">
       <div className="stars">
@@ -290,25 +294,6 @@ const ProductCard = ({ product, viewMode, onAddToCart, onQuickView }) => {
 
   const imageSource = product.image ?? product.image_url ?? "";
 
-  const getImageSrc = (raw, cat) => {
-    if (!raw) return "/assets/images/placeholder.png";
-    let val = String(raw).trim();
-    if (/^https?:\/\//i.test(val)) return val;
-    if (val.startsWith("/assets/")) return encodeURI(val);
-    if (val.startsWith("assets/")) return encodeURI("/" + val);
-    if (cat) {
-      const catLower = String(cat).toLowerCase();
-      return encodeURI(`/assets/images/categories/${catLower}/${val}`);
-    }
-    return encodeURI(`/assets/images/${val}`);
-  };
-
-  const handleImgError = (e) => {
-    e.currentTarget.onerror = null;
-    e.currentTarget.src = "/assets/images/placeholder.png";
-  };
-
-  // Generate random data for demo
   const rating = product.rating || getRandomRating();
   const reviews = product.reviews || getRandomReviews();
   const badge = product.badge || getRandomBadge();
@@ -328,7 +313,6 @@ const ProductCard = ({ product, viewMode, onAddToCart, onQuickView }) => {
           onError={handleImgError}
         />
         <ProductBadge type={badge} />
-        
         <div className="product-actions">
           <button
             className={`action-btn wishlist ${isLiked ? "liked" : ""}`}
@@ -345,16 +329,12 @@ const ProductCard = ({ product, viewMode, onAddToCart, onQuickView }) => {
             <FiEye />
           </button>
         </div>
-
         {!inStock && <div className="out-of-stock-overlay">Out of Stock</div>}
       </div>
-
       <div className="product-info">
         <span className="product-category">{category}</span>
         <h3 className="product-name">{product.name}</h3>
-        
         <RatingStars rating={parseFloat(rating)} reviews={reviews} />
-
         <div className="product-pricing">
           <span className="current-price">₦{product.price?.toLocaleString()}</span>
           {originalPrice && (
@@ -362,7 +342,6 @@ const ProductCard = ({ product, viewMode, onAddToCart, onQuickView }) => {
           )}
           {discount && <span className="discount-tag">-{discount}%</span>}
         </div>
-
         <button
           className="add-to-cart-btn"
           onClick={() => onAddToCart(product)}
@@ -386,25 +365,6 @@ const QuickViewModal = ({ product, onClose, onAddToCart }) => {
       : product.category?.name || "";
 
   const imageSource = product.image ?? product.image_url ?? "";
-
-  const getImageSrc = (raw, cat) => {
-    if (!raw) return "/assets/images/placeholder.png";
-    let val = String(raw).trim();
-    if (/^https?:\/\//i.test(val)) return val;
-    if (val.startsWith("/assets/")) return encodeURI(val);
-    if (val.startsWith("assets/")) return encodeURI("/" + val);
-    if (cat) {
-      const catLower = String(cat).toLowerCase();
-      return encodeURI(`/assets/images/categories/${catLower}/${val}`);
-    }
-    return encodeURI(`/assets/images/${val}`);
-  };
-
-  const handleImgError = (e) => {
-    e.currentTarget.onerror = null;
-    e.currentTarget.src = "/assets/images/placeholder.png";
-  };
-
   const rating = product.rating || getRandomRating();
   const reviews = product.reviews || getRandomReviews();
 
@@ -414,7 +374,6 @@ const QuickViewModal = ({ product, onClose, onAddToCart }) => {
         <button className="modal-close" onClick={onClose}>
           <FiX />
         </button>
-
         <div className="modal-content">
           <div className="modal-image">
             <img
@@ -423,22 +382,17 @@ const QuickViewModal = ({ product, onClose, onAddToCart }) => {
               onError={handleImgError}
             />
           </div>
-
           <div className="modal-details">
             <span className="modal-category">{category}</span>
             <h2 className="modal-name">{product.name}</h2>
-            
             <RatingStars rating={parseFloat(rating)} reviews={reviews} />
-
             <div className="modal-price">
               <span className="price">₦{product.price?.toLocaleString()}</span>
             </div>
-
             <p className="modal-description">
               {product.description ||
                 "Premium quality product from our trusted suppliers. Experience the best with ChiamoOrder."}
             </p>
-
             <div className="modal-features">
               <div className="feature">
                 <FiTruck />
@@ -453,7 +407,6 @@ const QuickViewModal = ({ product, onClose, onAddToCart }) => {
                 <span>Secure Packaging</span>
               </div>
             </div>
-
             <button
               className="modal-add-btn"
               onClick={() => {
@@ -474,20 +427,16 @@ const QuickViewModal = ({ product, onClose, onAddToCart }) => {
 // ============ BACK TO TOP BUTTON ============
 const BackToTop = () => {
   const [isVisible, setIsVisible] = useState(false);
-
   useEffect(() => {
     const toggleVisibility = () => {
       setIsVisible(window.pageYOffset > 300);
     };
-
     window.addEventListener("scroll", toggleVisibility);
     return () => window.removeEventListener("scroll", toggleVisibility);
   }, []);
-
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
-
   return (
     <button
       className={`back-to-top ${isVisible ? "visible" : ""}`}
@@ -514,7 +463,6 @@ export default function ProductGalleryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
-  // ✅ Load products
   useEffect(() => {
     setIsLoading(true);
     setTimeout(() => {
@@ -529,7 +477,6 @@ export default function ProductGalleryPage() {
     }, 500);
   }, []);
 
-  // ✅ Theme management
   useEffect(() => {
     const saved = localStorage.getItem("gallery-theme");
     if (saved) {
@@ -545,11 +492,8 @@ export default function ProductGalleryPage() {
     document.documentElement.setAttribute("data-theme", newTheme);
   };
 
-  // ✅ Filter and sort products
   useEffect(() => {
     let results = [...allProducts];
-
-    // Category filter
     if (selectedCategory !== "all") {
       results = results.filter((p) => {
         const cat = String(
@@ -558,8 +502,6 @@ export default function ProductGalleryPage() {
         return cat.includes(selectedCategory.toLowerCase());
       });
     }
-
-    // Search filter
     if (query.trim()) {
       const q = query.trim().toLowerCase();
       results = results.filter((p) => {
@@ -570,8 +512,6 @@ export default function ProductGalleryPage() {
         return name.includes(q) || cat.includes(q);
       });
     }
-
-    // Sorting
     switch (sortBy) {
       case "name-asc":
         results.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
@@ -588,11 +528,9 @@ export default function ProductGalleryPage() {
       default:
         break;
     }
-
     setFilteredProducts(results);
   }, [allProducts, selectedCategory, query, sortBy]);
 
-  // ✅ Handlers
   const handleAddToCart = (product) => {
     setToastMessage(`🛑 Please register to add "${product.name}" to cart.`);
     setTimeout(() => setToastMessage(""), 3500);
@@ -602,7 +540,6 @@ export default function ProductGalleryPage() {
     setSelectedCategory(category);
   };
 
-  // ✅ Slider settings
   const sliderSettings = {
     dots: true,
     infinite: true,
@@ -616,11 +553,12 @@ export default function ProductGalleryPage() {
     pauseOnHover: true,
   };
 
-  // ✅ Image error handler for banner
-  const handleBannerError = (e) => {
-    e.currentTarget.onerror = null;
-    e.currentTarget.src = "/assets/images/placeholder-banner.png";
-  };
+  // ✅ FIXED: Default banners now use ImageKit URLs
+  const defaultBanners = [
+    `${IMG_BASE}/banners/MAMUDA-FOODS.png`,
+    `${IMG_BASE}/banners/MAMUDA-BEVERAGES.png`,
+    `${IMG_BASE}/banners/MAMUDA-FOOD-AD5.png`,
+  ];
 
   return (
     <div className={`gallery-page ${theme}`} data-theme={theme}>
@@ -638,21 +576,19 @@ export default function ProductGalleryPage() {
               <span className="current">Product Gallery</span>
             </div>
           </div>
-
           <div className="header-center">
             <h1 className="gallery-title">
               <FiPackage className="title-icon" />
               Product Gallery
             </h1>
           </div>
-
           <div className="header-right">
             <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
           </div>
         </div>
       </header>
 
-      {/* ===== HERO BANNER ===== */}
+      {/* ===== HERO BANNER (FIXED!) ===== */}
       <section className="hero-banner-section">
         <div className="hero-banner">
           <Slider {...sliderSettings}>
@@ -663,7 +599,7 @@ export default function ProductGalleryPage() {
                 ).map((img, idx) => (
                   <div key={idx} className="banner-slide">
                     <img
-                      src={img}
+                      src={getImageSrc(img)}
                       alt={`${selectedCategory} banner ${idx + 1}`}
                       className="banner-image"
                       onError={handleBannerError}
@@ -674,11 +610,7 @@ export default function ProductGalleryPage() {
                     </div>
                   </div>
                 ))
-              : [
-                  "/assets/images/categories/banners/MAMUDA-FOODS.png",
-                  "/assets/images/categories/banners/MAMUDA-BEVERAGES.png",
-                  "/assets/images/categories/banners/MAMUDA-FOOD-AD5.png",
-                ].map((img, idx) => (
+              : defaultBanners.map((img, idx) => (
                   <div key={idx} className="banner-slide">
                     <img
                       src={img}
@@ -699,30 +631,23 @@ export default function ProductGalleryPage() {
       {/* ===== MAIN CONTENT ===== */}
       <main className="gallery-main">
         <div className="main-container">
-          {/* Search Bar */}
           <SearchBar
             query={query}
             setQuery={setQuery}
             resultsCount={filteredProducts.length}
           />
-
-          {/* Category Tabs */}
           <CategoryTabs
             categories={CATEGORIES}
             selected={selectedCategory}
             onSelect={handleCategorySelect}
           />
-
-          {/* Toolbar */}
           <div className="gallery-toolbar">
             <div className="toolbar-left">
               <span className="products-count">
                 <strong>{filteredProducts.length}</strong> products found
               </span>
             </div>
-
             <div className="toolbar-right">
-              {/* Sort Dropdown */}
               <div className="sort-dropdown-container">
                 <button
                   className="sort-btn"
@@ -753,8 +678,6 @@ export default function ProductGalleryPage() {
                   </div>
                 )}
               </div>
-
-              {/* View Toggle */}
               <div className="view-toggle">
                 <button
                   className={`view-btn ${viewMode === "grid" ? "active" : ""}`}
@@ -774,7 +697,6 @@ export default function ProductGalleryPage() {
             </div>
           </div>
 
-          {/* Products Grid/List */}
           {isLoading ? (
             <div className="products-loading">
               {[...Array(8)].map((_, i) => (
@@ -824,36 +746,28 @@ export default function ProductGalleryPage() {
       <section className="features-banner">
         <div className="features-container">
           <div className="feature-item">
-            <div className="feature-icon">
-              <FiTruck />
-            </div>
+            <div className="feature-icon"><FiTruck /></div>
             <div className="feature-text">
               <h4>Fast Delivery</h4>
               <p>Quick and reliable shipping</p>
             </div>
           </div>
           <div className="feature-item">
-            <div className="feature-icon">
-              <FiShield />
-            </div>
+            <div className="feature-icon"><FiShield /></div>
             <div className="feature-text">
               <h4>Secure Payment</h4>
               <p>100% secure transactions</p>
             </div>
           </div>
           <div className="feature-item">
-            <div className="feature-icon">
-              <FiStar />
-            </div>
+            <div className="feature-icon"><FiStar /></div>
             <div className="feature-text">
               <h4>Quality Products</h4>
               <p>Only the best for you</p>
             </div>
           </div>
           <div className="feature-item">
-            <div className="feature-icon">
-              <FiPackage />
-            </div>
+            <div className="feature-icon"><FiPackage /></div>
             <div className="feature-text">
               <h4>Easy Returns</h4>
               <p>Hassle-free return policy</p>
@@ -862,17 +776,13 @@ export default function ProductGalleryPage() {
         </div>
       </section>
 
-      {/* ===== FOOTER ===== */}
       <footer className="gallery-footer">
         <div className="footer-content">
-          <p>
-            © {new Date().getFullYear()} ChiamoOrder. All rights reserved.
-          </p>
+          <p>© {new Date().getFullYear()} ChiamoOrder. All rights reserved.</p>
           <p className="footer-tagline">Shop Smarter, Order Faster</p>
         </div>
       </footer>
 
-      {/* ===== MODALS & OVERLAYS ===== */}
       {quickViewProduct && (
         <QuickViewModal
           product={quickViewProduct}
@@ -880,18 +790,12 @@ export default function ProductGalleryPage() {
           onAddToCart={handleAddToCart}
         />
       )}
-
-      {/* Toast Notification */}
       {toastMessage && (
         <div className="toast-notification">
           <span>{toastMessage}</span>
         </div>
       )}
-
-      {/* Back to Top */}
       <BackToTop />
-
-      {/* Close sort dropdown when clicking outside */}
       {showSortDropdown && (
         <div
           className="dropdown-backdrop"

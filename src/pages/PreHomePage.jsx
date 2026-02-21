@@ -50,10 +50,7 @@ import reliableAnimation from "../assets/animations/reliable.json";
 import ShoppingAnimation from "../assets/animations/Shopping.json";
 import scanningAnimation from "../assets/animations/scanning.json";
 
-// Import logos
-import chiamoLogo from "../assets/CHIAMO_MULTITRADE_LOGO.png";
-import ghadcoLogo from "../assets/GHADCO_LOGO.png";
-import mamudaLogo from "../assets/mamuda-logo.png";
+
 
 // ============ CONFIGURATION ============
 const CONFIG = {
@@ -227,9 +224,18 @@ const FAQ_DATA = [
 
 // ============ PARTNER LOGOS ============
 const PARTNERS = [
-  { src: chiamoLogo, alt: "Chiamo Multitrade", name: "Chiamo Multitrade" },
-  { src: ghadcoLogo, alt: "Ghadco Nigeria", name: "Ghadco Nigeria" },
-  { src: mamudaLogo, alt: "Mamuda Group", name: "Mamuda Group" },
+  {
+    src: "https://ik.imagekit.io/ljwnlcbqyu/CHIAMO_MULTITRADE_LOGO.png?tr=w-300,f-auto,q-80",
+    alt: "Chiamo Multitrade",
+  },
+  {
+    src: "https://ik.imagekit.io/ljwnlcbqyu/GHADCO_LOGO.png?tr=w-300,f-auto,q-80",
+    alt: "Ghadco Nigeria",
+  },
+  {
+    src: "https://ik.imagekit.io/ljwnlcbqyu/mamuda-logo.png?tr=w-300,f-auto,q-80",
+    alt: "Mamuda Group",
+  },
 ];
 
 // ============ NAVBAR COMPONENT ============
@@ -879,9 +885,10 @@ const Footer = ({ navigate }) => (
         <div className="footer-brand">
           <div className="footer-logo">
             <img
-              src="/assets/images/CHIAMO-ORDER-LOGO2.png"
+              src="https://ik.imagekit.io/ljwnlcbqyu/CHIAMO-ORDER-LOGO2.png?tr=w-200,f-auto,q-80"
               alt="ChiamoOrder Logo"
               className="logo-image"
+              loading="lazy"
             />
             <div className="logo-text">
               Chiamo<span>Order</span>

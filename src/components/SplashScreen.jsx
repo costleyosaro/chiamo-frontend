@@ -3,10 +3,7 @@ import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import "./SplashScreen.css";
 
-import logo from "../assets/CHIAMO-ORDER-LOGO2.png";
-import chiamoLogo from "../assets/CHIAMO_MULTITRADE_LOGO.png";
-import ghadcoLogo from "../assets/GHADCO_LOGO.png";
-import mamudaLogo from "../assets/mamuda-logo.png";
+
 
 // ============ CONFIGURATION ============
 const CONFIG = {
@@ -14,6 +11,14 @@ const CONFIG = {
   tagline: "Shop smarter, Order faster.",
   splashDuration: 5000, // 5 seconds
   letterDelay: 0.08,
+};
+
+// ============ IMAGE URLS ============
+const IMAGES = {
+  mainLogo: "https://ik.imagekit.io/ljwnlcbqyu/CHIAMO-ORDER-LOGO2.png",
+  chiamoLogo: "https://ik.imagekit.io/ljwnlcbqyu/CHIAMO_MULTITRADE_LOGO.png",
+  ghadcoLogo: "https://ik.imagekit.io/ljwnlcbqyu/GHADCO_LOGO.png",
+  mamudaLogo: "https://ik.imagekit.io/ljwnlcbqyu/mamuda-logo.png",
 };
 
 // ============ ANIMATED TITLE ============
@@ -90,13 +95,13 @@ const SplashScreen = ({ onFinish }) => {
   const [showFooter, setShowFooter] = useState(false);
 
   const partnerLogos = useMemo(
-    () => [
-      { src: chiamoLogo, alt: "Chiamo Multitrade" },
-      { src: ghadcoLogo, alt: "Ghadco Nigeria" },
-      { src: mamudaLogo, alt: "Mamuda Group" },
-    ],
-    []
-  );
+  () => [
+    { src: IMAGES.chiamoLogo, alt: "Chiamo Multitrade" },
+    { src: IMAGES.ghadcoLogo, alt: "Ghadco Nigeria" },
+    { src: IMAGES.mamudaLogo, alt: "Mamuda Group" },
+  ],
+  []
+);
 
   useEffect(() => {
     const timers = [];
@@ -159,7 +164,7 @@ const SplashScreen = ({ onFinish }) => {
                 ease: [0.16, 1, 0.3, 1],
               }}
             >
-              <img src={logo} alt="Chiamo Order" className="splash-logo" />
+              <img src={IMAGES.mainLogo} alt="Chiamo Order" className="splash-logo" />
             </motion.div>
 
             {/* Title */}

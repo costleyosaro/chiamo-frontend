@@ -275,9 +275,10 @@ const Navbar = ({ onScanClick, navigate }) => {
           {/* Logo */}
           <div className="navbar-logo" onClick={() => handleNavClick("#home")}>
             <img
-              src="/assets/images/CHIAMO-ORDER-LOGO2.png"
+              src="https://ik.imagekit.io/ljwnlcbqyu/CHIAMO-ORDER-LOGO2.png?tr=w-200,f-auto,q-80"
               alt="ChiamoOrder Logo"
               className="logo-image"
+              loading="lazy"
             />
             <div className="logo-text">
               Chiamo<span>Order</span>

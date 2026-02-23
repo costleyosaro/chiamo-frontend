@@ -10,6 +10,7 @@ import Lottie from "lottie-react";
 import BottomNav from "../components/BottomNav";
 import scanningAnimation from "../assets/animations/scanning.json";
 import ComingSoonModal from "../components/ComingSoonModal";
+import { imageUrl, PLACEHOLDER } from '../utils/image';
 
 // Icons
 import {
@@ -70,41 +71,40 @@ import SubscriptionsAnimation from "../assets/animations/subscriptions.json";
 import SetTransactionPinModal from "../components/SetTransactionPinModal";
 import "../main.css";
 
-// ============ CONFIGURATION ============
 const CATEGORIES = [
   {
     id: "food",
     name: "Food",
     icon: LuCandy,
-    image: "/assets/images/categories/food/FOOD-CATEGORY-PHOTO.png",
+    image: "assets/images/categories/food/FOOD-CATEGORY-PHOTO.png",    // ✅ no leading /
     color: "#f59e0b",
   },
   {
     id: "beverage",
     name: "Beverages",
     icon: FaWineGlassAlt,
-    image: "/assets/images/categories/beverages/BEVERAGE-CATEGORY-PHOTO.png",
+    image: "assets/images/categories/beverages/BEVERAGE-CATEGORY-PHOTO.png", // ✅
     color: "#3b82f6",
   },
   {
     id: "ZIZOU",
     name: "Zizou",
     icon: FaWineGlassAlt,
-    image: "/assets/images/categories/zizou/zizou-orange.jpeg",
+    image: "assets/images/categories/zizou/zizou-orange.jpeg",         // ✅
     color: "#8b5cf6",
   },
   {
     id: "care",
     name: "Care",
     icon: FaPumpSoap,
-    image: "/assets/images/categories/care/CARE-CATEGORY-PHOTO1.png",
+    image: "assets/images/categories/care/CARE-CATEGORY-PHOTO1.png",   // ✅
     color: "#10b981",
   },
   {
     id: "beauty",
     name: "Beauty",
     icon: FaSpa,
-    image: "/assets/images/categories/beauty/CLASSY_JELLY_48PCS-100g.png",
+    image: "assets/images/categories/beauty/CLASSY_JELLY_48PCS-100g.png", // ✅
     color: "#ec4899",
   },
 ];
@@ -439,13 +439,11 @@ const CategoriesSection = () => {
             className="hp-category-card"
           >
             <div className="hp-category-image-wrapper">
+              {/* ✅ NEW */}
               <img
-                src={category.image}
+                src={imageUrl(category.image, 300, 300)}
                 alt={category.name}
-                className="hp-category-image"
-                onError={(e) => {
-                  e.target.src = "/assets/images/placeholder.png";
-                }}
+                onError={(e) => { e.target.onerror = null; e.target.src = PLACEHOLDER; }}
               />
               <div
                 className="hp-category-overlay"
@@ -586,16 +584,14 @@ const FlashSaleSection = ({ addToCart }) => {
                 <div className="hp-product-badge">-{discount}%</div>
               )}
               <div className="hp-product-image-wrapper">
+                {/* ✅ NEW — uses ImageKit */}
                 <img
-                  src={
-                    product.image_url?.startsWith("http")
-                      ? product.image_url
-                      : `/assets/images/${product.image_url}`
-                  }
+                  src={imageUrl(product.image_url || product.image)}
                   alt={product.name}
                   className="hp-product-image"
                   onError={(e) => {
-                    e.target.src = "/assets/images/placeholder.png";
+                    e.target.onerror = null;
+                    e.target.src = PLACEHOLDER;
                   }}
                 />
                 <button

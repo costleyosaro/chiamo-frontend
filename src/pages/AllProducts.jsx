@@ -10,6 +10,8 @@ import toast from "react-hot-toast";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import "./AllProducts.css";
+import { imageUrl, PLACEHOLDER } from '../utils/image';
+
 
 // Icons
 import {
@@ -63,18 +65,6 @@ const SORT_OPTIONS = [
 ];
 
 // ============ HELPER FUNCTIONS ============
-function getImageSrc(raw, category) {
-  if (!raw) return "/assets/images/placeholder.png";
-  const val = String(raw).trim();
-  if (/^https?:\/\//i.test(val)) return val;
-  if (val.startsWith("/assets/")) return encodeURI(val);
-  if (val.startsWith("assets/")) return encodeURI("/" + val);
-  if (category) {
-    const catLower = String(category).toLowerCase();
-    return encodeURI(`/assets/images/categories/${catLower}/${val}`);
-  }
-  return encodeURI(`/assets/images/${val}`);
-}
 
 const getRandomBadge = () => {
   const badges = ["hot", "new", "sale", "organic", "premium", null, null, null];
@@ -215,13 +205,7 @@ const RatingStars = ({ rating, reviews, onRate, productId, readonly = false }) =
 
 // ============ PRODUCT CARD COMPONENT ============
 const ProductCard = ({
-  product,
-  viewMode,
-  rating,
-  onRate,
-  onAddToCart,
-  onWishlist,
-  onQuickView,
+  product, viewMode, rating, onRate, onAddToCart, onWishlist, onQuickView,
 }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -234,8 +218,8 @@ const ProductCard = ({
       ? product.category
       : product.category?.name || "";
 
-  // Get image source
-  const imageSource = product.image ?? product.image_url ?? "";
+  // ✅ FIX: Get image source using imageUrl()
+  const imageSrc = imageUrl(product.image ?? product.image_url ?? '');
 
   // Calculate pricing
   const price = Number(product.price) || 0;
@@ -249,11 +233,12 @@ const ProductCard = ({
   const reviews = product.reviews || getRandomReviews();
   const inStock = product.stock !== 0;
 
-  // Handle image error
+  // ✅ FIX: Handle image error (was syntax error before!)
   const handleImgError = (e) => {
-    e.currentTarget.onerror = null;
-    e.currentTarget.src = "/assets/images/placeholder.png";
+    e.target.onerror = null;
+    e.target.src = PLACEHOLDER;
   };
+
 
   // Handle add to cart
   const handleAdd = async (e) => {
@@ -291,7 +276,7 @@ const ProductCard = ({
 
         {/* Product Image */}
         <img
-          src={getImageSrc(imageSource, category)}
+          src={imageSrc}
           alt={product.name}
           className={`ap-product-image ${imageLoaded ? "loaded" : ""}`}
           onLoad={() => setImageLoaded(true)}
@@ -414,7 +399,7 @@ const QuickViewModal = ({ product, onClose, onAddToCart }) => {
       : product.category?.name || "";
 
   // Get image source
-  const imageSource = product.image ?? product.image_url ?? "";
+  const imageSrc = imageUrl(product.image ?? product.image_url ?? '');
 
   // Calculate pricing
   const price = Number(product.price) || 0;
@@ -431,7 +416,7 @@ const QuickViewModal = ({ product, onClose, onAddToCart }) => {
   // Handle image error
   const handleImgError = (e) => {
     e.currentTarget.onerror = null;
-    e.currentTarget.src = "/assets/images/placeholder.png";
+    e.currentTarget.src = PLACEHOLDER;
   };
 
   // Handle add to cart
@@ -461,7 +446,7 @@ const QuickViewModal = ({ product, onClose, onAddToCart }) => {
           <div className="ap-modal-image">
             {!imageLoaded && <div className="ap-modal-image-skeleton" />}
             <img
-              src={getImageSrc(imageSource, category)}
+              src={imageSrc}
               alt={product.name}
               onLoad={() => setImageLoaded(true)}
               onError={handleImgError}
@@ -916,7 +901,7 @@ export default function AllProducts() {
   // Handle banner error
   const handleBannerError = (e) => {
     e.currentTarget.onerror = null;
-    e.currentTarget.src = "/assets/images/placeholder-banner.png";
+    e.currentTarget.src = PLACEHOLDER;
   };
 
   // ============ PAGE TITLE ============
@@ -1000,7 +985,7 @@ export default function AllProducts() {
                 ].map((img, idx) => (
                   <div key={idx} className="ap-banner-slide">
                     <img
-                      src={img}
+                      src={imageUrl(img, 800, 400)}
                       alt={`banner-${idx + 1}`}
                       className="ap-banner-image"
                       onError={handleBannerError}

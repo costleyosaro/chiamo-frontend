@@ -25,7 +25,7 @@ export default function SmartListDrawer({ onClose, targetListId }) {
         setLoading(true);
 
         // 1️⃣ Try to hit /api/products/
-        const root = await API.get("/products/");
+        const root = await API.get("products/products/");
         console.log("✅ Products root fetched:", root.data);
 
         // 2️⃣ Detect if it only returned URLs

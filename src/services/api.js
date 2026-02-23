@@ -1,13 +1,21 @@
 // src/services/api.js
 import axios from "axios";
 
-// ✅ Create the axios instance
+// ✅ RUNTIME URL DETECTION - Cannot fail!
+const isLocalhost = window.location.hostname === "localhost" 
+                 || window.location.hostname === "127.0.0.1";
+
+const BASE_URL = isLocalhost
+  ? "http://127.0.0.1:8000/api/"
+  : "https://web-production-04707.up.railway.app/api/";
+
+console.log("🌐 API Base URL:", BASE_URL);
+console.log("🏠 Is Localhost:", isLocalhost);
+
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api/",
-})
-// =============================
-// 🔹 TOKEN MANAGEMENT HELPERS
-// =============================
+  baseURL: BASE_URL,
+});
+
 const getAccessToken = () => localStorage.getItem("access");
 const getRefreshToken = () => localStorage.getItem("refresh");
 
@@ -16,20 +24,13 @@ const saveAccessToken = (token) => {
   API.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 };
 
-// =============================
-// 🔹 SKIP AUTH ENDPOINTS
-// =============================
 const skipAuthEndpoints = ["token/", "signup/", "login/", "register/"];
 const shouldSkipAuth = (url) =>
   skipAuthEndpoints.some((endpoint) => url.includes(endpoint));
 
-// =============================
-// 🔹 REQUEST INTERCEPTOR
-// =============================
 API.interceptors.request.use(
   (config) => {
     const accessToken = getAccessToken();
-
     if (accessToken && !shouldSkipAuth(config.url)) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
@@ -38,9 +39,6 @@ API.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// =============================
-// 🔹 REFRESH TOKEN HANDLING
-// =============================
 let isRefreshing = false;
 let refreshSubscribers = [];
 
@@ -53,18 +51,12 @@ const onRefreshed = (newToken) => {
   refreshSubscribers = [];
 };
 
-// ✅ Function to refresh access token
 async function refreshAccessToken() {
   const refresh = getRefreshToken();
-  if (!refresh) {
-    throw new Error("No refresh token found");
-  }
+  if (!refresh) throw new Error("No refresh token found");
 
   try {
-    const res = await axios.post(
-      `${import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api/"}/token/refresh/`,
-      { refresh }  // ← Send the refresh token!
-    );
+    const res = await axios.post(`${BASE_URL}token/refresh/`, { refresh });
     const newAccess = res.data.access;
     if (newAccess) {
       saveAccessToken(newAccess);
@@ -81,15 +73,10 @@ async function refreshAccessToken() {
   }
 }
 
-// =============================
-// 🔹 RESPONSE INTERCEPTOR
-// =============================
 API.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-
-    // Skip if request already retried or not an auth error
     if (
       error.response?.status !== 401 ||
       originalRequest._retry ||
@@ -97,11 +84,7 @@ API.interceptors.response.use(
     ) {
       return Promise.reject(error);
     }
-
-    // Mark request as retried
     originalRequest._retry = true;
-
-    // Handle multiple requests during refresh
     if (isRefreshing) {
       return new Promise((resolve) => {
         subscribeTokenRefresh((token) => {
@@ -110,9 +93,7 @@ API.interceptors.response.use(
         });
       });
     }
-
     isRefreshing = true;
-
     try {
       const newToken = await refreshAccessToken();
       isRefreshing = false;

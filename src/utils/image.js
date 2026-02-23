@@ -1,7 +1,6 @@
 // src/utils/image.js
 const IMAGEKIT_URL = 'https://ik.imagekit.io/ljwnlcbqyu/';
 
-// ✅ Safe fallback that NEVER 404s (inline SVG)
 export const PLACEHOLDER =
   'data:image/svg+xml,' +
   encodeURIComponent(
@@ -17,13 +16,17 @@ export const imageUrl = (path, w = 400, h = 400) => {
 
   const val = String(path).trim();
 
-  // Already a full URL — return as-is
+  // Already a full URL — return as-is (handles categoryBanners)
   if (/^https?:\/\//i.test(val)) return val;
 
-  // Strip leading "/" and/or "assets/"
+  // Strip everything before the actual folder name
+  // "assets/images/categories/beverages/Bev12.png" → "beverages/Bev12.png"
+  // "/assets/images/categories/care/x.png"          → "care/x.png"
+  // "assets/images/food/x.png"                      → "food/x.png"
   const cleaned = val
-    .replace(/^\/?assets\//i, '') // /assets/images/... → images/...
-    .replace(/^\//, '');          // remove any remaining leading /
+    .replace(/^\/?assets\/images\/categories\//i, '')
+    .replace(/^\/?assets\/images\//i, '')
+    .replace(/^\//, '');
 
   return `${IMAGEKIT_URL}${cleaned}?tr=w-${w},h-${h},fo-auto,q-80`;
 };

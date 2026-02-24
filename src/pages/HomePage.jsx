@@ -107,44 +107,8 @@ const CATEGORIES = [
     image: "beauty/CLASSY_JELLY_48PCS-100g.png",
     color: "#ec4899",
   },
-];const CATEGORIES = [
-  {
-    id: "food",
-    name: "Food",
-    icon: LuCandy,
-    image: "food/FOOD-CATEGORY-PHOTO.png",
-    color: "#f59e0b",
-  },
-  {
-    id: "beverage",
-    name: "Beverages",
-    icon: FaWineGlassAlt,
-    image: "beverages/BEVERAGE-CATEGORY-PHOTO.png",
-    color: "#3b82f6",
-  },
-  {
-    id: "ZIZOU",
-    name: "Zizou",
-    icon: FaWineGlassAlt,
-    image: "zizou/zizou-orange.jpeg",
-    color: "#8b5cf6",
-  },
-  {
-    id: "care",
-    name: "Care",
-    icon: FaPumpSoap,
-    image: "care/CARE-CATEGORY-PHOTO1.png",
-    color: "#10b981",
-  },
-  {
-    id: "beauty",
-    name: "Beauty",
-    icon: FaSpa,
-    image: "beauty/CLASSY_JELLY_48PCS-100g.png",
-    color: "#ec4899",
-  },
-];
 
+]
 // ============ UPDATED QUICK ACTIONS WITH COMING SOON FLAGS ============
 const QUICK_ACTIONS = [
   {

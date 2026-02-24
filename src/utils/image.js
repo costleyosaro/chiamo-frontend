@@ -32,3 +32,4 @@ export const imageUrl = (path, w = 400, h = 400) => {
 
   return `${IMAGEKIT_URL}${cleaned}?tr=w-${w},h-${h},fo-auto,q-80`;
 };
+

@@ -979,9 +979,9 @@ export default function AllProducts() {
                   </div>
                 ))
               : [
-                  "/assets/images/categories/banners/MAMUDA-FOODS.png",
-                  "/assets/images/categories/banners/MAMUDA-BEVERAGES.png",
-                  "/assets/images/categories/banners/MAMUDA-FOOD-AD5.png",
+                  "https://ik.imagekit.io/ljwnlcbqyu/banners/MAMUDA-FOODS.png",
+                  "https://ik.imagekit.io/ljwnlcbqyu/banners/MAMUDA-BEVERAGES.png",
+                  "https://ik.imagekit.io/ljwnlcbqyu/banners/MAMUDA-FOOD-AD5.png",
                 ].map((img, idx) => (
                   <div key={idx} className="ap-banner-slide">
                     <img

@@ -1,4 +1,5 @@
 // src/utils/image.js
+
 const IMAGEKIT_URL = 'https://ik.imagekit.io/ljwnlcbqyu/';
 
 export const PLACEHOLDER =
@@ -16,16 +17,19 @@ export const imageUrl = (path, w = 400, h = 400) => {
 
   const val = String(path).trim();
 
-  // Already a full URL — return as-is (handles categoryBanners)
+  // Already a full URL — return as-is
   if (/^https?:\/\//i.test(val)) return val;
 
-  // Strip everything before the actual folder name
-  // "assets/images/categories/beverages/Bev12.png" → "beverages/Bev12.png"
-  // "/assets/images/categories/care/x.png"          → "care/x.png"
-  // "assets/images/food/x.png"                      → "food/x.png"
+  // Strip ALL prefix variations to get just "folder/filename"
+  // Input examples:
+  //   "assets/images/categories/beverages/Bev12.png"  → "beverages/Bev12.png"
+  //   "/assets/images/categories/food/x.png"           → "food/x.png"
+  //   "assets/images/placeholder.png"                   → "placeholder.png"
+  //   "beverages/Bev12.png"                             → "beverages/Bev12.png"
   const cleaned = val
     .replace(/^\/?assets\/images\/categories\//i, '')
     .replace(/^\/?assets\/images\//i, '')
+    .replace(/^\/?assets\//i, '')
     .replace(/^\//, '');
 
   return `${IMAGEKIT_URL}${cleaned}?tr=w-${w},h-${h},fo-auto,q-80`;

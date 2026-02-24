@@ -17,14 +17,14 @@ export const categoryBanners = {
     `${IK}/banners/ZIZOU_DRINKS.jpg`,
   ],
   food: [
-    `${IK}/banners/BUTTER SNACK.jpg`,
+    `${IK}/banners/BUTTER_SNACK.jpg`,
     `${IK}/banners/BUTTER-SNACK2.jpg`,
     `${IK}/banners/MAMUDA-FOOD-AD1.png`,
     `${IK}/banners/MAMUDA-FOOD-AD2.png`,
     `${IK}/banners/MAMUDA-FOOD-AD3.png`,
-    `${IK}/banners/GINGER SNAPS.jpg`,
+    `${IK}/banners/GINGER_SNAPS.jpg`,
     `${IK}/banners/MAMUDA-FOOD-AD5.png`,
-    `${IK}/banners/SECRET BITES.jpg`,
+    `${IK}/banners/SECRET_BITES.jpg`,
     `${IK}/banners/MAMUDA-FOODS.png`,
   ],
   care: [

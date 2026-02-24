@@ -32,5 +32,7 @@ export const imageUrl = (path, w = 400, h = 400) => {
     .replace(/^\/?assets\//i, '')
     .replace(/^\//, '');
 
+    console.log('[imageUrl]', path, '→', finalUrl);
+
   return `${IMAGEKIT_URL}${cleaned}?tr=w-${w},h-${h},fo-auto,q-80`;
 };

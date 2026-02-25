@@ -12,24 +12,17 @@ export const PLACEHOLDER =
 
 export const imageUrl = (path, w = 400, h = 400) => {
   if (!path) return PLACEHOLDER;
-
   let val = String(path).trim();
-
   const mediaMatch = val.match(/\/media\/(https?%3A.+)/i);
   if (mediaMatch) {
     val = decodeURIComponent(mediaMatch[1]);
   }
-
   val = val.replace(/^(https?):\/([^/])/, '$1://$2');
-
   if (/^https?:\/\//i.test(val)) return val;
-
   const cleaned = val
     .replace(/^\/?assets\/images\/categories\//i, '')
     .replace(/^\/?assets\/images\//i, '')
     .replace(/^\/?assets\//i, '')
     .replace(/^\//, '');
-
-  return `${IMAGEKIT_URL}${cleaned}?tr=w-${w},h-${h},fo-auto,q-80`;
+  return IMAGEKIT_URL + cleaned + '?tr=w-' + w + ',h-' + h + ',fo-auto,q-80';
 };
-

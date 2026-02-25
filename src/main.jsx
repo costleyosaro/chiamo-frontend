@@ -47,6 +47,7 @@ import { Toaster } from "react-hot-toast";
 import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import Cutom404Page from "./components/Custom404Page";
 
 
 // ✅ Import Splash Screen

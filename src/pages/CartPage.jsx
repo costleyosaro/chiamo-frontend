@@ -6,6 +6,7 @@ import SmartListDrawer from "./SmartListDrawer";
 import toast from "react-hot-toast";
 import TransactionPinModal from "../components/TransactionPinModal";
 import SetTransactionPinModal from "../components/SetTransactionPinModal";
+import { imageUrl, PLACEHOLDER } from "../utils/image";
 import "./Lists.css";
 import "./SmartListDrawer.css";
 
@@ -34,8 +35,16 @@ import { HiOutlineSparkles, HiOutlineClipboardList } from "react-icons/hi";
 
 // ============ HELPER FUNCTIONS ============
 const getItemName = (item) => item?.product?.name || item?.name || "Unnamed Product";
+
 const getItemImage = (item) =>
-  item?.product?.image || item?.image || "/assets/images/placeholder.png";
+  imageUrl(
+    item?.product?.image ||
+    item?.product?.image_url ||
+    item?.image ||
+    item?.image_url ||
+    ''
+  );
+
 const getItemPrice = (item) => item?.product?.price || item?.price || 0;
 
 const getItemCategory = (item) => {
@@ -189,7 +198,7 @@ const ListCard = ({
 }) => {
   const [showMenu, setShowMenu] = useState(false);
   const itemCount = list.items?.length || 0;
-  
+
   // Calculate total
   const total = (list.items || []).reduce((sum, item) => {
     return sum + (getItemPrice(item) * (item.quantity || 1));
@@ -266,7 +275,7 @@ const ListCard = ({
                   src={getItemImage(item)}
                   alt={getItemName(item)}
                   className="sl-preview-image"
-                  onError={(e) => (e.target.src = "/assets/images/placeholder.png")}
+                  onError={(e) => { e.target.onerror = null; e.target.src = PLACEHOLDER; }}
                 />
                 <div className="sl-preview-info">
                   <span className="sl-preview-name">{getItemName(item)}</span>
@@ -370,7 +379,7 @@ const ViewListModal = ({
                       src={image}
                       alt={name}
                       className="sl-view-item-image"
-                      onError={(e) => (e.target.src = "/assets/images/placeholder.png")}
+                      onError={(e) => { e.target.onerror = null; e.target.src = PLACEHOLDER; }}
                     />
                     <div className="sl-view-item-content">
                       <h4 className="sl-view-item-name">{name}</h4>

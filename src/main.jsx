@@ -47,11 +47,12 @@ import { Toaster } from "react-hot-toast";
 import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
-import Custom404Page from "./components/Custom404Page";
+
 
 
 // ✅ Import Splash Screen
 import SplashScreen from "./components/SplashScreen";
+import NotFound from "./components/NotFound";
 
 // ✅ Main App Wrapper with Splash Logic
 function MainApp() {
@@ -115,7 +116,7 @@ function MainApp() {
           <Route path="support" element={<Support />} />
         </Route>
 
-        <Route path="*" element={<Custom404Page />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

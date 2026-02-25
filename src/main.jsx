@@ -114,8 +114,7 @@ function MainApp() {
           <Route path="support" element={<Support />} />
         </Route>
 
-        {/* 🧭 Fallback */}
-        <Route path="*" element={<div>404 - Page Not Found</div>} />
+        <Route path="*" element={<Custom404Page />} />
       </Routes>
     </BrowserRouter>
   );

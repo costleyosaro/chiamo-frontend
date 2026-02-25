@@ -7,6 +7,7 @@ import API from "../services/api";
 import toast from "react-hot-toast";
 import TransactionPinModal from "../components/TransactionPinModal";
 import SetTransactionPinModal from "../components/SetTransactionPinModal";
+import { imageUrl, PLACEHOLDER } from "../utils/image";
 import "./Cart.css";
 
 // Icons
@@ -27,8 +28,39 @@ import {
   FiShoppingBag,
   FiCreditCard,
   FiInfo,
+  FiMapPin,
 } from "react-icons/fi";
 import { HiOutlineSparkles } from "react-icons/hi";
+import { BiStore } from "react-icons/bi";
+
+// ============ DELIVERY PRICING CONFIG ============
+const FREE_DELIVERY_THRESHOLD = 50000;
+
+const DELIVERY_TIERS = [
+  { min: 50000, fee: 0, label: "Free Delivery 🎉" },
+  { min: 25000, fee: 1000, label: "₦1,000" },
+  { min: 10000, fee: 1500, label: "₦1,500" },
+  { min: 0, fee: 2000, label: "₦2,000" },
+];
+
+const getDeliveryFee = (subtotal, method) => {
+  if (method === "pickup") return 0;
+  for (const tier of DELIVERY_TIERS) {
+    if (subtotal >= tier.min) return tier.fee;
+  }
+  return 2000;
+};
+
+const getNextTier = (subtotal) => {
+  // Find the next tier the user can unlock
+  const sortedTiers = [...DELIVERY_TIERS].sort((a, b) => a.min - b.min);
+  for (const tier of sortedTiers) {
+    if (subtotal < tier.min) {
+      return { threshold: tier.min, fee: tier.fee, remaining: tier.min - subtotal };
+    }
+  }
+  return null; // Already at the best tier
+};
 
 // ============ HELPER FUNCTIONS ============
 const parsePrice = (val) =>
@@ -81,12 +113,14 @@ const EmptyCart = ({ onShop }) => (
   </div>
 );
 
-// Cart Item Component
+// Cart Item Component — with editable quantity
 const CartItem = ({ item, onUpdateQty, onRemove }) => {
   const price = parsePrice(item.price);
   const qty = Number(item.quantity) || 1;
   const total = price * qty;
   const [isRemoving, setIsRemoving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(String(qty));
 
   const handleRemove = () => {
     setIsRemoving(true);
@@ -95,14 +129,53 @@ const CartItem = ({ item, onUpdateQty, onRemove }) => {
     }, 300);
   };
 
+  const handleInputChange = (e) => {
+    const val = e.target.value.replace(/[^0-9]/g, "");
+    setEditValue(val);
+  };
+
+  const handleInputBlur = () => {
+    setIsEditing(false);
+    const newQty = parseInt(editValue, 10);
+    if (!newQty || newQty < 1) {
+      setEditValue(String(qty));
+      return;
+    }
+    if (newQty !== qty) {
+      onUpdateQty(item.productId, newQty);
+    }
+    setEditValue(String(newQty));
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.target.blur();
+    }
+  };
+
+  const handleQtyClick = () => {
+    setEditValue(String(qty));
+    setIsEditing(true);
+  };
+
+  React.useEffect(() => {
+    if (!isEditing) {
+      setEditValue(String(qty));
+    }
+  }, [qty, isEditing]);
+
   return (
     <div className={`cart-item ${isRemoving ? "removing" : ""}`}>
       <div className="cart-item-image-wrapper">
         <img
-          src={item.image || "/assets/images/placeholder.png"}
+          src={imageUrl(item.image || item.image_url)}
           alt={item.name || "Product"}
           className="cart-item-image"
           loading="lazy"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = PLACEHOLDER;
+          }}
         />
       </div>
 
@@ -118,25 +191,46 @@ const CartItem = ({ item, onUpdateQty, onRemove }) => {
           </button>
         </div>
 
-        <p className="cart-item-price">{formatCurrency(price)}</p>
+        <p className="cart-item-price">{formatCurrency(price)} / carton</p>
 
         <div className="cart-item-footer">
           <div className="cart-qty-selector">
             <button
-              className="cart-qty-btn"
+              className="cart-qty-btn minus"
               onClick={() => onUpdateQty(item.productId, Math.max(1, qty - 1))}
               disabled={qty <= 1}
               aria-label="Decrease quantity"
             >
-              <FiMinus />
+              −
             </button>
-            <span className="cart-qty-value">{qty}</span>
+
+            {isEditing ? (
+              <input
+                type="text"
+                inputMode="numeric"
+                className="cart-qty-input"
+                value={editValue}
+                onChange={handleInputChange}
+                onBlur={handleInputBlur}
+                onKeyDown={handleKeyDown}
+                autoFocus
+              />
+            ) : (
+              <span
+                className="cart-qty-value"
+                onClick={handleQtyClick}
+                title="Click to type quantity"
+              >
+                {qty}
+              </span>
+            )}
+
             <button
-              className="cart-qty-btn"
+              className="cart-qty-btn plus"
               onClick={() => onUpdateQty(item.productId, qty + 1)}
               aria-label="Increase quantity"
             >
-              <FiPlus />
+              +
             </button>
           </div>
           <span className="cart-item-total">{formatCurrency(total)}</span>
@@ -146,74 +240,199 @@ const CartItem = ({ item, onUpdateQty, onRemove }) => {
   );
 };
 
-// Promo Code Section
-const PromoSection = () => {
-  const [code, setCode] = useState("");
-  const [applied, setApplied] = useState(false);
-
-  const handleApply = () => {
-    if (code.trim()) {
-      // Add your promo logic here
-      toast.success("Promo code applied!");
-      setApplied(true);
-    }
-  };
+// ============ DELIVERY METHOD SELECTOR ============
+const DeliverySection = ({ method, setMethod, subtotal }) => {
+  const deliveryFee = getDeliveryFee(subtotal, "delivery");
+  const nextTier = getNextTier(subtotal);
+  const progress = Math.min((subtotal / FREE_DELIVERY_THRESHOLD) * 100, 100);
+  const isFreeDelivery = subtotal >= FREE_DELIVERY_THRESHOLD;
 
   return (
-    <div className="cart-promo">
-      <div className="cart-promo-header">
-        <FiPercent className="cart-promo-icon" />
-        <span>Have a promo code?</span>
-      </div>
-      <div className="cart-promo-input-wrapper">
-        <input
-          type="text"
-          className="cart-promo-input"
-          placeholder="Enter code"
-          value={code}
-          onChange={(e) => setCode(e.target.value.toUpperCase())}
-          disabled={applied}
-        />
+    <div className="cart-delivery">
+      <h3 className="cart-delivery-title">
+        <FiTruck />
+        Delivery Method
+      </h3>
+
+      {/* Delivery Options */}
+      <div className="cart-delivery-options">
+        {/* Delivery Option */}
         <button
-          className={`cart-promo-btn ${applied ? "applied" : ""}`}
-          onClick={handleApply}
-          disabled={applied || !code.trim()}
+          className={`cart-delivery-option ${method === "delivery" ? "active" : ""}`}
+          onClick={() => setMethod("delivery")}
         >
-          {applied ? <FiCheck /> : "Apply"}
+          <div className="cart-delivery-option-icon">
+            <FiTruck />
+          </div>
+          <div className="cart-delivery-option-info">
+            <span className="cart-delivery-option-name">Delivery</span>
+            <span className="cart-delivery-option-desc">
+              Port Harcourt axis
+            </span>
+          </div>
+          <span className="cart-delivery-option-fee">
+            {isFreeDelivery ? (
+              <span className="free-badge">FREE</span>
+            ) : (
+              formatCurrency(deliveryFee)
+            )}
+          </span>
+          <div className="cart-delivery-radio">
+            <div className="cart-delivery-radio-inner"></div>
+          </div>
+        </button>
+
+        {/* Pickup Option */}
+        <button
+          className={`cart-delivery-option ${method === "pickup" ? "active" : ""}`}
+          onClick={() => setMethod("pickup")}
+        >
+          <div className="cart-delivery-option-icon pickup-icon">
+            <BiStore />
+          </div>
+          <div className="cart-delivery-option-info">
+            <span className="cart-delivery-option-name">Pickup</span>
+            <span className="cart-delivery-option-desc">
+              Collect from warehouse
+            </span>
+          </div>
+          <span className="cart-delivery-option-fee">
+            <span className="free-badge">FREE</span>
+          </span>
+          <div className="cart-delivery-radio">
+            <div className="cart-delivery-radio-inner"></div>
+          </div>
         </button>
       </div>
+
+      {/* Free Delivery Progress Bar — only show for delivery method */}
+      {method === "delivery" && !isFreeDelivery && (
+        <div className="cart-delivery-progress">
+          <div className="cart-delivery-progress-header">
+            <span className="cart-delivery-progress-text">
+              {nextTier && nextTier.threshold === FREE_DELIVERY_THRESHOLD ? (
+                <>
+                  🚚 Add <strong>{formatCurrency(nextTier.remaining)}</strong> more
+                  for <strong>FREE delivery!</strong>
+                </>
+              ) : nextTier ? (
+                <>
+                  📦 Add <strong>{formatCurrency(nextTier.remaining)}</strong> more
+                  to reduce delivery to <strong>{formatCurrency(nextTier.fee)}</strong>
+                </>
+              ) : null}
+            </span>
+          </div>
+          <div className="cart-delivery-progress-bar">
+            <div
+              className="cart-delivery-progress-fill"
+              style={{ width: `${progress}%` }}
+            ></div>
+          </div>
+          <div className="cart-delivery-tiers">
+            <span className={subtotal >= 10000 ? "tier-done" : ""}>₦10K</span>
+            <span className={subtotal >= 25000 ? "tier-done" : ""}>₦25K</span>
+            <span className={subtotal >= 50000 ? "tier-done" : ""}>₦50K Free!</span>
+          </div>
+        </div>
+      )}
+
+      {/* Free Delivery Achieved */}
+      {method === "delivery" && isFreeDelivery && (
+        <div className="cart-delivery-free-banner">
+          <HiOutlineSparkles />
+          <span>You've unlocked <strong>FREE delivery!</strong></span>
+          <HiOutlineSparkles />
+        </div>
+      )}
+
+      {/* Pickup Info */}
+      {method === "pickup" && (
+        <div className="cart-delivery-pickup-info">
+          <FiMapPin />
+          <div>
+            <strong>Warehouse Pickup</strong>
+            <p>Port Harcourt, Rivers State, Nigeria</p>
+            <p className="pickup-hours">Mon - Sat: 8:00 AM - 6:00 PM</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ============ DELIVERY PRICING TABLE ============
+const DeliveryPricingInfo = () => {
+  const [showInfo, setShowInfo] = useState(false);
+
+  return (
+    <div className="cart-delivery-info-section">
+      <button
+        className="cart-delivery-info-toggle"
+        onClick={() => setShowInfo(!showInfo)}
+      >
+        <FiInfo />
+        <span>Delivery pricing info</span>
+        <FiChevronRight className={`toggle-icon ${showInfo ? "open" : ""}`} />
+      </button>
+
+      {showInfo && (
+        <div className="cart-delivery-info-table">
+          <div className="delivery-tier-row">
+            <span>Below ₦10,000</span>
+            <span className="tier-fee">₦2,000</span>
+          </div>
+          <div className="delivery-tier-row">
+            <span>₦10,000 — ₦24,999</span>
+            <span className="tier-fee">₦1,500</span>
+          </div>
+          <div className="delivery-tier-row">
+            <span>₦25,000 — ₦49,999</span>
+            <span className="tier-fee">₦1,000</span>
+          </div>
+          <div className="delivery-tier-row highlight">
+            <span>₦50,000 and above</span>
+            <span className="tier-fee free">FREE 🎉</span>
+          </div>
+          <div className="delivery-tier-row pickup-row">
+            <span>Warehouse Pickup</span>
+            <span className="tier-fee free">Always FREE</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 // Order Summary Component
-const OrderSummary = ({ subtotal, deliveryFee, discount = 0, total }) => (
+const OrderSummary = ({ subtotal, deliveryFee, deliveryMethod, total }) => (
   <div className="cart-summary">
     <h3 className="cart-summary-title">Order Summary</h3>
-    
+
     <div className="cart-summary-rows">
       <div className="cart-summary-row">
         <span>Subtotal</span>
         <span>{formatCurrency(subtotal)}</span>
       </div>
-      
+
       <div className="cart-summary-row">
         <span className="cart-summary-label">
-          <FiTruck className="cart-summary-icon" />
-          Delivery Fee
+          {deliveryMethod === "pickup" ? (
+            <>
+              <BiStore className="cart-summary-icon" />
+              Pickup
+            </>
+          ) : (
+            <>
+              <FiTruck className="cart-summary-icon" />
+              Delivery Fee
+            </>
+          )}
         </span>
-        <span>{formatCurrency(deliveryFee)}</span>
+        <span className={deliveryFee === 0 ? "summary-free" : ""}>
+          {deliveryFee === 0 ? "FREE" : formatCurrency(deliveryFee)}
+        </span>
       </div>
-      
-      {discount > 0 && (
-        <div className="cart-summary-row discount">
-          <span className="cart-summary-label">
-            <FiPercent className="cart-summary-icon" />
-            Discount
-          </span>
-          <span>-{formatCurrency(discount)}</span>
-        </div>
-      )}
     </div>
 
     <div className="cart-summary-divider"></div>
@@ -234,11 +453,11 @@ const TrustBadges = () => (
     </div>
     <div className="cart-trust-item">
       <FiTruck />
-      <span>Fast Delivery</span>
+      <span>Own Fleet</span>
     </div>
     <div className="cart-trust-item">
       <FiPackage />
-      <span>Quality Products</span>
+      <span>Carton Packs</span>
     </div>
   </div>
 );
@@ -278,11 +497,11 @@ export default function Cart() {
   const smartListsContext = useSmartLists();
   const setOrders = smartListsContext?.setOrders;
 
-  const [query, setQuery] = useState("");
   const [processing, setProcessing] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
   const [showSetPinModal, setShowSetPinModal] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [deliveryMethod, setDeliveryMethod] = useState("delivery");
 
   const storedUser = JSON.parse(localStorage.getItem("auth_user") || "{}");
   const customerId =
@@ -293,27 +512,24 @@ export default function Cart() {
     storedUser?.profile?.id ||
     null;
 
-  // Filter cart items
-  const filteredCart = cart.filter((item) =>
-    item?.name?.toLowerCase().includes(query.toLowerCase())
-  );
-
   // Calculate totals
-  const subtotal = filteredCart.reduce((sum, item) => {
+  const subtotal = cart.reduce((sum, item) => {
     const price = parsePrice(item.price);
     const qty = Number(item.quantity) || 1;
     return sum + price * qty;
   }, 0);
 
-  const deliveryFee = subtotal * 0.001;
-  const discount = 0; // Add discount logic if needed
-  const grandTotal = subtotal + deliveryFee - discount;
+  const deliveryFee = getDeliveryFee(subtotal, deliveryMethod);
+  const grandTotal = subtotal + deliveryFee;
 
   // Create order after PIN validation
   const createOrder = async () => {
     setProcessing(true);
     try {
-      const res = await API.post("/orders/checkout/");
+      const res = await API.post("/orders/checkout/", {
+        delivery_method: deliveryMethod,
+        delivery_fee: deliveryFee,
+      });
       const orderId =
         res.data?.order_id ||
         res.data?.order?.order_id ||
@@ -331,18 +547,25 @@ export default function Cart() {
 
       if (typeof setOrders === "function") {
         const optimisticOrder = {
-          id: res.data?.order?.id || orderId || Math.random().toString(36).slice(2, 9),
+          id:
+            res.data?.order?.id ||
+            orderId ||
+            Math.random().toString(36).slice(2, 9),
           order_id: orderId || `ORD-${new Date().getFullYear()}-TEMP`,
           source: "cart",
           status: res.data?.order?.status || "pending",
           created_at: new Date().toISOString(),
           items: [],
           total: res.data?.order?.total || grandTotal,
+          delivery_method: deliveryMethod,
         };
         setOrders((prev) => [optimisticOrder, ...(prev || [])]);
       }
 
-      setTimeout(() => navigate("/orders", { state: { newOrderId: orderId } }), 2000);
+      setTimeout(
+        () => navigate("/orders", { state: { newOrderId: orderId } }),
+        2000
+      );
     } catch (err) {
       const msg =
         err?.response?.data?.error ||
@@ -362,7 +585,9 @@ export default function Cart() {
     }
 
     try {
-      const res = await API.get(`customers/has-transaction-pin/${customerId}/`);
+      const res = await API.get(
+        `customers/has-transaction-pin/${customerId}/`
+      );
       if (res.data.has_pin) {
         setShowPinModal(true);
       } else {
@@ -402,7 +627,7 @@ export default function Cart() {
             {/* Cart Items */}
             <section className="cart-items-section">
               <div className="cart-items">
-                {filteredCart.map((item) => (
+                {cart.map((item) => (
                   <CartItem
                     key={item.productId || item.id}
                     item={item}
@@ -413,14 +638,21 @@ export default function Cart() {
               </div>
             </section>
 
-            {/* Promo Code */}
-            <PromoSection />
+            {/* Delivery Method */}
+            <DeliverySection
+              method={deliveryMethod}
+              setMethod={setDeliveryMethod}
+              subtotal={subtotal}
+            />
+
+            {/* Delivery Pricing Info */}
+            <DeliveryPricingInfo />
 
             {/* Order Summary */}
             <OrderSummary
               subtotal={subtotal}
               deliveryFee={deliveryFee}
-              discount={discount}
+              deliveryMethod={deliveryMethod}
               total={grandTotal}
             />
 
@@ -442,7 +674,10 @@ export default function Cart() {
 
       {/* Clear Cart Confirmation Modal */}
       {showClearConfirm && (
-        <div className="cart-modal-overlay" onClick={() => setShowClearConfirm(false)}>
+        <div
+          className="cart-modal-overlay"
+          onClick={() => setShowClearConfirm(false)}
+        >
           <div className="cart-modal" onClick={(e) => e.stopPropagation()}>
             <div className="cart-modal-icon warning">
               <FiAlertCircle />

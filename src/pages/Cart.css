@@ -282,125 +282,453 @@
   display: inline-flex;
   align-items: center;
   background: var(--bg-color);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
   overflow: hidden;
+  transition: border-color 0.2s ease;
+}
+
+.cart-qty-selector:hover {
+  border-color: var(--accent-color);
 }
 
 .cart-qty-btn {
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: transparent;
   border: none;
-  color: var(--text-color);
-  font-size: 14px;
+  font-size: 20px;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
+  user-select: none;
+  line-height: 1;
+}
+
+.cart-qty-btn.minus {
+  color: #ef4444;
+}
+
+.cart-qty-btn.plus {
+  color: #10b981;
 }
 
 .cart-qty-btn:hover:not(:disabled) {
   background: var(--accent-color);
-  color: #000000;
+  color: #000;
+}
+
+.cart-qty-btn.minus:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.cart-qty-btn.plus:hover:not(:disabled) {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
 }
 
 .cart-qty-btn:disabled {
-  opacity: 0.4;
+  opacity: 0.3;
   cursor: not-allowed;
 }
 
 .cart-qty-value {
-  min-width: 36px;
+  min-width: 44px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  font-size: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-color);
+  border-left: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  cursor: text;
+  user-select: none;
+  transition: background 0.2s ease;
+}
+
+.cart-qty-value:hover {
+  background: rgba(224, 191, 3, 0.1);
+}
+
+.cart-qty-input {
+  width: 50px;
+  height: 38px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-color);
+  background: rgba(224, 191, 3, 0.1);
+  border: none;
+  border-left: 1px solid var(--accent-color);
+  border-right: 1px solid var(--accent-color);
+  outline: none;
+  font-family: inherit;
+  -moz-appearance: textfield;
+}
+
+.cart-qty-input::-webkit-outer-spin-button,
+.cart-qty-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* ============ DELIVERY SECTION ============ */
+.cart-delivery {
+  margin-top: 20px;
+  padding: 20px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+}
+
+.cart-delivery-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: "Poppins", sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-color);
+  margin: 0 0 16px;
+}
+
+.cart-delivery-title svg {
+  font-size: 20px;
+  color: var(--accent-color);
+}
+
+/* Delivery Options */
+.cart-delivery-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cart-delivery-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--bg-color);
+  border: 2px solid var(--border-color);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  width: 100%;
+}
+
+.cart-delivery-option:hover {
+  border-color: var(--accent-color);
+}
+
+.cart-delivery-option.active {
+  border-color: var(--accent-color);
+  background: rgba(224, 191, 3, 0.05);
+}
+
+.cart-delivery-option-icon {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(27, 75, 140, 0.1);
+  color: #1b4b8c;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.cart-delivery-option-icon.pickup-icon {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.cart-delivery-option-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cart-delivery-option-name {
+  font-size: 15px;
   font-weight: 600;
   color: var(--text-color);
 }
 
-/* ============ PROMO SECTION ============ */
-.cart-promo {
-  margin-top: 20px;
-  padding: 16px;
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 14px;
+.cart-delivery-option-desc {
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
-.cart-promo-header {
+.cart-delivery-option-fee {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-color);
+  flex-shrink: 0;
+}
+
+.free-badge {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* Radio Button */
+.cart-delivery-radio {
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--border-color);
+  border-radius: 50%;
   display: flex;
   align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.cart-delivery-option.active .cart-delivery-radio {
+  border-color: var(--accent-color);
+}
+
+.cart-delivery-radio-inner {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: transparent;
+  transition: all 0.2s ease;
+}
+
+.cart-delivery-option.active .cart-delivery-radio-inner {
+  background: var(--accent-color);
+}
+
+/* ============ FREE DELIVERY PROGRESS ============ */
+.cart-delivery-progress {
+  margin-top: 16px;
+  padding: 14px;
+  background: rgba(27, 75, 140, 0.05);
+  border-radius: 12px;
+}
+
+.cart-delivery-progress-header {
+  margin-bottom: 10px;
+}
+
+.cart-delivery-progress-text {
+  font-size: 13px;
+  color: var(--text-color);
+  line-height: 1.5;
+}
+
+.cart-delivery-progress-text strong {
+  color: var(--accent-color);
+}
+
+.cart-delivery-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--border-color);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.cart-delivery-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f59e0b, #10b981);
+  border-radius: 10px;
+  transition: width 0.5s ease;
+}
+
+.cart-delivery-tiers {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.cart-delivery-tiers .tier-done {
+  color: #10b981;
+}
+
+/* Free Delivery Banner */
+.cart-delivery-free-banner {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 8px;
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-color);
-  margin-bottom: 12px;
+  color: #059669;
+  animation: celebrate 0.5s ease;
 }
 
-.cart-promo-icon {
+@keyframes celebrate {
+  0% { transform: scale(0.95); opacity: 0; }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.cart-delivery-free-banner svg {
+  color: #f59e0b;
+  font-size: 18px;
+}
+
+/* Pickup Info */
+.cart-delivery-pickup-info {
+  margin-top: 16px;
+  padding: 14px 16px;
+  background: rgba(16, 185, 129, 0.05);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 12px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.cart-delivery-pickup-info > svg {
+  font-size: 20px;
+  color: #10b981;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.cart-delivery-pickup-info strong {
+  font-size: 14px;
+  color: var(--text-color);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.cart-delivery-pickup-info p {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.pickup-hours {
+  font-size: 12px !important;
+  color: #10b981 !important;
+  margin-top: 4px !important;
+  font-weight: 600;
+}
+
+/* ============ DELIVERY PRICING INFO ============ */
+.cart-delivery-info-section {
+  margin-top: 12px;
+}
+
+.cart-delivery-info-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+}
+
+.cart-delivery-info-toggle:hover {
+  border-color: var(--accent-color);
+  color: var(--text-color);
+}
+
+.cart-delivery-info-toggle svg:first-child {
   font-size: 16px;
   color: var(--accent-color);
 }
 
-.cart-promo-input-wrapper {
-  display: flex;
-  gap: 10px;
-}
-
-.cart-promo-input {
+.cart-delivery-info-toggle span {
   flex: 1;
-  padding: 12px 14px;
-  background: var(--bg-color);
+  text-align: left;
+}
+
+.toggle-icon {
+  transition: transform 0.2s ease;
+  font-size: 14px;
+}
+
+.toggle-icon.open {
+  transform: rotate(90deg);
+}
+
+.cart-delivery-info-table {
+  margin-top: 8px;
+  padding: 14px;
+  background: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: 12px;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; max-height: 0; }
+  to { opacity: 1; max-height: 300px; }
+}
+
+.delivery-tier-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  font-size: 13px;
   color: var(--text-color);
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  border-bottom: 1px solid var(--border-color);
 }
 
-.cart-promo-input::placeholder {
+.delivery-tier-row:last-child {
+  border-bottom: none;
+}
+
+.delivery-tier-row.highlight {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.delivery-tier-row.pickup-row {
   color: var(--text-muted);
-  text-transform: none;
-  letter-spacing: 0;
+  font-style: italic;
 }
 
-.cart-promo-input:focus {
-  outline: none;
-  border-color: var(--accent-color);
-}
-
-.cart-promo-btn {
-  padding: 12px 20px;
-  background: var(--accent-color);
-  border: none;
-  border-radius: 10px;
-  color: #000000;
-  font-size: 14px;
+.tier-fee {
   font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
 }
 
-.cart-promo-btn:hover:not(:disabled) {
-  opacity: 0.9;
+.tier-fee.free {
+  color: #10b981;
 }
 
-.cart-promo-btn:disabled {
-  background: var(--border-color);
-  color: var(--text-muted);
-  cursor: not-allowed;
-}
-
-.cart-promo-btn.applied {
-  background: #10b981;
-  color: #ffffff;
-}
-
-.cart-promo-btn.applied svg {
-  font-size: 18px;
+/* ============ SUMMARY FREE TEXT ============ */
+.summary-free {
+  color: #10b981;
+  font-weight: 700;
 }
 
 /* ============ ORDER SUMMARY ============ */

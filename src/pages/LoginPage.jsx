@@ -1,5 +1,5 @@
 // src/pages/LoginPage.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaEye, FaEyeSlash, FaStore, FaLock, FaSignInAlt } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
@@ -14,6 +14,7 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [focusedField, setFocusedField] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [formData, setFormData] = useState({
     businessName: "",
     password: "",
@@ -22,8 +23,30 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const { refreshUser } = useAuth();
 
+  // Load saved credentials on component mount
+  useEffect(() => {
+    const savedCredentials = localStorage.getItem("rememberedCredentials");
+    if (savedCredentials) {
+      try {
+        const { businessName, rememberMe: wasRemembered } = JSON.parse(savedCredentials);
+        if (wasRemembered) {
+          setFormData(prev => ({ ...prev, businessName }));
+          setRememberMe(true);
+        }
+      } catch (error) {
+        console.warn("Failed to load saved credentials:", error);
+        localStorage.removeItem("rememberedCredentials");
+      }
+    }
+  }, []);
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    
+    // Convert business name to lowercase for case-insensitive login
+    const processedValue = name === "businessName" ? value.toLowerCase().trim() : value;
+    
+    setFormData({ ...formData, [name]: processedValue });
   };
 
   const handleFocus = (fieldName) => {
@@ -45,12 +68,27 @@ const LoginPage = () => {
     API.defaults.headers.common["Authorization"] = `Bearer ${access}`;
   };
 
+  // Save or remove credentials based on "Remember me" checkbox
+  const handleCredentialStorage = () => {
+    if (rememberMe) {
+      const credentialsToSave = {
+        businessName: formData.businessName,
+        rememberMe: true,
+        savedAt: new Date().toISOString()
+      };
+      localStorage.setItem("rememberedCredentials", JSON.stringify(credentialsToSave));
+    } else {
+      localStorage.removeItem("rememberedCredentials");
+    }
+  };
+
   const refreshAccessToken = async () => {
     const refresh = localStorage.getItem("refresh");
     if (!refresh) return null;
 
     try {
       const res = await axios.post(`${import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api"}/token/refresh/`, {
+        refresh: refresh
       });
       const newAccess = res.data.access;
       if (newAccess) {
@@ -70,7 +108,7 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation
+    // Validation with better error messages
     if (!formData.businessName.trim()) {
       toast.error("Please enter your business name", { 
         position: "top-center",
@@ -87,21 +125,39 @@ const LoginPage = () => {
       return;
     }
 
+    if (formData.businessName.trim().length < 2) {
+      toast.error("Business name must be at least 2 characters", { 
+        position: "top-center",
+        icon: "⚠️"
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const res = await login({
+      console.log("🔄 Attempting login with:", {
         business_name: formData.businessName,
+        password_length: formData.password.length
+      });
+
+      const res = await login({
+        business_name: formData.businessName, // Already converted to lowercase
         password: formData.password,
       });
+
+      console.log("✅ Login response received:", res?.status);
 
       // Check if response is successful
       if (res && res.data) {
         const { access, refresh } = res.data;
         
         if (!access || !refresh) {
-          throw new Error("Invalid response from server");
+          throw new Error("Invalid response from server - missing tokens");
         }
+
+        // Save credentials if "Remember me" is checked
+        handleCredentialStorage();
 
         saveTokens(access, refresh);
 
@@ -125,7 +181,7 @@ const LoginPage = () => {
 
         // Wait for user data to be set
         const waitForUser = () =>
-          new Promise((resolve, reject) => {
+          new Promise((resolve) => {
             let attempts = 0;
             const check = setInterval(() => {
               attempts++;
@@ -169,21 +225,27 @@ const LoginPage = () => {
       }
 
     } catch (err) {
-      console.error("Login error:", err.response?.data || err.message);
+      console.error("❌ Login error details:", {
+        message: err.message,
+        status: err.response?.status,
+        data: err.response?.data,
+        config: err.config
+      });
 
-      // Check if actually successful (same fix as signup)
+      // Check if actually successful (status 200/201 but thrown as error)
       if (err.response) {
         const status = err.response.status;
         
         if (status === 200 || status === 201) {
           // Actually successful
+          handleCredentialStorage();
           toast.success("✅ Login successful!", { position: "top-center" });
           setTimeout(() => navigate("/home", { replace: true }), 1500);
           return;
         }
       }
 
-      // Handle different error cases
+      // Handle different error cases with more specific messages
       let errorTitle = "Login Failed";
       let errorMessage = "Please try again.";
 
@@ -191,14 +253,22 @@ const LoginPage = () => {
         const errorData = err.response.data;
         const status = err.response.status;
 
+        console.log("🔍 Error response data:", errorData);
+
         switch (status) {
           case 400:
             errorTitle = "Invalid Request";
-            errorMessage = "Please check your input and try again.";
+            if (errorData?.business_name) {
+              errorMessage = "Invalid business name format.";
+            } else if (errorData?.password) {
+              errorMessage = "Invalid password format.";
+            } else {
+              errorMessage = "Please check your input and try again.";
+            }
             break;
           case 401:
             errorTitle = "Invalid Credentials";
-            errorMessage = "Business name or password is incorrect.";
+            errorMessage = "Business name or password is incorrect. Please check your spelling and try again.";
             break;
           case 403:
             errorTitle = "Access Denied";
@@ -206,7 +276,7 @@ const LoginPage = () => {
             break;
           case 404:
             errorTitle = "Account Not Found";
-            errorMessage = "No account found with this business name.";
+            errorMessage = "No account found with this business name. Please check the spelling or create a new account.";
             break;
           case 429:
             errorTitle = "Too Many Attempts";
@@ -214,7 +284,7 @@ const LoginPage = () => {
             break;
           case 500:
             errorTitle = "Server Error";
-            errorMessage = "Something went wrong. Please try again later.";
+            errorMessage = "Something went wrong on our end. Please try again later.";
             break;
           default:
             if (errorData?.error) {
@@ -223,13 +293,18 @@ const LoginPage = () => {
               errorMessage = errorData.detail;
             } else if (errorData?.message) {
               errorMessage = errorData.message;
+            } else if (errorData?.non_field_errors) {
+              errorMessage = errorData.non_field_errors[0] || "Invalid credentials.";
             } else if (typeof errorData === 'string') {
               errorMessage = errorData;
             }
         }
       } else if (err.request) {
         errorTitle = "Network Error";
-        errorMessage = "Please check your internet connection.";
+        errorMessage = "Please check your internet connection and try again.";
+      } else {
+        errorTitle = "Unexpected Error";
+        errorMessage = err.message || "Something went wrong. Please try again.";
       }
 
       toast.error(
@@ -242,7 +317,7 @@ const LoginPage = () => {
         </div>,
         { 
           position: "top-center",
-          autoClose: 4000,
+          autoClose: 5000,
         }
       );
     } finally {
@@ -286,6 +361,7 @@ const LoginPage = () => {
               placeholder=" "
               required
               autoComplete="organization"
+              style={{ textTransform: 'lowercase' }}
             />
             <label>Business Name</label>
           </div>
@@ -313,6 +389,20 @@ const LoginPage = () => {
             >
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </span>
+          </div>
+
+          {/* Remember Me Checkbox */}
+          <div className="remember-me-container">
+            <label className="remember-me-label">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="remember-me-checkbox"
+              />
+              <span className="checkmark"></span>
+              Remember my business name
+            </label>
           </div>
 
           {/* Forgot Password */}

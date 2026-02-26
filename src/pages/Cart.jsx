@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "./CartContext";
 import { useSmartLists } from "./SmartListContext";
+import { useNotifications } from "../context/NotificationContext"; // ✅ Added notification context
 import API from "../services/api";
 import toast from "react-hot-toast";
 import TransactionPinModal from "../components/TransactionPinModal";
@@ -76,7 +77,7 @@ const formatCurrency = (val) =>
 
 // ============ SUB-COMPONENTS ============
 
-// Header Component
+// Header Component - UPDATED WITH CART ICON
 const CartHeader = ({ itemCount, onBack, onClear }) => (
   <header className="cart-header">
     <button className="cart-back-btn" onClick={onBack} aria-label="Go back">
@@ -88,11 +89,19 @@ const CartHeader = ({ itemCount, onBack, onClear }) => (
         <span className="cart-item-count">{itemCount} items</span>
       )}
     </div>
-    {itemCount > 0 && (
-      <button className="cart-clear-btn" onClick={onClear} aria-label="Clear cart">
-        <FiTrash2 />
-      </button>
-    )}
+    <div className="cart-header-right">
+      {itemCount > 0 ? (
+        <button className="cart-clear-btn" onClick={onClear} aria-label="Clear cart">
+          <FiTrash2 />
+          <span className="clear-text">Clear All</span>
+        </button>
+      ) : (
+        <div className="cart-icon-display">
+          <FiShoppingCart />
+          <span className="cart-badge">0</span>
+        </div>
+      )}
+    </div>
   </header>
 );
 
@@ -113,7 +122,7 @@ const EmptyCart = ({ onShop }) => (
   </div>
 );
 
-// Cart Item Component — with editable quantity
+// Cart Item Component — UPDATED with individual delete button
 const CartItem = ({ item, onUpdateQty, onRemove }) => {
   const price = parsePrice(item.price);
   const qty = Number(item.quantity) || 1;
@@ -121,12 +130,23 @@ const CartItem = ({ item, onUpdateQty, onRemove }) => {
   const [isRemoving, setIsRemoving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(String(qty));
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const handleRemove = () => {
     setIsRemoving(true);
     setTimeout(() => {
       onRemove(item.productId);
+      toast.success("Item removed from cart");
     }, 300);
+  };
+
+  const handleDeleteClick = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = () => {
+    setShowDeleteConfirm(false);
+    handleRemove();
   };
 
   const handleInputChange = (e) => {
@@ -165,80 +185,146 @@ const CartItem = ({ item, onUpdateQty, onRemove }) => {
   }, [qty, isEditing]);
 
   return (
-    <div className={`cart-item ${isRemoving ? "removing" : ""}`}>
-      <div className="cart-item-image-wrapper">
-        <img
-          src={imageUrl(item.image || item.image_url)}
-          alt={item.name || "Product"}
-          className="cart-item-image"
-          loading="lazy"
-          onError={(e) => {
-            e.target.onerror = null;
-            e.target.src = PLACEHOLDER;
-          }}
-        />
-      </div>
-
-      <div className="cart-item-content">
-        <div className="cart-item-header">
-          <h3 className="cart-item-name">{item.name}</h3>
-          <button
-            className="cart-item-remove"
-            onClick={handleRemove}
-            aria-label="Remove item"
-          >
-            <FiX />
-          </button>
+    <>
+      <div className={`cart-item ${isRemoving ? "removing" : ""}`}>
+        <div className="cart-item-image-wrapper">
+          <img
+            src={imageUrl(item.image || item.image_url)}
+            alt={item.name || "Product"}
+            className="cart-item-image"
+            loading="lazy"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = PLACEHOLDER;
+            }}
+          />
         </div>
 
-        <p className="cart-item-price">{formatCurrency(price)} / carton</p>
-
-        <div className="cart-item-footer">
-          <div className="cart-qty-selector">
+        <div className="cart-item-content">
+          <div className="cart-item-header">
+            <h3 className="cart-item-name">{item.name}</h3>
             <button
-              className="cart-qty-btn minus"
-              onClick={() => onUpdateQty(item.productId, Math.max(1, qty - 1))}
-              disabled={qty <= 1}
-              aria-label="Decrease quantity"
+              className="cart-item-delete-btn"
+              onClick={handleDeleteClick}
+              aria-label="Delete item"
+              title="Remove from cart"
             >
-              −
-            </button>
-
-            {isEditing ? (
-              <input
-                type="text"
-                inputMode="numeric"
-                className="cart-qty-input"
-                value={editValue}
-                onChange={handleInputChange}
-                onBlur={handleInputBlur}
-                onKeyDown={handleKeyDown}
-                autoFocus
-              />
-            ) : (
-              <span
-                className="cart-qty-value"
-                onClick={handleQtyClick}
-                title="Click to type quantity"
-              >
-                {qty}
-              </span>
-            )}
-
-            <button
-              className="cart-qty-btn plus"
-              onClick={() => onUpdateQty(item.productId, qty + 1)}
-              aria-label="Increase quantity"
-            >
-              +
+              <FiTrash2 />
             </button>
           </div>
-          <span className="cart-item-total">{formatCurrency(total)}</span>
+
+          <p className="cart-item-price">{formatCurrency(price)} / carton</p>
+
+          <div className="cart-item-footer">
+            <div className="cart-qty-selector">
+              <button
+                className="cart-qty-btn minus"
+                onClick={() => onUpdateQty(item.productId, Math.max(1, qty - 1))}
+                disabled={qty <= 1}
+                aria-label="Decrease quantity"
+              >
+                <FiMinus />
+              </button>
+
+              {isEditing ? (
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  className="cart-qty-input"
+                  value={editValue}
+                  onChange={handleInputChange}
+                  onBlur={handleInputBlur}
+                  onKeyDown={handleKeyDown}
+                  autoFocus
+                />
+              ) : (
+                <span
+                  className="cart-qty-value"
+                  onClick={handleQtyClick}
+                  title="Click to type quantity"
+                >
+                  {qty}
+                </span>
+              )}
+
+              <button
+                className="cart-qty-btn plus"
+                onClick={() => onUpdateQty(item.productId, qty + 1)}
+                aria-label="Increase quantity"
+              >
+                <FiPlus />
+              </button>
+            </div>
+            <span className="cart-item-total">{formatCurrency(total)}</span>
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Individual Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div
+          className="cart-modal-overlay"
+          onClick={() => setShowDeleteConfirm(false)}
+        >
+          <div className="cart-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="cart-modal-icon warning">
+              <FiAlertCircle />
+            </div>
+            <h3 className="cart-modal-title">Remove Item?</h3>
+            <p className="cart-modal-text">
+              Are you sure you want to remove "{item.name}" from your cart?
+            </p>
+            <div className="cart-modal-actions">
+              <button
+                className="cart-modal-btn cancel"
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="cart-modal-btn confirm"
+                onClick={confirmDelete}
+              >
+                <FiTrash2 />
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
+
+// Cart Items Section with Clear All Button
+const CartItemsSection = ({ cart, onUpdateQty, onRemove, onClearAll }) => (
+  <section className="cart-items-section">
+    <div className="cart-items-header">
+      <h2 className="cart-items-title">
+        <FiShoppingCart />
+        Cart Items ({cart.length})
+      </h2>
+      <button 
+        className="cart-clear-all-btn"
+        onClick={onClearAll}
+        title="Clear all items"
+      >
+        <FiTrash2 />
+        Clear All
+      </button>
+    </div>
+    <div className="cart-items">
+      {cart.map((item) => (
+        <CartItem
+          key={item.productId || item.id}
+          item={item}
+          onUpdateQty={onUpdateQty}
+          onRemove={onRemove}
+        />
+      ))}
+    </div>
+  </section>
+);
 
 // ============ DELIVERY METHOD SELECTOR ============
 const DeliverySection = ({ method, setMethod, subtotal }) => {
@@ -347,6 +433,7 @@ const DeliverySection = ({ method, setMethod, subtotal }) => {
       )}
 
       {/* Pickup Info */}
+            {/* Pickup Info */}
       {method === "pickup" && (
         <div className="cart-delivery-pickup-info">
           <FiMapPin />
@@ -496,6 +583,7 @@ export default function Cart() {
   const { cart, updateQty, removeFromCart, clearCart } = useCart();
   const smartListsContext = useSmartLists();
   const setOrders = smartListsContext?.setOrders;
+  const { addNotification, playNotificationSound } = useNotifications(); // ✅ Added notification hooks
 
   const [processing, setProcessing] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
@@ -522,7 +610,7 @@ export default function Cart() {
   const deliveryFee = getDeliveryFee(subtotal, deliveryMethod);
   const grandTotal = subtotal + deliveryFee;
 
-  // Create order after PIN validation
+  // ✅ Create order after PIN validation with notification
   const createOrder = async () => {
     setProcessing(true);
     try {
@@ -530,19 +618,44 @@ export default function Cart() {
         delivery_method: deliveryMethod,
         delivery_fee: deliveryFee,
       });
+      
       const orderId =
         res.data?.order_id ||
         res.data?.order?.order_id ||
         res.data?.order?.id ||
-        null;
+        `ORD-${Date.now()}`;
+
+      // ✅ Create notification for successful order
+      const notification = {
+        id: Date.now(),
+        type: 'order_placed',
+        title: 'Order Placed Successfully! 🎉',
+        message: `Your order #${orderId} has been placed and is being processed. Total: ${formatCurrency(grandTotal)}`,
+        order_id: orderId,
+        is_read: false,
+        created_at: new Date().toISOString(),
+        delivery_method: deliveryMethod,
+        total: grandTotal
+      };
+
+      // Add notification to global state
+      addNotification(notification);
+
+      // Play notification sound
+      playNotificationSound();
 
       await clearCart().catch(() => {});
 
       toast.success(
-        orderId
-          ? `Order #${orderId} placed successfully!`
-          : "Order placed successfully!",
-        { duration: 4000, icon: "🎉" }
+        `Order #${orderId} placed successfully!`,
+        { 
+          duration: 4000, 
+          icon: "🎉",
+          style: {
+            background: '#10b981',
+            color: '#fff',
+          }
+        }
       );
 
       if (typeof setOrders === "function") {
@@ -551,27 +664,63 @@ export default function Cart() {
             res.data?.order?.id ||
             orderId ||
             Math.random().toString(36).slice(2, 9),
-          order_id: orderId || `ORD-${new Date().getFullYear()}-TEMP`,
+          order_id: orderId,
           source: "cart",
           status: res.data?.order?.status || "pending",
           created_at: new Date().toISOString(),
-          items: [],
+          items: cart.map(item => ({
+            name: item.name,
+            quantity: item.quantity,
+            price: parsePrice(item.price)
+          })),
           total: res.data?.order?.total || grandTotal,
           delivery_method: deliveryMethod,
         };
         setOrders((prev) => [optimisticOrder, ...(prev || [])]);
       }
 
+      // ✅ Add follow-up notification after 2 seconds
+      setTimeout(() => {
+        const followUpNotification = {
+          id: Date.now() + 1,
+          type: 'order_confirmed',
+          title: 'Order Confirmed! 📦',
+          message: `Order #${orderId} has been confirmed and will be processed shortly. You'll receive updates on delivery status.`,
+          order_id: orderId,
+          is_read: false,
+          created_at: new Date().toISOString()
+        };
+        addNotification(followUpNotification);
+      }, 2000);
+
       setTimeout(
         () => navigate("/orders", { state: { newOrderId: orderId } }),
-        2000
+        3000
       );
     } catch (err) {
+      console.error("Order creation error:", err);
+      
+      // ✅ Create error notification
+      const errorNotification = {
+        id: Date.now(),
+        type: 'payment_failed',
+        title: 'Order Failed ❌',
+        message: 'There was an issue processing your order. Please try again or contact support.',
+        is_read: false,
+        created_at: new Date().toISOString()
+      };
+      addNotification(errorNotification);
+
       const msg =
         err?.response?.data?.error ||
         err?.response?.data?.detail ||
         "Failed to place order. Please try again.";
-      toast.error(msg);
+      toast.error(msg, {
+        style: {
+          background: '#ef4444',
+          color: '#fff',
+        }
+      });
     } finally {
       setProcessing(false);
     }
@@ -606,7 +755,12 @@ export default function Cart() {
   const confirmClearCart = () => {
     clearCart();
     setShowClearConfirm(false);
-    toast.success("Cart cleared");
+    toast.success("Cart cleared successfully", {
+      style: {
+        background: '#1b4b8c',
+        color: '#fff',
+      }
+    });
   };
 
   return (
@@ -624,19 +778,13 @@ export default function Cart() {
           <EmptyCart onShop={() => navigate("/all-products")} />
         ) : (
           <>
-            {/* Cart Items */}
-            <section className="cart-items-section">
-              <div className="cart-items">
-                {cart.map((item) => (
-                  <CartItem
-                    key={item.productId || item.id}
-                    item={item}
-                    onUpdateQty={updateQty}
-                    onRemove={removeFromCart}
-                  />
-                ))}
-              </div>
-            </section>
+            {/* Cart Items with Clear All Button */}
+            <CartItemsSection
+              cart={cart}
+              onUpdateQty={updateQty}
+              onRemove={removeFromCart}
+              onClearAll={handleClearCart}
+            />
 
             {/* Delivery Method */}
             <DeliverySection
@@ -684,7 +832,7 @@ export default function Cart() {
             </div>
             <h3 className="cart-modal-title">Clear Cart?</h3>
             <p className="cart-modal-text">
-              Are you sure you want to remove all items from your cart?
+              Are you sure you want to remove all items from your cart? This action cannot be undone.
             </p>
             <div className="cart-modal-actions">
               <button
@@ -723,7 +871,12 @@ export default function Cart() {
         onClose={() => setShowSetPinModal(false)}
         customerId={customerId}
         onSuccess={() => {
-          toast.success("PIN set successfully!");
+          toast.success("PIN set successfully!", {
+            style: {
+              background: '#10b981',
+              color: '#fff',
+            }
+          });
           setShowSetPinModal(false);
           setShowPinModal(true);
         }}

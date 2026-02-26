@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { useNavigate, Link } from "react-router-dom";
 import { useCart } from "../pages/CartContext";
 import { useSmartLists } from "../pages/SmartListContext";
+import { useNotifications } from "../context/NotificationContext"; // ✅ Added notification context
 import { fetchProducts } from "../services/products";
 import Lottie from "lottie-react";
 import BottomNav from "../components/BottomNav";
@@ -107,8 +108,8 @@ const CATEGORIES = [
     image: "beauty/CLASSY_JELLY_48PCS-100g.png",
     color: "#ec4899",
   },
-
 ]
+
 // ============ UPDATED QUICK ACTIONS WITH COMING SOON FLAGS ============
 const QUICK_ACTIONS = [
   {
@@ -183,9 +184,13 @@ const useCountdown = (endTime) => {
   return timeLeft;
 };
 
-// ============ HOME HEADER COMPONENT ============
+// ============ ENHANCED HOME HEADER COMPONENT WITH NOTIFICATIONS ============
 const HomeHeader = ({ businessName, cartCount, smartListCount, navigate }) => {
-  const [showNotifications, setShowNotifications] = useState(false);
+  const { unreadCount } = useNotifications(); // ✅ Get unread notification count
+
+  const handleNotificationClick = () => {
+    navigate("/notifications");
+  };
 
   return (
     <header className="hp-header">
@@ -200,14 +205,19 @@ const HomeHeader = ({ businessName, cartCount, smartListCount, navigate }) => {
       </div>
 
       <div className="hp-header-right">
-        {/* Notification Button */}
+        {/* ✅ Enhanced Notification Button with Badge */}
         <button
-          className="hp-header-btn"
-          onClick={() => setShowNotifications(!showNotifications)}
-          aria-label="Notifications"
+          className="hp-header-btn hp-notification-btn"
+          onClick={handleNotificationClick}
+          aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ''}`}
+          title={unreadCount > 0 ? `${unreadCount} unread notifications` : 'Notifications'}
         >
           <FiBell className="hp-icon" />
-          <span className="hp-notification-dot"></span>
+          {unreadCount > 0 && (
+            <span className="hp-notification-badge">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
         </button>
 
         {/* Smart List Button */}
@@ -315,6 +325,7 @@ const PromoBanner = () => {
     </section>
   );
 };
+
 // ============ QUICK ACTIONS COMPONENT - FIXED ============
 const QuickActions = ({ onScanClick }) => {
   const navigate = useNavigate();
@@ -406,7 +417,6 @@ const QuickActions = ({ onScanClick }) => {
   );
 };
 
-
 // ============ CATEGORIES COMPONENT ============
 const CategoriesSection = () => {
   const navigate = useNavigate();
@@ -446,7 +456,7 @@ const CategoriesSection = () => {
                 onError={(e) => { e.target.onerror = null; e.target.src = PLACEHOLDER; }}
               />
               <div
-                className="hp-category-overlay"
+                                className="hp-category-overlay"
                 style={{
                   background: `linear-gradient(135deg, ${category.color}20, ${category.color}40)`,
                 }}
@@ -741,6 +751,7 @@ export default function HomePage() {
   const navigate = useNavigate();
   const { cartCount, addToCart } = useCart();
   const { totalSmartListCount } = useSmartLists();
+  const { unreadCount } = useNotifications(); // ✅ Added notification context
 
   const [businessName, setBusinessName] = useState("");
   const [customerId, setCustomerId] = useState(null);

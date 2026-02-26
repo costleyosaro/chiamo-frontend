@@ -13,7 +13,6 @@ const SignUpPage = () => {
     phone: "",
     email: "",
     password: "",
-    confirmPassword: "",
     salesExecutive: "",
     location: "",
     latitude: "",
@@ -23,7 +22,6 @@ const SignUpPage = () => {
   });
 
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [focusedField, setFocusedField] = useState("");
@@ -41,9 +39,7 @@ const SignUpPage = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     // Convert to lowercase for storage (except password fields)
-    const processedValue = (name === 'password' || name === 'confirmPassword') 
-      ? value 
-      : value.toLowerCase();
+    const processedValue = name === 'password' ? value : value.toLowerCase();
     
     setFormData({ ...formData, [name]: processedValue });
   };
@@ -61,45 +57,73 @@ const SignUpPage = () => {
     return focusedField === fieldName || formData[fieldName]?.length > 0;
   };
 
+  // Enhanced location capture for mobile devices
   const handleLocationCapture = async () => {
     setIsCapturingLocation(true);
     
     try {
+      // Check if geolocation is supported
       if (!navigator.geolocation) {
-        toast.error("Geolocation not supported by this browser.", { position: "top-center" });
+        toast.error("Location services not supported on this device.", { position: "top-center" });
         return;
       }
 
-      // Get current position
+      // Request permission first (important for mobile)
+      const permission = await navigator.permissions.query({ name: 'geolocation' });
+      console.log('Geolocation permission:', permission.state);
+
+      // Get current position with mobile-optimized settings
       const position = await new Promise((resolve, reject) => {
+        const options = {
+          enableHighAccuracy: true, // Use GPS if available
+          timeout: 15000, // Increased timeout for mobile
+          maximumAge: 300000 // 5 minutes cache
+        };
+
         navigator.geolocation.getCurrentPosition(
           resolve,
           reject,
-          { 
-            enableHighAccuracy: true, 
-            timeout: 10000, 
-            maximumAge: 60000 
-          }
+          options
         );
       });
 
       const { latitude, longitude } = position.coords;
       const timestamp = new Date().toISOString();
 
-      // Get address from coordinates
+      console.log('Location captured:', { latitude, longitude, accuracy: position.coords.accuracy });
+
+      // Get address from coordinates with fallback
       let address = `Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}`;
       
       try {
-        const geoRes = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`
-        );
-        const geoData = await geoRes.json();
+        // Use multiple geocoding services for better mobile compatibility
+        const geocodePromises = [
+          // Primary: Nominatim
+          fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`)
+            .then(res => res.json()),
+          
+          // Fallback: Alternative service (you can add more)
+          fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`)
+            .then(res => res.json())
+        ];
+
+        // Race the geocoding requests
+        const results = await Promise.allSettled(geocodePromises);
         
-        if (geoData?.display_name) {
-          address = geoData.display_name;
+        // Use the first successful result
+        for (const result of results) {
+          if (result.status === 'fulfilled' && result.value) {
+            if (result.value.display_name) {
+              address = result.value.display_name;
+              break;
+            } else if (result.value.locality) {
+              address = `${result.value.locality}, ${result.value.city || ''}, ${result.value.countryName || ''}`.replace(/,\s*,/g, ',').trim();
+              break;
+            }
+          }
         }
       } catch (err) {
-        console.warn("Reverse geocoding failed:", err);
+        console.warn("Geocoding failed:", err);
         toast.warning("Location captured, but address lookup failed. Using coordinates.", { position: "top-center" });
       }
 
@@ -117,15 +141,22 @@ const SignUpPage = () => {
     } catch (error) {
       console.error("Error capturing location:", error);
       
+      let errorMessage = "Failed to capture location. ";
+      
       if (error.code === 1) {
-        toast.error("Location access denied. Please enable location permissions.", { position: "top-center" });
+        errorMessage += "Please enable location permissions in your browser/device settings.";
       } else if (error.code === 2) {
-        toast.error("Location unavailable. Please try again.", { position: "top-center" });
+        errorMessage += "Location unavailable. Please check your GPS/internet connection.";
       } else if (error.code === 3) {
-        toast.error("Location request timeout. Please try again.", { position: "top-center" });
+        errorMessage += "Location request timeout. Please try again.";
       } else {
-        toast.error("Failed to capture location. Please try again.", { position: "top-center" });
+        errorMessage += "Please try again or enter your address manually.";
       }
+      
+      toast.error(errorMessage, { 
+        position: "top-center",
+        autoClose: 6000 
+      });
     } finally {
       setIsCapturingLocation(false);
     }
@@ -143,6 +174,8 @@ const SignUpPage = () => {
         const file = event.target.files[0];
         if (file) {
           try {
+            toast.info("📸 Uploading photo...", { position: "top-center" });
+            
             const data = new FormData();
             data.append("file", file);
             data.append("upload_preset", "your_unsigned_preset");
@@ -181,11 +214,6 @@ const SignUpPage = () => {
       return;
     }
 
-    if (formData.password !== formData.confirmPassword) {
-      toast.error("Passwords do not match!", { position: "top-center" });
-      return;
-    }
-
     if (formData.password.length < 6) {
       toast.error("Password must be at least 6 characters!", { position: "top-center" });
       return;
@@ -201,7 +229,6 @@ const SignUpPage = () => {
         phone: formData.phone.toLowerCase(),
         email: formData.email.toLowerCase(),
         password: formData.password, // Keep original case for password
-        confirmPassword: formData.confirmPassword, // Keep original case for password
       };
 
       // Add optional fields if they have values
@@ -359,16 +386,14 @@ const SignUpPage = () => {
             <label>Email Address</label>
           </div>
 
-          {/* Sales Executive Dropdown */}
-          <div className="input-group select-group">
-            <FaUserTie className="input-icon" />
+          {/* Sales Executive Dropdown - FIXED STYLING */}
+          <div className="select-wrapper">
+            <FaUserTie className="select-icon" />
             <select 
               name="salesExecutive" 
               value={formData.salesExecutive} 
               onChange={handleChange}
-              onFocus={() => handleFocus('salesExecutive')}
-              onBlur={handleBlur}
-              className="select-input"
+              className="select-field"
             >
               {salesExecutiveOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -377,7 +402,6 @@ const SignUpPage = () => {
               ))}
             </select>
             <FaChevronDown className="select-arrow" />
-            <label className={formData.salesExecutive ? 'active' : ''}>Sales Executive</label>
           </div>
 
           {/* Password */}
@@ -393,32 +417,13 @@ const SignUpPage = () => {
               placeholder=" "
               required 
             />
-            <label>Password</label>
+            <label>Password (min 6 characters)</label>
             <span className="password-toggle" onClick={() => setShowPassword(!showPassword)}>
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </span>
           </div>
 
-          {/* Confirm Password */}
-          <div className={`input-group password-group ${shouldHideIcon('confirmPassword') ? 'icon-hidden' : ''}`}>
-            <FaLock className="input-icon" />
-            <input 
-              type={showConfirmPassword ? "text" : "password"} 
-              name="confirmPassword" 
-              value={formData.confirmPassword} 
-              onChange={handleChange}
-              onFocus={() => handleFocus('confirmPassword')}
-              onBlur={handleBlur}
-              placeholder=" "
-              required 
-            />
-            <label>Confirm Password</label>
-            <span className="password-toggle" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-              {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-            </span>
-          </div>
-
-          {/* Location Field */}
+                    {/* Location Field */}
           <div className="location-field">
             <div className={`location-input-wrapper ${formData.location ? 'has-value' : ''}`}>
               <FaMapMarkerAlt className="location-icon" />
@@ -438,7 +443,7 @@ const SignUpPage = () => {
               title="Capture your current location"
             >
               <FaMapMarkerAlt />
-              <span>{isCapturingLocation ? 'Getting Location...' : 'Get Location'}</span>
+              <span>{isCapturingLocation ? 'Getting...' : 'Get Location'}</span>
             </button>
             <button 
               type="button" 
@@ -518,3 +523,4 @@ const SignUpPage = () => {
 };
 
 export default SignUpPage;
+          

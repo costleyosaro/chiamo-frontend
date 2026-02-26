@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-
 // Styles
 import "./main.css";
 import "./index.css";
@@ -16,6 +15,7 @@ import { CartProvider } from "./pages/CartContext";
 import { SmartListProvider } from "./pages/SmartListContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider } from "./context/AuthContext";
+import { NotificationProvider } from "./context/NotificationContext"; // ✅ Added NotificationProvider
 
 // Layout & Route Guard
 import PrivateRoute from "./PrivateRoute";
@@ -48,8 +48,6 @@ import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 
-
-
 // ✅ Import Splash Screen
 import SplashScreen from "./components/SplashScreen";
 import NotFound from "./components/NotFound";
@@ -78,7 +76,39 @@ function MainApp() {
 
   return (
     <BrowserRouter>
-      <Toaster position="bottom-center" reverseOrder={false} /> {/* ✅ Toast provider */}
+      <Toaster 
+        position="bottom-center" 
+        reverseOrder={false}
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#1b4b8c',
+            color: '#fff',
+            borderRadius: '12px',
+            padding: '16px',
+            fontSize: '14px',
+            fontWeight: '500',
+          },
+          success: {
+            style: {
+              background: '#10b981',
+            },
+            iconTheme: {
+              primary: '#fff',
+              secondary: '#10b981',
+            },
+          },
+          error: {
+            style: {
+              background: '#ef4444',
+            },
+            iconTheme: {
+              primary: '#fff',
+              secondary: '#ef4444',
+            },
+          },
+        }}
+      />
       <Routes>
         {/* 🌐 Public Routes */}
         <Route path="/" element={<PreHomePage />} />
@@ -122,19 +152,21 @@ function MainApp() {
   );
 }
 
-// ✅ Wrap with Providers
+// ✅ Wrap with Providers - NotificationProvider added in the correct order
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <AuthProvider>
-      <OrdersProvider>
-        <CartProvider>
-          <SmartListProvider>
-            <ThemeProvider>
-              <MainApp />
-            </ThemeProvider>
-          </SmartListProvider>
-        </CartProvider>
-      </OrdersProvider>
+      <NotificationProvider>
+        <OrdersProvider>
+          <CartProvider>
+            <SmartListProvider>
+              <ThemeProvider>
+                <MainApp />
+              </ThemeProvider>
+            </SmartListProvider>
+          </CartProvider>
+        </OrdersProvider>
+      </NotificationProvider>
     </AuthProvider>
   </React.StrictMode>
 );

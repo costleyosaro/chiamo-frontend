@@ -44,6 +44,40 @@ const formatCurrency = (val) =>
     maximumFractionDigits: 0,
   })}`;
 
+// ============ LOYALTY POINTS ALGORITHM ============
+const calculateLoyaltyPoints = (profile, orderSummary) => {
+  if (!profile || !orderSummary) return 0;
+
+  let points = 0;
+  
+  // Base points for registration
+  points += 50;
+  
+  // Points for orders (10 points per order)
+  points += (orderSummary.total_orders || 0) * 10;
+  
+  // Points for spending (1 point per ₦100 spent)
+  points += Math.floor((orderSummary.total_spent || 0) / 100);
+  
+  // Login frequency bonus (estimate based on account age)
+  const accountCreated = profile.created_at ? new Date(profile.created_at) : new Date();
+  const daysSinceCreation = Math.floor((new Date() - accountCreated) / (1000 * 60 * 60 * 24));
+  const estimatedLogins = Math.min(daysSinceCreation * 0.3, 100); // Assume 30% login rate, max 100 bonus
+  points += Math.floor(estimatedLogins);
+  
+  // Bonus for having profile complete
+  if (profile.name && profile.email && profile.phone) {
+    points += 25;
+  }
+  
+  // Bonus for business verification
+  if (profile.businessName) {
+    points += 30;
+  }
+  
+  return Math.floor(points);
+};
+
 // ============ SUB-COMPONENTS ============
 
 // Header Component
@@ -82,7 +116,7 @@ const AvatarSection = ({ profile, onEdit }) => {
   );
 };
 
-// Stats Cards
+// Stats Cards - Updated with Naira symbol
 const StatsSection = ({ orderSummary }) => (
   <div className="pf-stats">
     <div className="pf-stat-card">
@@ -96,7 +130,7 @@ const StatsSection = ({ orderSummary }) => (
     </div>
     <div className="pf-stat-card">
       <div className="pf-stat-icon savings">
-        <FiDollarSign />
+        <span className="naira-symbol">₦</span>
       </div>
       <div className="pf-stat-content">
         <span className="pf-stat-value">{formatCurrency(orderSummary?.total_spent || 0)}</span>
@@ -106,51 +140,65 @@ const StatsSection = ({ orderSummary }) => (
   </div>
 );
 
-// Loyalty Card
-const LoyaltyCard = ({ points = 350 }) => (
+// Loyalty Card - Removed Redeem Button
+const LoyaltyCard = ({ points = 0 }) => (
   <div className="pf-loyalty-card">
-    <div className="pf-loyalty-left">
+    <div className="pf-loyalty-content">
       <div className="pf-loyalty-icon">
         <FiAward />
       </div>
       <div className="pf-loyalty-info">
         <span className="pf-loyalty-label">Loyalty Points</span>
         <span className="pf-loyalty-value">{points} pts</span>
+        <span className="pf-loyalty-subtitle">Keep shopping to earn more!</span>
       </div>
     </div>
-    <button className="pf-loyalty-btn">
-      Redeem
-      <FiChevronRight />
-    </button>
     <div className="pf-loyalty-pattern"></div>
   </div>
 );
 
-// Quick Actions
-const QuickActions = ({ subscriptions = 3, smartLists = 5, onNavigate }) => (
-  <div className="pf-quick-actions">
-    <div className="pf-quick-card" onClick={() => onNavigate("/subscriptions")}>
-      <div className="pf-quick-icon subscriptions">
-        <FiShoppingBag />
+// Quick Actions - Updated with dynamic smart lists count
+const QuickActions = ({ smartListsCount = 0, onNavigate }) => {
+  
+  const handleSubscriptionsClick = () => {
+    toast.success("🚀 New feature coming soon!", {
+      duration: 3000,
+      style: {
+        background: '#4F46E5',
+        color: 'white',
+        borderRadius: '12px',
+        padding: '16px',
+        fontSize: '14px',
+        fontWeight: '500',
+      },
+    });
+  };
+
+  return (
+    <div className="pf-quick-actions">
+      <div className="pf-quick-card" onClick={handleSubscriptionsClick}>
+        <div className="pf-quick-icon subscriptions">
+          <FiShoppingBag />
+        </div>
+        <div className="pf-quick-content">
+          <span className="pf-quick-label">Subscriptions</span>
+          <span className="pf-quick-value">Coming Soon</span>
+        </div>
+        <FiChevronRight className="pf-quick-arrow" />
       </div>
-      <div className="pf-quick-content">
-        <span className="pf-quick-label">Subscriptions</span>
-        <span className="pf-quick-value">{subscriptions} Active</span>
+      <div className="pf-quick-card" onClick={() => onNavigate("/cart-page")}>
+        <div className="pf-quick-icon smartlists">
+          <FiList />
+        </div>
+        <div className="pf-quick-content">
+          <span className="pf-quick-label">Smart Lists</span>
+          <span className="pf-quick-value">{smartListsCount} Lists</span>
+        </div>
+        <FiChevronRight className="pf-quick-arrow" />
       </div>
-      <FiChevronRight className="pf-quick-arrow" />
     </div>
-    <div className="pf-quick-card" onClick={() => onNavigate("/cart-page")}>
-      <div className="pf-quick-icon smartlists">
-        <FiList />
-      </div>
-      <div className="pf-quick-content">
-        <span className="pf-quick-label">Smart Lists</span>
-        <span className="pf-quick-value">{smartLists} Lists</span>
-      </div>
-      <FiChevronRight className="pf-quick-arrow" />
-    </div>
-  </div>
-);
+  );
+};
 
 // Menu Section
 const MenuSection = ({ title, children }) => (
@@ -263,12 +311,13 @@ export default function ProfilePage() {
     total_orders: 0,
     total_spent: 0,
   });
+  const [smartListsCount, setSmartListsCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  // Fetch profile data
+  // Fetch profile data and smart lists count
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -276,8 +325,19 @@ export default function ProfilePage() {
           API.get("/customers/profile/"),
           API.get("/orders/summary/"),
         ]);
+        
         setProfile(profileRes.data);
         setOrderSummary(summaryRes.data);
+
+        // Fetch smart lists count
+        try {
+          const smartListsRes = await API.get("/smart-lists/");
+          setSmartListsCount(smartListsRes.data?.length || 0);
+        } catch (smartListError) {
+          console.warn("Failed to fetch smart lists count:", smartListError);
+          setSmartListsCount(0);
+        }
+
       } catch (err) {
         console.error("Failed to load profile:", err);
         setError("Failed to load profile");
@@ -287,6 +347,9 @@ export default function ProfilePage() {
     };
     fetchData();
   }, []);
+
+  // Calculate loyalty points
+  const loyaltyPoints = calculateLoyaltyPoints(profile, orderSummary);
 
   // Handle Logout
   const handleLogout = async () => {
@@ -358,12 +421,11 @@ export default function ProfilePage() {
         <StatsSection orderSummary={orderSummary} />
 
         {/* Loyalty Card */}
-        <LoyaltyCard points={350} />
+        <LoyaltyCard points={loyaltyPoints} />
 
         {/* Quick Actions */}
         <QuickActions
-          subscriptions={3}
-          smartLists={5}
+          smartListsCount={smartListsCount}
           onNavigate={handleNavigate}
         />
 
@@ -372,7 +434,7 @@ export default function ProfilePage() {
           <MenuItem
             icon={FiUser}
             label="Edit Profile"
-            onClick={() => navigate("/edit-profile")}
+                        onClick={() => navigate("/edit-profile")}
           />
           <MenuItem
             icon={FiMapPin}

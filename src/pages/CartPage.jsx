@@ -30,6 +30,7 @@ import {
   FiCopy,
   FiShare2,
   FiHeart,
+  FiBookOpen,
 } from "react-icons/fi";
 import { HiOutlineSparkles, HiOutlineClipboardList } from "react-icons/hi";
 
@@ -83,23 +84,46 @@ const formatCurrency = (val) =>
 
 // ============ SUB-COMPONENTS ============
 
-// Header Component
-const ListsHeader = ({ onBack, onAdd, listCount }) => (
-  <header className="sl-header">
-    <button className="sl-back-btn" onClick={onBack} aria-label="Go back">
-      <FiChevronLeft />
-    </button>
-    <div className="sl-header-center">
-      <h1 className="sl-title">Smart Lists</h1>
-      {listCount > 0 && (
-        <span className="sl-list-count">{listCount} lists</span>
-      )}
-    </div>
-    <button className="sl-add-btn" onClick={onAdd} aria-label="Create new list">
-      <FiPlus />
-    </button>
-  </header>
-);
+// Header Component - UPDATED WITH LIST ICON AND TOOLTIP
+const ListsHeader = ({ onBack, onAdd, listCount }) => {
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  return (
+    <header className="sl-header">
+      <button className="sl-back-btn" onClick={onBack} aria-label="Go back">
+        <FiChevronLeft />
+      </button>
+      <div className="sl-header-center">
+        <h1 className="sl-title">Smart Lists</h1>
+        {listCount > 0 && (
+          <span className="sl-list-count">{listCount} lists</span>
+        )}
+      </div>
+      <div className="sl-header-right">
+        <div 
+          className="sl-add-btn-wrapper"
+          onMouseEnter={() => setShowTooltip(true)}
+          onMouseLeave={() => setShowTooltip(false)}
+        >
+          <button 
+            className="sl-add-btn" 
+            onClick={onAdd} 
+            aria-label="Create new list"
+          >
+            <FiBookOpen />
+            <FiPlus className="sl-add-plus" />
+          </button>
+          {showTooltip && (
+            <div className="sl-tooltip">
+              <span>Create a new list</span>
+              <div className="sl-tooltip-arrow"></div>
+            </div>
+          )}
+        </div>
+      </div>
+    </header>
+  );
+};
 
 // Empty State Component
 const EmptyState = ({ onCreateList }) => (
@@ -414,7 +438,7 @@ const ViewListModal = ({
                             </button>
                           </div>
                         ) : (
-                          <span className="sl-view-item-qty">Qty: {qty}</span>
+                                                    <span className="sl-view-item-qty">Qty: {qty}</span>
                         )}
                       </div>
                     </div>

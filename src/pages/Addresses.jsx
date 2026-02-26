@@ -1,6 +1,7 @@
 // src/pages/Addresses.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
+import UniversalBackButton from "../components/UniversalBackButton";
 import {
   FiMapPin,
   FiPlus,
@@ -221,6 +222,7 @@ export default function Addresses() {
   return (
     <div className="address-page">
       <div className="address-header">
+        <UniversalBackButton />
         <h2>My Saved Addresses</h2>
         <button onClick={() => setShowForm(true)} className="address-add-btn">
           <FiPlus /> Add Address

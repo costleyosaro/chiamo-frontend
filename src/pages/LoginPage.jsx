@@ -23,10 +23,9 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const { refreshUser } = useAuth();
 
-  // 🔍 DEBUG: Component mount and localStorage check
+  // Load saved credentials on component mount
   useEffect(() => {
     console.log("🔍 LOGIN PAGE MOUNTED - Checking localStorage...");
-    console.log("All localStorage keys:", Object.keys(localStorage));
     
     const rememberedBusinessName = localStorage.getItem("remembered_business_name");
     const isRemembered = localStorage.getItem("remember_business_name") === "true";
@@ -38,27 +37,19 @@ const LoginPage = () => {
       console.log("✅ Auto-filling business name:", rememberedBusinessName);
       setFormData(prev => ({ 
         ...prev, 
-        businessName: rememberedBusinessName
+        businessName: rememberedBusinessName // Keep original case for display
       }));
       setRememberMe(true);
-    } else {
-      console.log("❌ No remembered credentials found");
     }
-
-    // 🔍 DEBUG: Check existing tokens
-    const existingAccess = localStorage.getItem("access");
-    const existingRefresh = localStorage.getItem("refresh");
-    console.log("Existing access token:", existingAccess ? "EXISTS" : "NONE");
-    console.log("Existing refresh token:", existingRefresh ? "EXISTS" : "NONE");
   }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     
-    // 🔍 DEBUG: Track input changes
+    // 🔍 DEBUG: Track input changes but DON'T convert case here
     console.log(`🔍 Input changed - ${name}:`, value);
-    console.log(`Character codes for ${name}:`, Array.from(value).map(char => char.charCodeAt(0)));
     
+    // ✅ Keep original case for user experience
     setFormData({ ...formData, [name]: value });
   };
 
@@ -76,13 +67,9 @@ const LoginPage = () => {
 
   const saveTokens = (access, refresh) => {
     console.log("💾 Saving tokens...");
-    console.log("Access token length:", access?.length);
-    console.log("Refresh token length:", refresh?.length);
-    
     localStorage.setItem("access", access);
     localStorage.setItem("refresh", refresh);
     API.defaults.headers.common["Authorization"] = `Bearer ${access}`;
-    
     console.log("✅ Tokens saved successfully");
   };
 
@@ -100,10 +87,9 @@ const LoginPage = () => {
 
   const handleCredentialStorage = () => {
     console.log("🔍 Handling credential storage...");
-    console.log("Remember me:", rememberMe);
-    console.log("Business name to store:", formData.businessName.trim());
     
     if (rememberMe && formData.businessName.trim()) {
+      // ✅ Store the original case business name for display purposes
       localStorage.setItem("remembered_business_name", formData.businessName.trim());
       localStorage.setItem("remember_business_name", "true");
       console.log("✅ Credentials stored for next login");
@@ -143,16 +129,8 @@ const LoginPage = () => {
     console.log("🚀 LOGIN FORM SUBMITTED");
     console.log("=".repeat(50));
 
-    // 🔍 DEBUG: Form validation
-    console.log("🔍 FORM VALIDATION:");
-    console.log("Business name raw:", JSON.stringify(formData.businessName));
-    console.log("Business name trimmed:", JSON.stringify(formData.businessName.trim()));
-    console.log("Business name length:", formData.businessName.trim().length);
-    console.log("Password raw:", JSON.stringify(formData.password));
-    console.log("Password length:", formData.password.length);
-
+    // Form validation
     if (!formData.businessName.trim()) {
-      console.log("❌ Validation failed: Empty business name");
       toast.error("Please enter your business name", { 
         position: "top-center",
         icon: "⚠️"
@@ -161,7 +139,6 @@ const LoginPage = () => {
     }
 
     if (!formData.password) {
-      console.log("❌ Validation failed: Empty password");
       toast.error("Please enter your password", { 
         position: "top-center",
         icon: "⚠️"
@@ -170,7 +147,6 @@ const LoginPage = () => {
     }
 
     if (formData.businessName.trim().length < 2) {
-      console.log("❌ Validation failed: Business name too short");
       toast.error("Business name must be at least 2 characters", { 
         position: "top-center",
         icon: "⚠️"
@@ -178,47 +154,26 @@ const LoginPage = () => {
       return;
     }
 
-    console.log("✅ Form validation passed");
-
     setIsLoading(true);
 
     try {
-      // 🔍 DEBUG: Prepare login payload
-      const originalBusinessName = formData.businessName;
-      const processedBusinessName = formData.businessName.toLowerCase().trim();
-      
-      console.log("🔍 PAYLOAD PREPARATION:");
-      console.log("Original business name:", JSON.stringify(originalBusinessName));
-      console.log("Processed business name:", JSON.stringify(processedBusinessName));
-      console.log("Business name char codes:", Array.from(processedBusinessName).map(char => char.charCodeAt(0)));
-      console.log("Password first 3 chars:", formData.password.substring(0, 3));
-      console.log("Password last 3 chars:", formData.password.substring(formData.password.length - 3));
-      console.log("Password has spaces:", formData.password.includes(' '));
-      console.log("Password has special chars:", /[^a-zA-Z0-9]/.test(formData.password));
-
+      // ✅ FIXED: Send original case to backend - let backend handle case insensitivity
       const loginPayload = {
-        business_name: processedBusinessName,
-        password: formData.password,
+        business_name: formData.businessName.trim(), // ✅ Keep original case
+        password: formData.password, // ✅ Always keep original case for password
       };
 
-      console.log("🔍 FINAL LOGIN PAYLOAD:");
-      console.log("Payload object:", loginPayload);
-      console.log("Payload JSON:", JSON.stringify(loginPayload));
+      console.log("🔍 PAYLOAD PREPARATION:");
+      console.log("Original business name (what user typed):", JSON.stringify(formData.businessName));
+      console.log("Trimmed business name (sent to API):", JSON.stringify(loginPayload.business_name));
+      console.log("Password length:", loginPayload.password.length);
 
-      // 🔍 DEBUG: API call details
-      console.log("🔍 API CALL DETAILS:");
-      console.log("API base URL:", import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api");
-      console.log("Current timestamp:", new Date().toISOString());
-      console.log("User agent:", navigator.userAgent);
-
-      console.log("📡 Making login API call...");
+      console.log("📡 Making login API call with original case...");
       const res = await login(loginPayload);
 
       console.log("✅ LOGIN API RESPONSE RECEIVED:");
       console.log("Response status:", res?.status);
-      console.log("Response statusText:", res?.statusText);
-      console.log("Response headers:", res?.headers);
-      console.log("Response data:", res?.data);
+      console.log("Response data keys:", Object.keys(res?.data || {}));
 
       // Check if response is successful
       if (res && res.data) {
@@ -227,9 +182,6 @@ const LoginPage = () => {
         console.log("🔍 TOKEN VALIDATION:");
         console.log("Access token exists:", !!access);
         console.log("Refresh token exists:", !!refresh);
-        console.log("Access token length:", access?.length);
-        console.log("Refresh token length:", refresh?.length);
-        console.log("Access token starts with:", access?.substring(0, 20));
         
         if (!access || !refresh) {
           console.log("❌ Missing tokens in response");
@@ -249,7 +201,7 @@ const LoginPage = () => {
         await refreshUser();
 
         const userData = JSON.parse(localStorage.getItem("auth_user"));
-        console.log("User data loaded:", userData);
+        console.log("User data loaded:", !!userData);
 
         // Apply theme
         try {
@@ -273,7 +225,6 @@ const LoginPage = () => {
             const check = setInterval(() => {
               attempts++;
               const u = JSON.parse(localStorage.getItem("auth_user"));
-              console.log(`User data check attempt ${attempts}:`, !!u);
               if (u) {
                 clearInterval(check);
                 resolve(u);
@@ -320,34 +271,21 @@ const LoginPage = () => {
 
     } catch (err) {
       console.log("❌ LOGIN ERROR OCCURRED:");
-      console.log("=".repeat(50));
       console.log("Error type:", err.constructor.name);
       console.log("Error message:", err.message);
-      console.log("Error stack:", err.stack);
 
       if (err.response) {
         console.log("🔍 HTTP ERROR RESPONSE:");
         console.log("Status:", err.response.status);
-        console.log("Status text:", err.response.statusText);
-        console.log("Headers:", err.response.headers);
         console.log("Data:", err.response.data);
-        console.log("Config:", err.response.config);
       } else if (err.request) {
-        console.log("🔍 NETWORK ERROR:");
-        console.log("Request:", err.request);
-        console.log("Request readyState:", err.request.readyState);
-        console.log("Request status:", err.request.status);
-        console.log("Request response:", err.request.response);
-      } else {
-        console.log("🔍 OTHER ERROR:");
-        console.log("Error config:", err.config);
+        console.log("🔍 NETWORK ERROR - No response received");
       }
 
       // Check if actually successful (status 200/201 but thrown as error)
       if (err.response) {
         const status = err.response.status;
         
-        console.log("🔍 Checking if error is actually success...");
         if (status === 200 || status === 201) {
           console.log("✅ Error was actually successful response");
           handleCredentialStorage();
@@ -365,66 +303,50 @@ const LoginPage = () => {
         const errorData = err.response.data;
         const status = err.response.status;
 
-        console.log("🔍 PROCESSING ERROR RESPONSE:");
-        console.log("Error data type:", typeof errorData);
-        console.log("Error data:", errorData);
+        console.log("🔍 Error details:", { status, errorData });
 
         switch (status) {
           case 400:
             errorTitle = "Invalid Request";
-            console.log("❌ 400 Bad Request - checking error details...");
             if (errorData?.business_name) {
               errorMessage = `Business name error: ${errorData.business_name}`;
-              console.log("Business name validation error:", errorData.business_name);
             } else if (errorData?.password) {
               errorMessage = `Password error: ${errorData.password}`;
-              console.log("Password validation error:", errorData.password);
             } else if (errorData?.non_field_errors) {
               errorMessage = Array.isArray(errorData.non_field_errors) 
                 ? errorData.non_field_errors[0] 
                 : errorData.non_field_errors;
-              console.log("Non-field errors:", errorData.non_field_errors);
             } else {
               errorMessage = "Please check your input and try again.";
-              console.log("Generic 400 error");
             }
             break;
           case 401:
             errorTitle = "Invalid Credentials";
-            errorMessage = "Business name or password is incorrect.";            console.log("❌ 401 Unauthorized - Invalid credentials");
+            errorMessage = "Business name or password is incorrect. Please check your credentials.";
             break;
           case 403:
             errorTitle = "Access Denied";
             errorMessage = "Your account may be suspended. Contact support.";
-            console.log("❌ 403 Forbidden - Account may be suspended");
             break;
           case 404:
             errorTitle = "Account Not Found";
-            errorMessage = "No account found with this business name.";
-            console.log("❌ 404 Not Found - Account doesn't exist");
+            errorMessage = "No account found with this business name. Please check the spelling.";
             break;
           case 429:
             errorTitle = "Too Many Attempts";
             errorMessage = "Please wait a moment before trying again.";
-            console.log("❌ 429 Rate Limited - Too many attempts");
             break;
           case 500:
             errorTitle = "Server Error";
             errorMessage = "Something went wrong on our end. Please try again later.";
-            console.log("❌ 500 Internal Server Error");
             break;
           default:
-            console.log(`❌ Unhandled HTTP status: ${status}`);
             if (errorData?.error) {
               errorMessage = errorData.error;
             } else if (errorData?.detail) {
               errorMessage = errorData.detail;
             } else if (errorData?.message) {
               errorMessage = errorData.message;
-            } else if (errorData?.non_field_errors) {
-              errorMessage = Array.isArray(errorData.non_field_errors) 
-                ? errorData.non_field_errors[0] 
-                : errorData.non_field_errors;
             } else if (typeof errorData === 'string') {
               errorMessage = errorData;
             }
@@ -432,16 +354,10 @@ const LoginPage = () => {
       } else if (err.request) {
         errorTitle = "Network Error";
         errorMessage = "Please check your internet connection and try again.";
-        console.log("❌ Network error - no response received");
       } else {
         errorTitle = "Unexpected Error";
         errorMessage = err.message || "Something went wrong. Please try again.";
-        console.log("❌ Unexpected error:", err.message);
       }
-
-      console.log("🔍 FINAL ERROR DETAILS:");
-      console.log("Error title:", errorTitle);
-      console.log("Error message:", errorMessage);
 
       toast.error(
         <div className="toast-content">
@@ -457,10 +373,8 @@ const LoginPage = () => {
         }
       );
 
-      console.log("=".repeat(50));
     } finally {
       setIsLoading(false);
-      console.log("🔄 Login attempt completed, loading state reset");
     }
   };
 
@@ -508,7 +422,7 @@ const LoginPage = () => {
           <div className={`input-group password-field ${shouldHideIcon('password') ? 'icon-hidden' : ''}`}>
             <FaLock className="input-icon" />
             <input
-              type={showPassword ? "text" : "password"}
+                            type={showPassword ? "text" : "password"}
               name="password"
               value={formData.password}
               onChange={handleChange}

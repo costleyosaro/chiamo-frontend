@@ -508,6 +508,7 @@
   text-decoration: underline;
 }
 
+
 /* ===== Security Note ===== */
 .security-note {
   display: flex;
@@ -667,53 +668,46 @@
   border-radius: 4px;
 }
 
-/* Remember Me Checkbox Styles */
-.remember-me-container {
-  margin: 1rem 0;
+/* Login Options Row */
+.login-options {
   display: flex;
+  justify-content: space-between;
   align-items: center;
+  margin: 20px 0 25px 0;
+  flex-wrap: wrap;
+  gap: 15px;
 }
 
+/* Remember Me Checkbox Styling */
 .remember-me-label {
   display: flex;
   align-items: center;
   cursor: pointer;
-  font-size: 0.9rem;
-  color: var(--text-secondary, #666);
   user-select: none;
-  position: relative;
-  padding-left: 2rem;
+  font-size: 14px;
+  color: #6c757d;
+  transition: color 0.3s ease;
+  font-weight: 500;
+}
+
+.remember-me-label:hover {
+  color: #495057;
 }
 
 .remember-me-checkbox {
-  position: absolute;
-  opacity: 0;
-  cursor: pointer;
-  height: 0;
-  width: 0;
+  display: none;
 }
 
 .checkmark {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  height: 18px;
+  position: relative;
   width: 18px;
-  background-color: transparent;
-  border: 2px solid var(--border-color, #ddd);
+  height: 18px;
+  background: #fff;
+  border: 2px solid #e1e5e9;
   border-radius: 4px;
+  margin-right: 10px;
   transition: all 0.3s ease;
-}
-
-.remember-me-label:hover .checkmark {
-  border-color: var(--primary-color, #007bff);
-  background-color: var(--primary-light, rgba(0, 123, 255, 0.1));
-}
-
-.remember-me-checkbox:checked ~ .checkmark {
-  background-color: var(--primary-color, #007bff);
-  border-color: var(--primary-color, #007bff);
+  flex-shrink: 0;
 }
 
 .checkmark:after {
@@ -729,14 +723,193 @@
   transform: rotate(45deg);
 }
 
+.remember-me-checkbox:checked ~ .checkmark {
+  background: #007bff;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
 .remember-me-checkbox:checked ~ .checkmark:after {
   display: block;
 }
 
-.remember-me-label:active .checkmark {
-  transform: translateY(-50%) scale(0.95);
+.remember-me-label:hover .checkmark {
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
 }
 
+.remember-text {
+  font-weight: 500;
+  color: inherit;
+  white-space: nowrap;
+}
+
+/* Forgot Password Link */
+.reset-link {
+  color: #007bff;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  padding: 5px 0;
+}
+
+.reset-link:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+.reset-link:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Remove old remember-me-container and forgot-password styles if they exist */
+.remember-me-container,
+.forgot-password {
+  display: none;
+}
+
+/* Enhanced checkbox animation */
+.checkmark {
+  background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.remember-me-checkbox:checked ~ .checkmark {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  border-color: #0056b3;
+  transform: scale(1.05);
+}
+
+.remember-me-checkbox:checked ~ .checkmark:after {
+  animation: checkmark-appear 0.3s ease-in-out;
+}
+
+@keyframes checkmark-appear {
+  0% {
+    opacity: 0;
+    transform: rotate(45deg) scale(0.5);
+  }
+  50% {
+    opacity: 0.7;
+    transform: rotate(45deg) scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(45deg) scale(1);
+  }
+}
+
+/* Responsive design for mobile */
+@media (max-width: 480px) {
+  .login-options {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    margin: 15px 0 20px 0;
+  }
+  
+  .reset-link {
+    align-self: flex-end;
+    margin-top: 5px;
+  }
+  
+  .remember-text {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 360px) {
+  .login-options {
+    gap: 12px;
+  }
+  
+  .remember-me-label {
+    font-size: 13px;
+  }
+  
+  .reset-link {
+    font-size: 13px;
+  }
+  
+  .checkmark {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+  }
+  
+  .checkmark:after {
+    left: 4px;
+    top: 1px;
+    width: 3px;
+    height: 7px;
+  }
+}
+
+/* Focus states for accessibility */
+.remember-me-label:focus-within .checkmark {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .checkmark {
+    border-width: 3px;
+  }
+  
+  .remember-me-checkbox:checked ~ .checkmark {
+    background: #000;
+    border-color: #000;
+  }
+  
+  .remember-me-checkbox:checked ~ .checkmark:after {
+    border-color: #fff;
+    border-width: 0 3px 3px 0;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .checkmark,
+  .remember-me-label,
+  .reset-link {
+    transition: none;
+  }
+  
+  .remember-me-checkbox:checked ~ .checkmark {
+    transform: none;
+  }
+  
+  .checkmark:after {
+    animation: none;
+  }
+}
+
+/* Dark theme support (if you have dark mode) */
+[data-theme="dark"] .checkmark {
+  background: #2d3748;
+  border-color: #4a5568;
+}
+
+[data-theme="dark"] .remember-me-label {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .remember-me-label:hover {
+  color: #f7fafc;
+}
+
+[data-theme="dark"] .reset-link {
+  color: #63b3ed;
+}
+
+[data-theme="dark"] .reset-link:hover {
+  color: #90cdf4;
+}
 /* Dark theme support */
 [data-theme="dark"] .remember-me-label {
   color: var(--text-secondary-dark, #ccc);

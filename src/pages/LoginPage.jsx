@@ -25,28 +25,23 @@ const LoginPage = () => {
 
   // Load saved credentials on component mount
   useEffect(() => {
-    const savedCredentials = localStorage.getItem("rememberedCredentials");
-    if (savedCredentials) {
-      try {
-        const { businessName, rememberMe: wasRemembered } = JSON.parse(savedCredentials);
-        if (wasRemembered) {
-          setFormData(prev => ({ ...prev, businessName }));
-          setRememberMe(true);
-        }
-      } catch (error) {
-        console.warn("Failed to load saved credentials:", error);
-        localStorage.removeItem("rememberedCredentials");
-      }
+    const rememberedBusinessName = localStorage.getItem("remembered_business_name");
+    const isRemembered = localStorage.getItem("remember_business_name") === "true";
+    
+    if (rememberedBusinessName && isRemembered) {
+      setFormData(prev => ({ 
+        ...prev, 
+        businessName: rememberedBusinessName // Keep original case for display
+      }));
+      setRememberMe(true);
     }
   }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     
-    // Convert business name to lowercase for case-insensitive login
-    const processedValue = name === "businessName" ? value.toLowerCase().trim() : value;
-    
-    setFormData({ ...formData, [name]: processedValue });
+    // Don't convert to lowercase during typing - let user see what they type
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleFocus = (fieldName) => {
@@ -68,17 +63,27 @@ const LoginPage = () => {
     API.defaults.headers.common["Authorization"] = `Bearer ${access}`;
   };
 
+  // Handle Remember Me functionality
+  const handleRememberMeChange = (e) => {
+    const checked = e.target.checked;
+    setRememberMe(checked);
+    
+    // If unchecked, remove from localStorage immediately
+    if (!checked) {
+      localStorage.removeItem("remembered_business_name");
+      localStorage.removeItem("remember_business_name");
+    }
+  };
+
   // Save or remove credentials based on "Remember me" checkbox
   const handleCredentialStorage = () => {
-    if (rememberMe) {
-      const credentialsToSave = {
-        businessName: formData.businessName,
-        rememberMe: true,
-        savedAt: new Date().toISOString()
-      };
-      localStorage.setItem("rememberedCredentials", JSON.stringify(credentialsToSave));
+    if (rememberMe && formData.businessName.trim()) {
+      // Store the original case business name for display purposes
+      localStorage.setItem("remembered_business_name", formData.businessName.trim());
+      localStorage.setItem("remember_business_name", "true");
     } else {
-      localStorage.removeItem("rememberedCredentials");
+      localStorage.removeItem("remembered_business_name");
+      localStorage.removeItem("remember_business_name");
     }
   };
 
@@ -137,13 +142,13 @@ const LoginPage = () => {
 
     try {
       console.log("🔄 Attempting login with:", {
-        business_name: formData.businessName,
+        business_name: formData.businessName.toLowerCase().trim(), // Convert to lowercase for API
         password_length: formData.password.length
       });
 
       const res = await login({
-        business_name: formData.businessName, // Already converted to lowercase
-        password: formData.password,
+        business_name: formData.businessName.toLowerCase().trim(), // Convert to lowercase for API call
+        password: formData.password, // Keep original case for password
       });
 
       console.log("✅ Login response received:", res?.status);
@@ -156,7 +161,7 @@ const LoginPage = () => {
           throw new Error("Invalid response from server - missing tokens");
         }
 
-        // Save credentials if "Remember me" is checked
+        // Save credentials if "Remember me" is checked - ONLY on successful login
         handleCredentialStorage();
 
         saveTokens(access, refresh);
@@ -237,7 +242,7 @@ const LoginPage = () => {
         const status = err.response.status;
         
         if (status === 200 || status === 201) {
-          // Actually successful
+          // Actually successful - save credentials here too
           handleCredentialStorage();
           toast.success("✅ Login successful!", { position: "top-center" });
           setTimeout(() => navigate("/home", { replace: true }), 1500);
@@ -361,7 +366,6 @@ const LoginPage = () => {
               placeholder=" "
               required
               autoComplete="organization"
-              style={{ textTransform: 'lowercase' }}
             />
             <label>Business Name</label>
           </div>
@@ -391,24 +395,21 @@ const LoginPage = () => {
             </span>
           </div>
 
-          {/* Remember Me Checkbox */}
-          <div className="remember-me-container">
+          {/* Remember Me and Forgot Password Row */}
+          <div className="login-options">
             <label className="remember-me-label">
               <input
                 type="checkbox"
                 checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
+                onChange={handleRememberMeChange}
                 className="remember-me-checkbox"
               />
               <span className="checkmark"></span>
-              Remember my business name
+              <span className="remember-text">Remember my business name</span>
             </label>
-          </div>
-
-          {/* Forgot Password */}
-          <div className="forgot-password">
+            
             <Link to="/forgot-password" className="reset-link">
-              Forgot your password?
+              Forgot password?
             </Link>
           </div>
 

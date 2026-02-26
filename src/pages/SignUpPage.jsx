@@ -1,7 +1,7 @@
 import { useState } from "react";
 import API from "../services/api";
 import { Link, useNavigate } from "react-router-dom";
-import { FaCamera, FaEye, FaEyeSlash, FaUser, FaStore, FaPhone, FaEnvelope, FaLock, FaUserTie, FaMapMarkerAlt } from "react-icons/fa";
+import { FaCamera, FaEye, FaEyeSlash, FaUser, FaStore, FaPhone, FaEnvelope, FaLock, FaUserTie, FaMapMarkerAlt, FaChevronDown } from "react-icons/fa";
 import "./SignUp.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -27,10 +27,25 @@ const SignUpPage = () => {
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [focusedField, setFocusedField] = useState("");
+  const [isCapturingLocation, setIsCapturingLocation] = useState(false);
   const navigate = useNavigate();
 
+  // Sales Executive options
+  const salesExecutiveOptions = [
+    { value: "", label: "Select Sales Executive (Optional)" },
+    { value: "yes", label: "Yes, I have a Sales Executive" },
+    { value: "no", label: "No Sales Executive" },
+    { value: "request", label: "Request Sales Executive Assignment" }
+  ];
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    // Convert to lowercase for storage (except password fields)
+    const processedValue = (name === 'password' || name === 'confirmPassword') 
+      ? value 
+      : value.toLowerCase();
+    
+    setFormData({ ...formData, [name]: processedValue });
   };
 
   const handleFocus = (fieldName) => {
@@ -46,59 +61,113 @@ const SignUpPage = () => {
     return focusedField === fieldName || formData[fieldName]?.length > 0;
   };
 
+  const handleLocationCapture = async () => {
+    setIsCapturingLocation(true);
+    
+    try {
+      if (!navigator.geolocation) {
+        toast.error("Geolocation not supported by this browser.", { position: "top-center" });
+        return;
+      }
+
+      // Get current position
+      const position = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(
+          resolve,
+          reject,
+          { 
+            enableHighAccuracy: true, 
+            timeout: 10000, 
+            maximumAge: 60000 
+          }
+        );
+      });
+
+      const { latitude, longitude } = position.coords;
+      const timestamp = new Date().toISOString();
+
+      // Get address from coordinates
+      let address = `Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}`;
+      
+      try {
+        const geoRes = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`
+        );
+        const geoData = await geoRes.json();
+        
+        if (geoData?.display_name) {
+          address = geoData.display_name;
+        }
+      } catch (err) {
+        console.warn("Reverse geocoding failed:", err);
+        toast.warning("Location captured, but address lookup failed. Using coordinates.", { position: "top-center" });
+      }
+
+      // Update form data with location
+      setFormData((prev) => ({
+        ...prev,
+        latitude: latitude.toString(),
+        longitude: longitude.toString(),
+        location: address,
+        timestamp,
+      }));
+
+      toast.success("📍 Location captured successfully!", { position: "top-center" });
+
+    } catch (error) {
+      console.error("Error capturing location:", error);
+      
+      if (error.code === 1) {
+        toast.error("Location access denied. Please enable location permissions.", { position: "top-center" });
+      } else if (error.code === 2) {
+        toast.error("Location unavailable. Please try again.", { position: "top-center" });
+      } else if (error.code === 3) {
+        toast.error("Location request timeout. Please try again.", { position: "top-center" });
+      } else {
+        toast.error("Failed to capture location. Please try again.", { position: "top-center" });
+      }
+    } finally {
+      setIsCapturingLocation(false);
+    }
+  };
+
   const handleCapture = async () => {
     try {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(async (position) => {
-          const { latitude, longitude } = position.coords;
-          const timestamp = new Date().toISOString();
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+      input.capture = "environment";
+      input.click();
 
-          let address = `Lat: ${latitude}, Lng: ${longitude}`;
+      input.onchange = async (event) => {
+        const file = event.target.files[0];
+        if (file) {
           try {
-            const geoRes = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+            const data = new FormData();
+            data.append("file", file);
+            data.append("upload_preset", "your_unsigned_preset");
+
+            const res = await fetch(
+              "https://api.cloudinary.com/v1_1/djq2ywwry/image/upload",
+              { method: "POST", body: data }
             );
-            const geoData = await geoRes.json();
-            if (geoData?.display_name) address = geoData.display_name;
-          } catch (err) {
-            console.warn("Reverse geocoding failed:", err);
+            const uploadRes = await res.json();
+
+            setFormData((prev) => ({
+              ...prev,
+              shopPhotoUrl: uploadRes.secure_url,
+            }));
+
+            toast.success("📸 Shop photo uploaded successfully!", { position: "top-center" });
+          } catch (error) {
+            console.error("Error uploading photo:", error);
+            toast.error("Failed to upload photo. Please try again.", { position: "top-center" });
           }
-
-          const input = document.createElement("input");
-          input.type = "file";
-          input.accept = "image/*";
-          input.capture = "environment";
-          input.click();
-
-          input.onchange = async (event) => {
-            const file = event.target.files[0];
-            if (file) {
-              const data = new FormData();
-              data.append("file", file);
-              data.append("upload_preset", "your_unsigned_preset");
-
-              const res = await fetch(
-                "https://api.cloudinary.com/v1_1/djq2ywwry/image/upload",
-                { method: "POST", body: data }
-              );
-              const uploadRes = await res.json();
-
-              setFormData((prev) => ({
-                ...prev,
-                latitude,
-                longitude,
-                location: address,
-                timestamp,
-                shopPhotoUrl: uploadRes.secure_url,
-              }));
-            }
-          };
-        });
-      } else {
-        toast.error("Geolocation not supported.", { position: "top-center" });
-      }
+        }
+      };
     } catch (err) {
       console.error("Error capturing photo:", err);
+      toast.error("Failed to capture photo. Please try again.", { position: "top-center" });
     }
   };
 
@@ -125,17 +194,30 @@ const SignUpPage = () => {
     setIsLoading(true);
 
     try {
+      // Prepare payload with all lowercase fields (except passwords)
       const payload = {
-        name: formData.name,
-        businessName: formData.businessName,
-        phone: formData.phone,
-        email: formData.email,
-        password: formData.password,
-        confirmPassword: formData.confirmPassword,
+        name: formData.name.toLowerCase(),
+        businessName: formData.businessName.toLowerCase(),
+        phone: formData.phone.toLowerCase(),
+        email: formData.email.toLowerCase(),
+        password: formData.password, // Keep original case for password
+        confirmPassword: formData.confirmPassword, // Keep original case for password
       };
 
+      // Add optional fields if they have values
       if (formData.salesExecutive.trim() !== "") {
         payload.salesExecutive = formData.salesExecutive;
+      }
+
+      if (formData.location.trim() !== "") {
+        payload.location = formData.location;
+        payload.latitude = formData.latitude;
+        payload.longitude = formData.longitude;
+        payload.timestamp = formData.timestamp;
+      }
+
+      if (formData.shopPhotoUrl.trim() !== "") {
+        payload.shopPhotoUrl = formData.shopPhotoUrl;
       }
 
       const response = await API.post("customers/register/", payload);
@@ -277,19 +359,25 @@ const SignUpPage = () => {
             <label>Email Address</label>
           </div>
 
-          {/* Sales Executive */}
-          <div className={`input-group ${shouldHideIcon('salesExecutive') ? 'icon-hidden' : ''}`}>
+          {/* Sales Executive Dropdown */}
+          <div className="input-group select-group">
             <FaUserTie className="input-icon" />
-            <input 
-              type="text" 
+            <select 
               name="salesExecutive" 
               value={formData.salesExecutive} 
               onChange={handleChange}
               onFocus={() => handleFocus('salesExecutive')}
               onBlur={handleBlur}
-              placeholder=" "
-            />
-            <label>Sales Executive (Optional)</label>
+              className="select-input"
+            >
+              {salesExecutiveOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <FaChevronDown className="select-arrow" />
+            <label className={formData.salesExecutive ? 'active' : ''}>Sales Executive</label>
           </div>
 
           {/* Password */}
@@ -344,19 +432,29 @@ const SignUpPage = () => {
             </div>
             <button 
               type="button" 
+              className={`location-btn ${isCapturingLocation ? 'loading' : ''}`}
+              onClick={handleLocationCapture} 
+              disabled={isCapturingLocation}
+              title="Capture your current location"
+            >
+              <FaMapMarkerAlt />
+              <span>{isCapturingLocation ? 'Getting Location...' : 'Get Location'}</span>
+            </button>
+            <button 
+              type="button" 
               className="camera-btn" 
               onClick={handleCapture} 
-              title="Capture shop photo & location"
+              title="Capture shop photo"
             >
               <FaCamera />
-              <span>Capture</span>
+              <span>Photo</span>
             </button>
           </div>
 
           {formData.shopPhotoUrl && (
             <div className="photo-preview">
               <img src={formData.shopPhotoUrl} alt="Shop Preview" />
-              <p>📍 Photo captured at {new Date(formData.timestamp).toLocaleString()}</p>
+              <p>📸 Photo captured at {new Date(formData.timestamp).toLocaleString()}</p>
             </div>
           )}
 

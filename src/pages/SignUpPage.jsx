@@ -2,11 +2,11 @@ import { useState } from "react";
 import API from "../services/api";
 import { Link, useNavigate } from "react-router-dom";
 import { FaCamera, FaEye, FaEyeSlash, FaUser, FaStore, FaPhone, FaEnvelope, FaLock, FaUserTie, FaMapMarkerAlt, FaChevronDown } from "react-icons/fa";
-import "./SignUp.css";
+import "./SignUpNew.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const SignUpPage = () => {
+const SignUpPageNew = () => {
   const [formData, setFormData] = useState({
     name: "",
     businessName: "",
@@ -68,9 +68,8 @@ const SignUpPage = () => {
         return;
       }
 
-      // Request permission first (important for mobile)
-      const permission = await navigator.permissions.query({ name: 'geolocation' });
-      console.log('Geolocation permission:', permission.state);
+      // Show loading toast
+      const loadingToast = toast.loading("📍 Capturing your location...", { position: "top-center" });
 
       // Get current position with mobile-optimized settings
       const position = await new Promise((resolve, reject) => {
@@ -102,7 +101,7 @@ const SignUpPage = () => {
           fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`)
             .then(res => res.json()),
           
-          // Fallback: Alternative service (you can add more)
+          // Fallback: Alternative service
           fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`)
             .then(res => res.json())
         ];
@@ -136,6 +135,7 @@ const SignUpPage = () => {
         timestamp,
       }));
 
+      toast.dismiss(loadingToast);
       toast.success("📍 Location captured successfully!", { position: "top-center" });
 
     } catch (error) {
@@ -303,28 +303,29 @@ const SignUpPage = () => {
   };
 
   return (
-    <div className="signup-container">
+    <div className="signup-new-container">
       {/* Animated background elements */}
-      <div className="signup-bg-shapes">
-        <div className="shape shape-1"></div>
-        <div className="shape shape-2"></div>
-        <div className="shape shape-3"></div>
+      <div className="signup-new-bg-shapes">
+        <div className="shape-new shape-new-1"></div>
+        <div className="shape-new shape-new-2"></div>
+        <div className="shape-new shape-new-3"></div>
+        <div className="shape-new shape-new-4"></div>
       </div>
 
-      <div className="signup-card">
-        <Link to="/" className="signup-logo" style={{ textDecoration: "none" }}>
-          <div className="signup-logo-text">
+      <div className="signup-new-card">
+        <Link to="/" className="signup-new-logo" style={{ textDecoration: "none" }}>
+          <div className="signup-new-logo-text">
             Chiamo<span>Order</span>
           </div>
         </Link>
 
-        <form className="signup-form" onSubmit={handleSubmit}>
+        <form className="signup-new-form" onSubmit={handleSubmit}>
           <h2>Create Account</h2>
-          <p className="signup-subtitle">Join us and start ordering today</p>
+          <p className="signup-new-subtitle">Join us and start ordering today</p>
 
           {/* Full Name */}
-          <div className={`input-group ${shouldHideIcon('name') ? 'icon-hidden' : ''}`}>
-            <FaUser className="input-icon" />
+          <div className={`input-new-group ${shouldHideIcon('name') ? 'icon-new-hidden' : ''}`}>
+            <FaUser className="input-new-icon" />
             <input 
               type="text" 
               name="name" 
@@ -339,8 +340,8 @@ const SignUpPage = () => {
           </div>
 
           {/* Business Name */}
-          <div className={`input-group ${shouldHideIcon('businessName') ? 'icon-hidden' : ''}`}>
-            <FaStore className="input-icon" />
+          <div className={`input-new-group ${shouldHideIcon('businessName') ? 'icon-new-hidden' : ''}`}>
+            <FaStore className="input-new-icon" />
             <input 
               type="text" 
               name="businessName" 
@@ -355,8 +356,8 @@ const SignUpPage = () => {
           </div>
 
           {/* Phone Number */}
-          <div className={`input-group ${shouldHideIcon('phone') ? 'icon-hidden' : ''}`}>
-            <FaPhone className="input-icon" />
+          <div className={`input-new-group ${shouldHideIcon('phone') ? 'icon-new-hidden' : ''}`}>
+            <FaPhone className="input-new-icon" />
             <input 
               type="tel" 
               name="phone" 
@@ -371,8 +372,8 @@ const SignUpPage = () => {
           </div>
 
           {/* Email */}
-          <div className={`input-group ${shouldHideIcon('email') ? 'icon-hidden' : ''}`}>
-            <FaEnvelope className="input-icon" />
+          <div className={`input-new-group ${shouldHideIcon('email') ? 'icon-new-hidden' : ''}`}>
+            <FaEnvelope className="input-new-icon" />
             <input 
               type="email" 
               name="email" 
@@ -386,14 +387,14 @@ const SignUpPage = () => {
             <label>Email Address</label>
           </div>
 
-          {/* Sales Executive Dropdown - FIXED STYLING */}
-          <div className="select-wrapper">
-            <FaUserTie className="select-icon" />
+          {/* Sales Executive Dropdown */}
+          <div className="select-new-wrapper">
+            <FaUserTie className="select-new-icon" />
             <select 
               name="salesExecutive" 
               value={formData.salesExecutive} 
               onChange={handleChange}
-              className="select-field"
+              className="select-new-field"
             >
               {salesExecutiveOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -401,12 +402,12 @@ const SignUpPage = () => {
                 </option>
               ))}
             </select>
-            <FaChevronDown className="select-arrow" />
+            <FaChevronDown className="select-new-arrow" />
           </div>
 
           {/* Password */}
-          <div className={`input-group password-group ${shouldHideIcon('password') ? 'icon-hidden' : ''}`}>
-            <FaLock className="input-icon" />
+          <div className={`input-new-group password-new-group ${shouldHideIcon('password') ? 'icon-new-hidden' : ''}`}>
+            <FaLock className="input-new-icon" />
             <input 
               type={showPassword ? "text" : "password"} 
               name="password" 
@@ -418,15 +419,15 @@ const SignUpPage = () => {
               required 
             />
             <label>Password (min 6 characters)</label>
-            <span className="password-toggle" onClick={() => setShowPassword(!showPassword)}>
+            <span className="password-new-toggle" onClick={() => setShowPassword(!showPassword)}>
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </span>
           </div>
 
-                    {/* Location Field */}
-          <div className="location-field">
-            <div className={`location-input-wrapper ${formData.location ? 'has-value' : ''}`}>
-              <FaMapMarkerAlt className="location-icon" />
+          {/* Location Field */}
+          <div className="location-new-field">
+            <div className={`location-new-input-wrapper ${formData.location ? 'has-new-value' : ''}`}>
+              <FaMapMarkerAlt className="location-new-icon" />
               <input 
                 type="text" 
                 name="location" 
@@ -437,7 +438,7 @@ const SignUpPage = () => {
             </div>
             <button 
               type="button" 
-              className={`location-btn-alt ${isCapturingLocation ? 'loading' : ''}`}
+              className={`location-new-btn ${isCapturingLocation ? 'loading' : ''}`}
               onClick={handleLocationCapture} 
               disabled={isCapturingLocation}
               title="Capture your current location"
@@ -447,7 +448,7 @@ const SignUpPage = () => {
             </button>
             <button 
               type="button" 
-              className="camera-btn" 
+              className="camera-new-btn" 
               onClick={handleCapture} 
               title="Capture shop photo"
             >
@@ -457,38 +458,38 @@ const SignUpPage = () => {
           </div>
 
           {formData.shopPhotoUrl && (
-            <div className="photo-preview">
+            <div className="photo-new-preview">
               <img src={formData.shopPhotoUrl} alt="Shop Preview" />
               <p>📸 Photo captured at {new Date(formData.timestamp).toLocaleString()}</p>
             </div>
           )}
 
           {/* Terms */}
-          <div className="terms-container">
-            <label className="terms-checkbox">
+          <div className="terms-new-container">
+            <label className="terms-new-checkbox">
               <input
                 type="checkbox"
                 checked={agreeToTerms}
                 onChange={() => setAgreeToTerms(!agreeToTerms)}
               />
-              <span className="checkmark"></span>
-              <span className="terms-text">
+              <span className="checkmark-new"></span>
+              <span className="terms-new-text">
                 I agree to the{" "}
-                <Link to="/terms" className="privacy-link">Terms of Service</Link>
+                <Link to="/terms" className="privacy-new-link">Terms of Service</Link>
                 {" "}and{" "}
-                <Link to="/privacy-policy" className="privacy-link">Privacy Policy</Link>
+                <Link to="/privacy-policy" className="privacy-new-link">Privacy Policy</Link>
               </span>
             </label>
           </div>
 
           <button
             type="submit"
-            className={`signup-btn ${!agreeToTerms ? "disabled" : ""} ${isLoading ? "loading" : ""}`}
+            className={`signup-new-btn ${!agreeToTerms ? "disabled" : ""} ${isLoading ? "loading" : ""}`}
             disabled={!agreeToTerms || isLoading}
           >
             {isLoading ? (
-              <span className="btn-loading">
-                <span className="spinner"></span>
+              <span className="btn-new-loading">
+                <span className="spinner-new"></span>
                 Creating Account...
               </span>
             ) : (
@@ -496,14 +497,20 @@ const SignUpPage = () => {
             )}
           </button>
 
-          <div className="divider">
+          <div className="divider-new">
             <span>or</span>
           </div>
 
-          <p className="already-account">
+          <p className="already-new-account">
             Already have an account? <Link to="/login">Sign In</Link>
           </p>
         </form>
+
+        {/* Security Note */}
+        <div className="security-new-note">
+          <span className="lock-new-icon">🔒</span>
+          <span>Your data is protected with end-to-end encryption</span>
+        </div>
       </div>
 
       <ToastContainer 
@@ -522,5 +529,4 @@ const SignUpPage = () => {
   );
 };
 
-export default SignUpPage;
-          
+export default SignUpPageNew;

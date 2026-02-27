@@ -2,11 +2,11 @@ import { useState } from "react";
 import API from "../services/api";
 import { Link, useNavigate } from "react-router-dom";
 import { FaCamera, FaEye, FaEyeSlash, FaUser, FaStore, FaPhone, FaEnvelope, FaLock, FaUserTie, FaMapMarkerAlt, FaChevronDown } from "react-icons/fa";
-import "./SignUpNew.css";
+import "./SignUp.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const SignUpPageNew = () => {
+const SignUpPage = () => {
   const [formData, setFormData] = useState({
     name: "",
     businessName: "",
@@ -529,4 +529,4 @@ const SignUpPageNew = () => {
   );
 };
 
-export default SignUpPageNew;
+export default SignUpPage;

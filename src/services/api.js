@@ -14,7 +14,7 @@ console.log("🔗 API Base URL:", BASE_URL);
 
 const API = axios.create({
   baseURL: BASE_URL,
-  timeout: 15000, // 15 second timeout
+  timeout: 8000, 
 });
 
 const getAccessToken = () => localStorage.getItem("access");

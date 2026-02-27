@@ -158,14 +158,14 @@ const LoyaltyCard = ({ points = 0 }) => (
   </div>
 );
 
-// Quick Actions - Updated with dynamic smart lists count
+// Quick Actions - Updated with fixed styling
 const QuickActions = ({ smartListsCount = 0, onNavigate }) => {
   
   const handleSubscriptionsClick = () => {
     toast.success("🚀 New feature coming soon!", {
       duration: 3000,
       style: {
-        background: 'linear-gradient(135deg, #1b4b8c, #143a6e)', // ✅ Your blue
+        background: 'linear-gradient(135deg, #1b4b8c, #143a6e)',
         color: 'white',
         borderRadius: '12px',
         padding: '16px',
@@ -177,7 +177,15 @@ const QuickActions = ({ smartListsCount = 0, onNavigate }) => {
 
   return (
     <div className="pf-quick-actions">
-      <div className="pf-quick-card" onClick={handleSubscriptionsClick}>
+      <div 
+        className="pf-quick-card pf-subscription-card" 
+        onClick={handleSubscriptionsClick}
+        style={{ 
+          background: '#ffffff',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)'
+        }}
+      >
         <div className="pf-quick-icon subscriptions">
           <FiShoppingBag />
         </div>
@@ -187,7 +195,15 @@ const QuickActions = ({ smartListsCount = 0, onNavigate }) => {
         </div>
         <FiChevronRight className="pf-quick-arrow" />
       </div>
-      <div className="pf-quick-card" onClick={() => onNavigate("/cart-page")}>
+      <div 
+        className="pf-quick-card pf-smartlist-card" 
+        onClick={() => onNavigate("/cart-page")}
+        style={{ 
+          background: '#ffffff',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)'
+        }}
+      >
         <div className="pf-quick-icon smartlists">
           <FiList />
         </div>
@@ -200,7 +216,6 @@ const QuickActions = ({ smartListsCount = 0, onNavigate }) => {
     </div>
   );
 };
-
 // Menu Section
 const MenuSection = ({ title, children }) => (
   <div className="pf-menu-section">

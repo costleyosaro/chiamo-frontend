@@ -8,9 +8,9 @@ import {
   FiShoppingCart,
   FiUser,
 } from "react-icons/fi";
-import { useCart } from "../pages/CartContext";
+import { useCart } from "../pages/CartContext";      
 import { useSmartLists } from "../pages/SmartListContext";
-import { useOrders } from "../pages/OrdersContext";
+import { useOrders } from "../pages/OrdersContext";  
 
 const navItems = [
   { key: "home", label: "Home", Icon: FiHome, to: "/home" },
@@ -23,9 +23,21 @@ const navItems = [
 export default function BottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { cartCount } = useCart();
-  const { totalSmartListCount } = useSmartLists();
-  const { totalOrdersCount } = useOrders();
+  
+  // ✅ FIXED: Add error handling for context hooks
+  const { cartCount = 0 } = useCart() || {};
+  
+  // ✅ FIXED: Safe access to SmartLists context with fallback
+  let totalSmartListCount = 0;
+  try {
+    const smartListContext = useSmartLists();
+    totalSmartListCount = smartListContext?.totalSmartListCount || 0;
+  } catch (error) {
+    console.warn('SmartLists context not available:', error);
+    totalSmartListCount = 0;
+  }
+  
+  const { totalOrdersCount = 0 } = useOrders() || {};
 
   const isActive = (path) =>
     location.pathname === path || location.pathname.startsWith(path + "/");
@@ -41,7 +53,7 @@ export default function BottomNav() {
           const badgeCount =
             (isCart && cartCount) ||
             (isLists && totalSmartListCount) ||
-            (isOrders && totalOrdersCount) ||
+            (isOrders && totalOrdersCount) ||        
             0;
 
           return (
@@ -55,10 +67,10 @@ export default function BottomNav() {
               type="button"
               aria-label={label}
             >
-              <div className="nav-icon-wrapper">
+              <div className="nav-icon-wrapper">     
                 <Icon size={isCart ? 24 : 22} className="nav-icon" />
                 {badgeCount > 0 && (
-                  <span className="cart-badge">
+                  <span className="cart-badge">      
                     {badgeCount > 9 ? "9+" : badgeCount}
                   </span>
                 )}

@@ -1,13 +1,24 @@
 import React from "react";
 import { FiMenu, FiShoppingCart, FiUser } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
-import { useCart } from "../pages/CartContext";
-import { useSmartLists } from "../pages/SmartListContext"; // ✅ smartlist import
+import { useNavigate } from "react-router-dom";      
+import { useCart } from "../pages/CartContext";      
+import { useSmartLists } from "../pages/SmartListContext";
 
 const Header = ({ businessName }) => {
   const navigate = useNavigate();
-  const { cartCount } = useCart();
-  const { totalSmartListCount } = useSmartLists(); // ✅ smartlist count
+  
+  // ✅ FIXED: Add error handling for context hooks
+  const { cartCount = 0 } = useCart() || {};
+  
+  // ✅ FIXED: Safe access to SmartLists context with fallback
+  let totalSmartListCount = 0;
+  try {
+    const smartListContext = useSmartLists();
+    totalSmartListCount = smartListContext?.totalSmartListCount || 0;
+  } catch (error) {
+    console.warn('SmartLists context not available:', error);
+    totalSmartListCount = 0;
+  }
 
   return (
     <header className="header">
@@ -19,7 +30,7 @@ const Header = ({ businessName }) => {
         {/* ✅ Smart List (Menu) button with light icon + badge */}
         <button className="icon-btn" onClick={() => navigate("/cart-page")}>
           <div className="nav-icon-wrapper">
-            <FiMenu size={20} strokeWidth={1.5} /> {/* lighter + smaller */}
+            <FiMenu size={20} strokeWidth={1.5} />
             {totalSmartListCount > 0 && (
               <span className="cart-badge">
                 {totalSmartListCount > 9 ? "9+" : totalSmartListCount}
@@ -35,10 +46,10 @@ const Header = ({ businessName }) => {
           onClick={() => navigate("/cart")}
         >
           <div className="nav-icon-wrapper">
-            <FiShoppingCart size={20} strokeWidth={1.5} /> {/* lighter + smaller */}
+            <FiShoppingCart size={20} strokeWidth={1.5} />
             {cartCount > 0 && (
               <span className="cart-badge">
-                {cartCount > 9 ? "9+" : cartCount}
+                {cartCount > 9 ? "9+" : cartCount}   
               </span>
             )}
           </div>
@@ -46,7 +57,7 @@ const Header = ({ businessName }) => {
 
         {/* ✅ Profile button (lightweight icon) */}
         <button className="icon-btn" onClick={() => navigate("/profile")}>
-          <FiUser size={20} strokeWidth={1.5} /> {/* lighter + smaller */}
+          <FiUser size={20} strokeWidth={1.5} />
         </button>
       </div>
     </header>

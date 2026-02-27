@@ -747,10 +747,21 @@ function animateToCart(cardEl) {
 }
 
 // ============ MAIN HOMEPAGE COMPONENT ============
+// ============ MAIN HOMEPAGE COMPONENT ============ 
 export default function HomePage() {
   const navigate = useNavigate();
   const { cartCount, addToCart } = useCart();
-  const { totalSmartListCount } = useSmartLists();
+  
+  // ✅ FIXED: Safe access to SmartLists context with error handling
+  let totalSmartListCount = 0;
+  try {
+    const smartListContext = useSmartLists();
+    totalSmartListCount = smartListContext?.totalSmartListCount || 0;
+  } catch (error) {
+    console.warn('SmartLists context not available in HomePage:', error);
+    totalSmartListCount = 0;
+  }
+  
   const { unreadCount } = useNotifications(); // ✅ Added notification context
 
   const [businessName, setBusinessName] = useState("");

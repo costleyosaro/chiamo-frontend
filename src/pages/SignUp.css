@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Caprasimo&display=swap');
 
-/* ===== CSS Variables ===== */
+/* ===== CSS Variables - SAME AS LOGIN ===== */
 :root {
   --primary-color: #1b4b8c;
   --primary-dark: #143a6e;
@@ -26,32 +26,21 @@
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ===== FORCE LIGHT BACKGROUND ===== */
-body {
-  background: #f8fafc !important;
-  margin: 0;
-  padding: 0;
-}
-
-html {
-  background: #f8fafc !important;
-}
-
-/* ===== Container ===== */
+/* ===== Container - SAME AS LOGIN ===== */
 .signup-new-container {
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: center !important;
-  align-items: center !important;
-  min-height: 100vh !important;
-  background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 50%, #f8fafc 100%) !important;
-  padding: 20px !important;
-  position: relative !important;
-  overflow: hidden !important;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 50%, #f8fafc 100%);
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* ===== Animated Background Shapes ===== */
+/* ===== Animated Background Shapes - SAME AS LOGIN ===== */
 .signup-new-bg-shapes {
   position: absolute;
   width: 100%;
@@ -120,7 +109,7 @@ html {
   }
 }
 
-/* ===== Card ===== */
+/* ===== Signup Card - SAME AS LOGIN ===== */
 .signup-new-card {
   background: var(--bg-card);
   padding: 48px 44px;
@@ -149,7 +138,7 @@ html {
   }
 }
 
-/* ===== Logo ===== */
+/* ===== Logo Section - SAME AS LOGIN ===== */
 .signup-new-logo {
   text-decoration: none;
   display: flex;
@@ -193,7 +182,7 @@ html {
   }
 }
 
-/* ===== Form ===== */
+/* ===== Form - SAME AS LOGIN ===== */
 .signup-new-form {
   width: 100%;
   display: flex;
@@ -231,7 +220,7 @@ html {
 
 .signup-new-form h2 {
   text-align: center;
-  margin-bottom: 8px;
+  margin: 0 0 8px 0;
   color: var(--text-dark);
   font-weight: 700;
   font-size: 28px;
@@ -242,11 +231,11 @@ html {
   text-align: center;
   color: var(--text-light);
   font-size: 14px;
-  margin-bottom: 28px;
+  margin: 0 0 32px 0;
   font-weight: 400;
 }
 
-/* ===== INPUT GROUPS ===== */
+/* ===== Input Groups - SAME AS LOGIN ===== */
 .input-new-group {
   position: relative;
   margin-bottom: 20px;
@@ -331,7 +320,7 @@ html {
   border-radius: 4px;
 }
 
-/* ===== Password Group ===== */
+/* ===== Password Field - SAME AS LOGIN ===== */
 .password-new-group {
   position: relative;
 }
@@ -356,10 +345,9 @@ html {
   padding: 4px;
   transition: var(--transition);
   z-index: 3;
-  background: transparent;
   display: flex;
   align-items: center;
-    justify-content: center;
+  justify-content: center;
 }
 
 .password-new-toggle:hover {
@@ -482,7 +470,7 @@ html {
   width: 100%;
   padding: 16px 16px 16px 48px;
   border: 2px solid var(--border-color);
-  border-radius: var(--radius-md);
+    border-radius: var(--radius-md);
   font-size: 15px;
   font-weight: 500;
   font-family: inherit;
@@ -503,47 +491,47 @@ html {
   box-shadow: 0 0 0 4px rgba(27, 75, 140, 0.1);
 }
 
-/* ===== Location Button - USING YOUR BRAND COLORS ===== */
+/* ===== Location & Camera Buttons ===== */
 .location-new-btn {
-  background: linear-gradient(135deg, var(--accent-color), var(--accent-dark)) !important;
-  color: white !important;
-  border: none !important;
-  padding: 14px 18px !important;
-  border-radius: var(--radius-md) !important;
-  cursor: pointer !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  font-size: 14px !important;
-  font-weight: 600 !important;
-  font-family: inherit !important;
-  transition: var(--transition) !important;
-  min-width: 120px !important;
-  justify-content: center !important;
-  white-space: nowrap !important;
-  box-shadow: 0 4px 12px rgba(212, 160, 23, 0.3) !important;
+  background: linear-gradient(135deg, var(--accent-color), var(--accent-dark));
+  color: white;
+  border: none;
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  transition: var(--transition);
+  min-width: 120px;
+  justify-content: center;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(212, 160, 23, 0.3);
 }
 
 .location-new-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--accent-dark), #9a7209) !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 6px 16px rgba(212, 160, 23, 0.4) !important;
+  background: linear-gradient(135deg, var(--accent-dark), #9a7209);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(212, 160, 23, 0.4);
 }
 
 .location-new-btn:disabled {
-  background: #6c757d !important;
-  cursor: not-allowed !important;
-  transform: none !important;
-  box-shadow: none !important;
+  background: #6c757d;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .location-new-btn.loading {
-  background: var(--accent-dark) !important;
-  cursor: wait !important;
+  background: var(--accent-dark);
+  cursor: wait;
 }
 
 .location-new-btn.loading span {
-  animation: pulse-new 1.5s ease-in-out infinite !important;
+  animation: pulse-new 1.5s ease-in-out infinite;
 }
 
 .camera-new-btn {
@@ -605,7 +593,7 @@ html {
   margin: 0;
 }
 
-/* ===== Terms & Conditions ===== */
+/* ===== Terms & Conditions - SAME AS LOGIN CHECKBOX STYLE ===== */
 .terms-new-container {
   margin: 8px 0 24px;
 }
@@ -613,62 +601,71 @@ html {
 .terms-new-checkbox {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
   cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+  color: var(--text-medium);
+  transition: color 0.3s ease;
+  font-weight: 500;
   position: relative;
   padding-left: 32px;
 }
 
+.terms-new-checkbox:hover {
+  color: #495057;
+}
+
 .terms-new-checkbox input {
-  position: absolute;
-  opacity: 0;
-  cursor: pointer;
-  height: 0;
-  width: 0;
+  display: none;
 }
 
 .checkmark-new {
   position: absolute;
   left: 0;
   top: 2px;
-  height: 20px;
-  width: 20px;
-  background: var(--bg-light);
-  border: 2px solid var(--border-color);
-  border-radius: 6px;
-  transition: var(--transition);
-}
-
-.terms-new-checkbox:hover .checkmark-new {
-  border-color: var(--primary-color);
-}
-
-.terms-new-checkbox input:checked ~ .checkmark-new {
-  background: var(--primary-color);
-  border-color: var(--primary-color);
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border: 2px solid #e1e5e9;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
 .checkmark-new:after {
   content: "";
   position: absolute;
   display: none;
-  left: 6px;
+  left: 5px;
   top: 2px;
-  width: 5px;
-  height: 10px;
+  width: 4px;
+  height: 8px;
   border: solid white;
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }
 
+.terms-new-checkbox input:checked ~ .checkmark-new {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(27, 75, 140, 0.1);
+}
+
 .terms-new-checkbox input:checked ~ .checkmark-new:after {
   display: block;
+  animation: checkmark-appear-new 0.3s ease-in-out;
+}
+
+.terms-new-checkbox:hover .checkmark-new {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(27, 75, 140, 0.1);
 }
 
 .terms-new-text {
   font-size: 13px;
   color: var(--text-medium);
   line-height: 1.5;
+  font-weight: 500;
 }
 
 .privacy-new-link {
@@ -683,7 +680,22 @@ html {
   text-decoration: underline;
 }
 
-/* ===== Submit Button ===== */
+@keyframes checkmark-appear-new {
+  0% {
+    opacity: 0;
+    transform: rotate(45deg) scale(0.5);
+  }
+  50% {
+    opacity: 0.7;
+    transform: rotate(45deg) scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(45deg) scale(1);
+  }
+}
+
+/* ===== Submit Button - SAME AS LOGIN ===== */
 .signup-new-btn {
   background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
   color: white;
@@ -772,7 +784,7 @@ html {
   }
 }
 
-/* ===== Divider ===== */
+/* ===== Divider - SAME AS LOGIN ===== */
 .divider-new {
   display: flex;
   align-items: center;
@@ -796,7 +808,7 @@ html {
   letter-spacing: 1px;
 }
 
-/* ===== Already Have Account ===== */
+/* ===== Already Have Account - SAME AS LOGIN ===== */
 .already-new-account {
   text-align: center;
   font-size: 14px;
@@ -817,7 +829,7 @@ html {
   text-decoration: underline;
 }
 
-/* ===== Security Note ===== */
+/* ===== Security Note - SAME AS LOGIN ===== */
 .security-new-note {
   display: flex;
   align-items: center;
@@ -841,7 +853,7 @@ html {
   font-weight: 500;
 }
 
-/* ===== Mobile Responsive Design ===== */
+/* ===== Responsive Design - SAME AS LOGIN ===== */
 @media (max-width: 768px) {
   .location-new-field {
     flex-direction: column;
@@ -881,7 +893,7 @@ html {
   }
 
   .signup-new-logo-text {
-        font-size: 24px;
+    font-size: 24px;
   }
 
   .signup-new-form h2 {
@@ -962,41 +974,17 @@ html {
   }
 }
 
-@media (max-width: 480px) {
-  .signup-new-card {
-    padding: 24px 20px;
-    margin: 10px;
-  }
-
-  .signup-new-logo-text {
-    font-size: 22px;
-  }
-
-  .signup-new-form h2 {
-    font-size: 22px;
-  }
-
-  .location-new-btn span,
-  .camera-new-btn span {
-    font-size: 14px;
-  }
-
-  .signup-new-form {
-    max-height: 75vh;
-  }
-}
-
 @media (max-width: 360px) {
   .signup-new-card {
     padding: 20px 16px;
   }
 
   .signup-new-logo-text {
-    font-size: 20px;
+    font-size: 22px;
   }
 
   .signup-new-form h2 {
-    font-size: 20px;
+    font-size: 22px;
   }
 
   .input-new-group input,
@@ -1011,7 +999,7 @@ html {
     padding-left: 12px;
   }
 
-  .select-new-field {
+    .select-new-field {
     padding: 12px 40px 12px 40px;
   }
 
@@ -1032,7 +1020,7 @@ html {
   }
 }
 
-/* ===== Focus visible for accessibility ===== */
+/* ===== Focus Visible for Accessibility - SAME AS LOGIN ===== */
 .signup-new-btn:focus-visible,
 .camera-new-btn:focus-visible,
 .location-new-btn:focus-visible {
@@ -1058,7 +1046,7 @@ html {
   border-radius: 4px;
 }
 
-/* ===== High contrast mode support ===== */
+/* ===== High Contrast Mode Support ===== */
 @media (prefers-contrast: high) {
   .checkmark-new {
     border-width: 3px;
@@ -1075,7 +1063,7 @@ html {
   }
 }
 
-/* ===== Reduced motion support ===== */
+/* ===== Reduced Motion Support ===== */
 @media (prefers-reduced-motion: reduce) {
   .shape-new {
     animation: none;
@@ -1111,9 +1099,13 @@ html {
     animation: none;
     opacity: 1;
   }
+  
+  .checkmark-new:after {
+    animation: none;
+  }
 }
 
-/* ===== Enhanced button interactions ===== */
+/* ===== Enhanced Button Interactions ===== */
 .location-new-btn:active,
 .camera-new-btn:active {
   transform: translateY(1px);
@@ -1125,7 +1117,7 @@ html {
   box-shadow: 0 2px 12px rgba(27, 75, 140, 0.3);
 }
 
-/* ===== Form validation indicators ===== */
+/* ===== Form Validation Indicators ===== */
 .input-new-group input:valid:not(:placeholder-shown) {
   border-color: var(--success-color);
 }
@@ -1138,7 +1130,7 @@ html {
   border-color: var(--success-color);
 }
 
-/* ===== Loading states ===== */
+/* ===== Loading States ===== */
 .location-new-btn.loading {
   position: relative;
   overflow: hidden;
@@ -1169,21 +1161,7 @@ html {
   }
 }
 
-/* ===== Smooth transitions for all interactive elements ===== */
-.input-new-group input,
-.select-new-field,
-.location-new-field input,
-.location-new-btn,
-.camera-new-btn,
-.signup-new-btn,
-.checkmark-new,
-.terms-new-checkbox,
-.privacy-new-link,
-.already-new-account a {
-  transition: var(--transition);
-}
-
-/* ===== Enhanced focus states ===== */
+/* ===== Enhanced Focus States ===== */
 .input-new-group input:focus,
 .select-new-field:focus,
 .location-new-field input:focus {
@@ -1211,166 +1189,95 @@ html {
   color: var(--primary-color);
 }
 
-/* ===== Enhanced loading animation ===== */
+/* ===== Enhanced Loading Animation ===== */
 .btn-new-loading .spinner-new {
   animation: spin-new 0.8s linear infinite, pulse-new 2s ease-in-out infinite;
 }
 
-/* ===== Custom scrollbar for form ===== */
-.signup-new-form {
-  scrollbar-width: thin;
-  scrollbar-color: #c1c1c1 #f1f1f1;
+/* ===== Dark Theme Support (if you have dark mode) ===== */
+[data-theme="dark"] .checkmark-new {
+  background: #2d3748;
+  border-color: #4a5568;
 }
 
-.signup-new-form::-webkit-scrollbar {
-  width: 8px;
+[data-theme="dark"] .terms-new-checkbox {
+  color: #e2e8f0;
 }
 
-.signup-new-form::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-  margin: 8px 0;
+[data-theme="dark"] .terms-new-checkbox:hover {
+  color: #f7fafc;
 }
 
-.signup-new-form::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #c1c1c1, #a8a8a8);
-  border-radius: 4px;
-  border: 1px solid #f1f1f1;
+[data-theme="dark"] .privacy-new-link {
+  color: #63b3ed;
 }
 
-.signup-new-form::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #a8a8a8, #909090);
-}    font-size: 24px;
-  }
-
-  .signup-new-form h2 {
-    font-size: 24px;
-  }
-
-  .signup-new-subtitle {
-    font-size: 13px;
-    margin-bottom: 24px;
-  }
-
-  .input-new-group input,
-  .select-new-field {
-    padding: 14px 14px 14px 44px;
-    font-size: 16px;
-  }
-
-  .input-new-group.icon-new-hidden input {
-    padding-left: 14px;
-  }
-
-  .select-new-field {
-    padding: 14px 44px 14px 44px;
-  }
-
-  .input-new-group .input-new-icon,
-  .select-new-icon {
-    font-size: 14px;
-    left: 14px;
-  }
-
-  .input-new-group label {
-    font-size: 13px;
-    left: 44px;
-  }
-
-  .input-new-group.icon-new-hidden label {
-    left: 14px;
-  }
-
-  .password-new-toggle {
-    font-size: 16px;
-    right: 12px;
-  }
-
-  .select-new-arrow {
-    right: 12px;
-    font-size: 12px;
-  }
-
-  .location-new-field input {
-    padding: 14px 14px 14px 44px;
-    font-size: 16px;
-  }
-
-  .location-new-input-wrapper.has-new-value input {
-    padding-left: 14px;
-  }
-
-  .location-new-icon {
-    left: 14px;
-    font-size: 14px;
-  }
-
-  .signup-new-btn {
-    padding: 14px 20px;
-    font-size: 15px;
-  }
-
-  .terms-new-text {
-    font-size: 12px;
-  }
-
-  .security-new-note {
-    flex-direction: column;
-    gap: 4px;
-    text-align: center;
-  }
+[data-theme="dark"] .privacy-new-link:hover {
+  color: #90cdf4;
 }
 
-@media (max-width: 480px) {
-  .signup-new-card {
-    padding: 24px 20px;
-    margin: 10px;
-  }
-
-  .signup-new-logo-text {
-    font-size: 22px;
-  }
-
-  .signup-new-form h2 {
-    font-size: 22px;
-  }
-
-  .location-new-btn span,
-  .camera-new-btn span {
-    font-size: 14px;
-  }
-
-  .signup-new-form {
-    max-height: 75vh;
-  }
+[data-theme="dark"] .already-new-account a {
+  color: #63b3ed;
 }
 
-@media (max-width: 360px) {
-  .signup-new-card {
-    padding: 20px 16px;
-  }
+[data-theme="dark"] .already-new-account a:hover {
+  color: #90cdf4;
+}
 
-  .signup-new-logo-text {
-    font-size: 20px;
-  }
+/* ===== Custom Toast Styles - SAME AS LOGIN ===== */
+.toast-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 
-  .signup-new-form h2 {
-    font-size: 20px;
-  }
+.toast-icon {
+  font-size: 24px;
+}
 
-  .input-new-group input,
-  .select-new-field,
-  .location-new-field input {
-    padding: 12px 12px 12px 40px;
-    font-size: 16px;
-  }
+.toast-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
 
-  .input-new-group.icon-new-hidden input,
-  .location-new-input-wrapper.has-new-value input {
-    padding-left: 12px;
-  }
+.toast-text strong {
+  font-size: 14px;
+  font-weight: 600;
+}
 
-  .select-new-field {
+.toast-text span {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.Toastify__toast--success {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  border-radius: 12px !important;
+}
+
+.Toastify__toast--error {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  border-radius: 12px !important;
+}
+
+.Toastify__progress-bar {
+  height: 3px !important;
+}
+
+/* ===== Smooth Transitions for All Interactive Elements ===== */
+.input-new-group input,
+.select-new-field,
+.location-new-field input,
+.location-new-btn,
+.camera-new-btn,
+.signup-new-btn,
+.checkmark-new,
+.terms-new-checkbox,
+.privacy-new-link,
+.already-new-account a {
+  transition: var(--transition);
+}  .select-new-field {
     padding: 12px 40px 12px 40px;
   }
 
@@ -1389,9 +1296,8 @@ html {
     right: 10px;
     font-size: 15px;
   }
-}
 
-/* ===== Focus visible for accessibility ===== */
+/* ===== Focus Visible for Accessibility - SAME AS LOGIN ===== */
 .signup-new-btn:focus-visible,
 .camera-new-btn:focus-visible,
 .location-new-btn:focus-visible {
@@ -1417,7 +1323,7 @@ html {
   border-radius: 4px;
 }
 
-/* ===== High contrast mode support ===== */
+/* ===== High Contrast Mode Support ===== */
 @media (prefers-contrast: high) {
   .checkmark-new {
     border-width: 3px;
@@ -1434,7 +1340,7 @@ html {
   }
 }
 
-/* ===== Reduced motion support ===== */
+/* ===== Reduced Motion Support ===== */
 @media (prefers-reduced-motion: reduce) {
   .shape-new {
     animation: none;
@@ -1470,9 +1376,13 @@ html {
     animation: none;
     opacity: 1;
   }
+  
+  .checkmark-new:after {
+    animation: none;
+  }
 }
 
-/* ===== Enhanced button interactions ===== */
+/* ===== Enhanced Button Interactions ===== */
 .location-new-btn:active,
 .camera-new-btn:active {
   transform: translateY(1px);
@@ -1484,7 +1394,7 @@ html {
   box-shadow: 0 2px 12px rgba(27, 75, 140, 0.3);
 }
 
-/* ===== Form validation indicators ===== */
+/* ===== Form Validation Indicators ===== */
 .input-new-group input:valid:not(:placeholder-shown) {
   border-color: var(--success-color);
 }
@@ -1497,7 +1407,7 @@ html {
   border-color: var(--success-color);
 }
 
-/* ===== Loading states ===== */
+/* ===== Loading States ===== */
 .location-new-btn.loading {
   position: relative;
   overflow: hidden;
@@ -1528,21 +1438,7 @@ html {
   }
 }
 
-/* ===== Smooth transitions for all interactive elements ===== */
-.input-new-group input,
-.select-new-field,
-.location-new-field input,
-.location-new-btn,
-.camera-new-btn,
-.signup-new-btn,
-.checkmark-new,
-.terms-new-checkbox,
-.privacy-new-link,
-.already-new-account a {
-  transition: var(--transition);
-}
-
-/* ===== Enhanced focus states ===== */
+/* ===== Enhanced Focus States ===== */
 .input-new-group input:focus,
 .select-new-field:focus,
 .location-new-field input:focus {
@@ -1570,33 +1466,370 @@ html {
   color: var(--primary-color);
 }
 
-/* ===== Enhanced loading animation ===== */
+/* ===== Enhanced Loading Animation ===== */
 .btn-new-loading .spinner-new {
   animation: spin-new 0.8s linear infinite, pulse-new 2s ease-in-out infinite;
 }
 
-/* ===== Custom scrollbar for form ===== */
-.signup-new-form {
-  scrollbar-width: thin;
-  scrollbar-color: #c1c1c1 #f1f1f1;
+/* ===== Dark Theme Support (if you have dark mode) ===== */
+[data-theme="dark"] .checkmark-new {
+  background: #2d3748;
+  border-color: #4a5568;
 }
 
-.signup-new-form::-webkit-scrollbar {
-  width: 8px;
+[data-theme="dark"] .terms-new-checkbox {
+  color: #e2e8f0;
 }
 
-.signup-new-form::-webkit-scrollbar-track {
-  background: #f1f1f1;
+[data-theme="dark"] .terms-new-checkbox:hover {
+  color: #f7fafc;
+}
+
+[data-theme="dark"] .privacy-new-link {
+  color: #63b3ed;
+}
+
+[data-theme="dark"] .privacy-new-link:hover {
+  color: #90cdf4;
+}
+
+[data-theme="dark"] .already-new-account a {
+  color: #63b3ed;
+}
+
+[data-theme="dark"] .already-new-account a:hover {
+  color: #90cdf4;
+}
+
+/* ===== Custom Toast Styles - SAME AS LOGIN ===== */
+.toast-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toast-icon {
+  font-size: 24px;
+}
+
+.toast-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.toast-text strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.toast-text span {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.Toastify__toast--success {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  border-radius: 12px !important;
+}
+
+.Toastify__toast--error {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  border-radius: 12px !important;
+}
+
+.Toastify__progress-bar {
+  height: 3px !important;
+}
+
+/* ===== Smooth Transitions for All Interactive Elements ===== */
+.input-new-group input,
+.select-new-field,
+.location-new-field input,
+.location-new-btn,
+.camera-new-btn,
+.signup-new-btn,
+.checkmark-new,
+.terms-new-checkbox,
+.privacy-new-link,
+.already-new-account a {
+  transition: var(--transition);
+}  .select-new-field {
+    padding: 12px 40px 12px 40px;
+  }
+
+  .input-new-group .input-new-icon,
+  .select-new-icon,
+  .location-new-icon {
+    left: 12px;
+    font-size: 13px;
+  }
+
+  .select-new-arrow {
+    right: 10px;
+  }
+
+  .password-new-toggle {
+    right: 10px;
+    font-size: 15px;
+  }
+
+
+/* ===== Focus Visible for Accessibility - SAME AS LOGIN ===== */
+.signup-new-btn:focus-visible,
+.camera-new-btn:focus-visible,
+.location-new-btn:focus-visible {
+  outline: 3px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+.terms-new-checkbox input:focus-visible ~ .checkmark-new {
+  outline: 3px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+.input-new-group input:focus-visible,
+.select-new-field:focus-visible {
+  outline: 3px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+.privacy-new-link:focus-visible,
+.already-new-account a:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
   border-radius: 4px;
-  margin: 8px 0;
 }
 
-.signup-new-form::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #c1c1c1, #a8a8a8);
-  border-radius: 4px;
-  border: 1px solid #f1f1f1;
+/* ===== High Contrast Mode Support ===== */
+@media (prefers-contrast: high) {
+  .checkmark-new {
+    border-width: 3px;
+  }
+  
+  .terms-new-checkbox input:checked ~ .checkmark-new {
+    background: #000;
+    border-color: #000;
+  }
+  
+  .terms-new-checkbox input:checked ~ .checkmark-new:after {
+    border-color: #fff;
+    border-width: 0 3px 3px 0;
+  }
 }
 
-.signup-new-form::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #a8a8a8, #909090);
+/* ===== Reduced Motion Support ===== */
+@media (prefers-reduced-motion: reduce) {
+  .shape-new {
+    animation: none;
+  }
+  
+  .signup-new-card {
+    animation: none;
+  }
+  
+  .signup-new-form {
+    animation: none;
+    opacity: 1;
+  }
+  
+  .signup-new-logo {
+    animation: none;
+    opacity: 1;
+  }
+  
+  .signup-new-btn::before {
+    transition: none;
+  }
+  
+  .spinner-new {
+    animation: none;
+  }
+  
+  .location-new-btn.loading span {
+    animation: none;
+  }
+  
+  .security-new-note {
+    animation: none;
+    opacity: 1;
+  }
+  
+  .checkmark-new:after {
+    animation: none;
+  }
+}
+
+/* ===== Enhanced Button Interactions ===== */
+.location-new-btn:active,
+.camera-new-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.signup-new-btn:active:not(.disabled):not(.loading) {
+  transform: translateY(1px);
+  box-shadow: 0 2px 12px rgba(27, 75, 140, 0.3);
+}
+
+/* ===== Form Validation Indicators ===== */
+.input-new-group input:valid:not(:placeholder-shown) {
+  border-color: var(--success-color);
+}
+
+.input-new-group input:invalid:not(:placeholder-shown):not(:focus) {
+  border-color: var(--error-color);
+}
+
+.select-new-field:valid:not([value=""]) {
+  border-color: var(--success-color);
+}
+
+/* ===== Loading States ===== */
+.location-new-btn.loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.location-new-btn.loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  animation: shimmer-new 1.5s infinite;
+}
+
+@keyframes shimmer-new {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* ===== Enhanced Focus States ===== */
+.input-new-group input:focus,
+.select-new-field:focus,
+.location-new-field input:focus {
+  transform: translateY(-1px);
+}
+
+.location-new-btn:focus,
+.camera-new-btn:focus,
+.signup-new-btn:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* ===== Micro-interactions ===== */
+.input-new-group .input-new-icon,
+.select-new-icon,
+.location-new-icon {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.input-new-group:hover .input-new-icon,
+.select-new-wrapper:hover .select-new-icon,
+.location-new-input-wrapper:hover .location-new-icon {
+  transform: translateY(-50%) scale(1.1);
+  color: var(--primary-color);
+}
+
+/* ===== Enhanced Loading Animation ===== */
+.btn-new-loading .spinner-new {
+  animation: spin-new 0.8s linear infinite, pulse-new 2s ease-in-out infinite;
+}
+
+/* ===== Dark Theme Support (if you have dark mode) ===== */
+[data-theme="dark"] .checkmark-new {
+  background: #2d3748;
+  border-color: #4a5568;
+}
+
+[data-theme="dark"] .terms-new-checkbox {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .terms-new-checkbox:hover {
+  color: #f7fafc;
+}
+
+[data-theme="dark"] .privacy-new-link {
+  color: #63b3ed;
+}
+
+[data-theme="dark"] .privacy-new-link:hover {
+  color: #90cdf4;
+}
+
+[data-theme="dark"] .already-new-account a {
+  color: #63b3ed;
+}
+
+[data-theme="dark"] .already-new-account a:hover {
+  color: #90cdf4;
+}
+
+/* ===== Custom Toast Styles - SAME AS LOGIN ===== */
+.toast-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toast-icon {
+  font-size: 24px;
+}
+
+.toast-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.toast-text strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.toast-text span {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.Toastify__toast--success {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  border-radius: 12px !important;
+}
+
+.Toastify__toast--error {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  border-radius: 12px !important;
+}
+
+.Toastify__progress-bar {
+  height: 3px !important;
+}
+
+/* ===== Smooth Transitions for All Interactive Elements ===== */
+.input-new-group input,
+.select-new-field,
+.location-new-field input,
+.location-new-btn,
+.camera-new-btn,
+.signup-new-btn,
+.checkmark-new,
+.terms-new-checkbox,
+.privacy-new-link,
+.already-new-account a {
+  transition: var(--transition);
 }

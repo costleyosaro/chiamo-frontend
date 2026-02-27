@@ -1,4 +1,4 @@
-// ✅ src/context/SmartListContext.jsx
+// ✅ src/pages/SmartListContext.jsx
 import React, {
   createContext,
   useContext,
@@ -13,7 +13,7 @@ import { fetchProducts } from "../services/products";
 const SmartListContext = createContext();
 
 export function SmartListProvider({ children }) {
-  const { user, refreshUser, loading: authLoading } = useAuth(); // ✅ Sync with AuthContext
+  const { user, refreshUser, loading: authLoading } = useAuth();
   const [lists, setLists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
@@ -73,7 +73,7 @@ export function SmartListProvider({ children }) {
     };
   };
 
-  /** 📋 Fetch SmartLists for logged-in user */
+  /** 📋 Fetch SmartLists for logged-in user - WITH ERROR HANDLING */
   const fetchLists = useCallback(
     async (activeUser = user) => {
       if (!activeUser) {
@@ -83,6 +83,8 @@ export function SmartListProvider({ children }) {
       }
 
       setLoading(true);
+      setError(null);
+      
       try {
         const res = await API.get("/orders/smartlists/");
         const data = Array.isArray(res.data?.results)
@@ -103,10 +105,29 @@ export function SmartListProvider({ children }) {
         localStorage.setItem(`smartlists_${activeUser.id}`, JSON.stringify(mapped));
       } catch (err) {
         console.error("❌ fetchLists failed:", err);
-        const cached = localStorage.getItem(`smartlists_${activeUser?.id}`);
-        if (cached) setLists(JSON.parse(cached));
-        else setLists([]);
-        setError("Unable to load smartlists.");
+        
+        // ✅ FIXED: Handle 404 errors gracefully
+        if (err.response?.status === 404) {
+          console.warn("📝 SmartLists endpoint not found - feature may not be implemented yet");
+          setLists([]);
+          setError("SmartLists feature is not available yet.");
+        } else {
+          // Try to load from cache
+          const cached = localStorage.getItem(`smartlists_${activeUser?.id}`);
+          if (cached) {
+            try {
+              setLists(JSON.parse(cached));
+              setError("Using cached data - connection issues detected.");
+            } catch (parseErr) {
+              console.error("Failed to parse cached smartlists:", parseErr);
+              setLists([]);
+              setError("Unable to load smartlists.");
+            }
+          } else {
+            setLists([]);
+            setError("Unable to load smartlists.");
+          }
+        }
       } finally {
         setLoading(false);
       }
@@ -114,15 +135,20 @@ export function SmartListProvider({ children }) {
     [user, products]
   );
 
-  /** 🚀 Sync SmartLists whenever user changes (like CartContext) */
+  /** 🚀 Sync SmartLists whenever user changes */
   useEffect(() => {
     (async () => {
-      if (authLoading) return; // Wait for AuthContext first
+      if (authLoading) return;
       if (user) {
         const cached = localStorage.getItem(`smartlists_${user.id}`);
         if (cached) {
-          console.debug("💾 Loaded cached smartlists");
-          setLists(JSON.parse(cached));
+          try {
+            console.debug("💾 Loaded cached smartlists");
+            setLists(JSON.parse(cached));
+          } catch (err) {
+            console.error("Failed to parse cached smartlists:", err);
+            setLists([]);
+          }
         }
         await fetchLists(user);
       } else {
@@ -132,10 +158,11 @@ export function SmartListProvider({ children }) {
     })();
   }, [user, authLoading, fetchLists]);
 
-  /** 🧩 Add item to a SmartList */
+  /** 🧩 Add item to a SmartList - WITH ERROR HANDLING */
   const addItemToList = async (listId, productId, quantity = 1) => {
     if (!user) throw new Error("You must be logged in to modify SmartLists");
     if (!listId || !productId) throw new Error("Missing parameters for addItem");
+    
     try {
       const res = await API.post(`/orders/smartlists/${listId}/add_item/`, {
         product_id: productId,
@@ -151,13 +178,18 @@ export function SmartListProvider({ children }) {
       await fetchLists(user);
     } catch (err) {
       console.error("❌ addItemToList failed:", err);
+      if (err.response?.status === 404) {
+        throw new Error("SmartLists feature is not available yet.");
+      }
       await fetchLists(user);
+      throw err;
     }
   };
 
-  /** ❌ Remove item */
+  /** ❌ Remove item - WITH ERROR HANDLING */
   const removeItem = async (listId, itemId) => {
     if (!user) throw new Error("You must be logged in to modify SmartLists");
+    
     try {
       await API.post(`/orders/smartlists/${listId}/remove_item/`, { item_id: itemId });
       setLists((prev) =>
@@ -169,47 +201,71 @@ export function SmartListProvider({ children }) {
       );
     } catch (err) {
       console.error("❌ removeItem failed:", err);
-    }
-  };
-
-  /** ➕ Create SmartList */
-  const createList = async (name) => {
-    if (!user) throw new Error("You must be logged in to create a SmartList");
-    try {
-      const res = await API.post("/orders/smartlists/", { name });
-      const newList = { id: res.data.id, name, items: [] };
-      setLists((prev) => [newList, ...prev]);
-      return newList;
-    } catch (err) {
-      console.error("❌ createList failed:", err);
+      if (err.response?.status === 404) {
+        throw new Error("SmartLists feature is not available yet.");
+      }
       throw err;
     }
   };
 
-  /** 🗑️ Delete SmartList */
+  /** ➕ Create SmartList - WITH ERROR HANDLING */
+  const createList = async (name) => {
+    if (!user) throw new Error("You must be logged in to create a SmartList");
+    
+    try {
+      const res = await API.post("/orders/smartlists/", { name });
+      const newList = { 
+        id: res.data.id, 
+        name, 
+        items: [],
+        created_at: res.data.created_at,
+        updated_at: res.data.updated_at
+      };
+      setLists((prev) => [newList, ...prev]);
+      return newList;
+    } catch (err) {
+      console.error("❌ createList failed:", err);
+      if (err.response?.status === 404) {
+        throw new Error("SmartLists feature is not available yet.");
+      }
+      throw err;
+    }
+  };
+
+  /** 🗑️ Delete SmartList - WITH ERROR HANDLING */
   const deleteList = async (id) => {
     if (!user) throw new Error("You must be logged in to delete a SmartList");
+    
     try {
       await API.delete(`/orders/smartlists/${id}/`);
       setLists((prev) => prev.filter((l) => l.id !== id));
     } catch (err) {
       console.error("❌ deleteList failed:", err);
+      if (err.response?.status === 404) {
+        throw new Error("SmartLists feature is not available yet.");
+      }
+      throw err;
     }
   };
 
-  /** 🛍️ Order all items */
+  /** 🛍️ Order all items - WITH ERROR HANDLING */
   const orderAll = async (listId) => {
     if (!user) throw new Error("You must be logged in to order");
+    
     try {
       const res = await API.post(`/orders/smartlists/${listId}/order_all/`);
       await fetchLists(user);
       return res.data;
     } catch (err) {
       console.error("❌ orderAll failed:", err);
+      if (err.response?.status === 404) {
+        throw new Error("SmartLists feature is not available yet.");
+      }
+      throw err;
     }
   };
 
-  /** 🔢 Update quantity */
+  /** 🔢 Update quantity - WITH ERROR HANDLING */
   const syncQty = async (listId, itemId, newQty) => {
     try {
       await API.post(`/orders/smartlists/${listId}/update_item/`, {
@@ -218,6 +274,9 @@ export function SmartListProvider({ children }) {
       });
     } catch (err) {
       console.error("syncQty failed:", err);
+      if (err.response?.status === 404) {
+        console.warn("SmartLists feature is not available yet.");
+      }
     }
   };
 
@@ -282,7 +341,7 @@ export function SmartListProvider({ children }) {
         orderAll,
         totalSmartListCount,
         totalSmartListItems,
-        refreshUser, // ✅ included for cross-sync
+        refreshUser,
       }}
     >
       {children}
@@ -291,6 +350,9 @@ export function SmartListProvider({ children }) {
 }
 
 export function useSmartLists() {
-  return useContext(SmartListContext);
+  const context = useContext(SmartListContext);
+  if (!context) {
+    throw new Error('useSmartLists must be used within a SmartListProvider');
+  }
+  return context;
 }
-

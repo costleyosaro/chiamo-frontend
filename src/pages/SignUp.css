@@ -26,20 +26,32 @@
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ===== Container - EXACTLY LIKE LOGIN ===== */
+/* ===== FORCE OVERRIDE BACKGROUND - NO DARK BLUE ===== */
 .signup-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 50%, #f8fafc 100%);
-  padding: 20px;
-  position: relative;
-  overflow: hidden;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  min-height: 100vh !important;
+  background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 50%, #f8fafc 100%) !important;
+  padding: 20px !important;
+  position: relative !important;
+  overflow: hidden !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
 }
 
+/* ===== FORCE LIGHT BACKGROUND - OVERRIDE ANY DARK THEMES ===== */
+body {
+  background: #f8fafc !important;
+}
+
+html {
+  background: #f8fafc !important;
+}
+
+* {
+  box-sizing: border-box;
+}
 /* ===== Animated Background Shapes - EXACTLY LIKE LOGIN ===== */
 .signup-bg-shapes {
   position: absolute;
@@ -492,46 +504,74 @@ div.signup-logo:hover .signup-logo-text span {
   box-shadow: 0 0 0 4px rgba(27, 75, 140, 0.1);
 }
 
+/* ===== FIXED LOCATION BUTTON - USING YOUR BRAND COLORS ===== */
 .location-btn {
-    background: linear-gradient(135deg, #28a745, #218838);
-  color: white;
-  border: none;
-  padding: 14px 18px;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  font-family: inherit;
-  transition: var(--transition);
-  min-width: 120px;
-  justify-content: center;
-  white-space: nowrap;
-  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)) !important;
+  color: white !important;
+  border: none !important;
+  padding: 14px 18px !important;
+  border-radius: var(--radius-md) !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  font-family: inherit !important;
+  transition: var(--transition) !important;
+  min-width: 120px !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+  box-shadow: 0 4px 12px rgba(27, 75, 140, 0.3) !important;
 }
 
 .location-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #218838, #1e7e34);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4);
+  background: linear-gradient(135deg, var(--primary-light), var(--primary-color)) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(27, 75, 140, 0.4) !important;
 }
 
 .location-btn:disabled {
-  background: #6c757d;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
+  background: #6c757d !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 .location-btn.loading {
-  background: #6c757d;
-  cursor: wait;
+  background: var(--primary-dark) !important;
+  cursor: wait !important;
 }
 
 .location-btn.loading span {
-  animation: pulse 1.5s ease-in-out infinite;
+  animation: pulse 1.5s ease-in-out infinite !important;
+}
+
+/* ===== ALTERNATIVE LOCATION BUTTON WITH ACCENT COLOR ===== */
+.location-btn-alt {
+  background: linear-gradient(135deg, var(--accent-color), var(--accent-dark)) !important;
+  color: white !important;
+  border: none !important;
+  padding: 14px 18px !important;
+  border-radius: var(--radius-md) !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  font-family: inherit !important;
+  transition: var(--transition) !important;
+  min-width: 120px !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+  box-shadow: 0 4px 12px rgba(212, 160, 23, 0.3) !important;
+}
+
+.location-btn-alt:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--accent-dark), #9a7209) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(212, 160, 23, 0.4) !important;
 }
 
 .camera-btn {

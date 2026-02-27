@@ -437,7 +437,7 @@ const SignUpPage = () => {
             </div>
             <button 
               type="button" 
-              className={`location-btn ${isCapturingLocation ? 'loading' : ''}`}
+              className={`location-btn-alt ${isCapturingLocation ? 'loading' : ''}`}
               onClick={handleLocationCapture} 
               disabled={isCapturingLocation}
               title="Capture your current location"

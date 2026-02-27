@@ -2308,3 +2308,43 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ===== FIXED TOAST COLORS - YOUR BRAND COLORS ===== */
+.Toastify__toast {
+  background: linear-gradient(135deg, #1b4b8c, #143a6e) !important; /* Your blue */
+  color: #fff !important;
+  border-radius: 12px !important;
+  padding: 16px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+
+.Toastify__toast--success {
+  background: linear-gradient(135deg, #d4a017, #b8860b) !important; /* Your yellow */
+  border-radius: 12px !important;
+}
+
+.Toastify__toast--error {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  border-radius: 12px !important;
+}
+
+.Toastify__toast--info {
+  background: linear-gradient(135deg, #1b4b8c, #143a6e) !important; /* Your blue */
+  border-radius: 12px !important;
+}
+
+.Toastify__toast--warning {
+  background: linear-gradient(135deg, #d4a017, #b8860b) !important; /* Your yellow */
+  border-radius: 12px !important;
+}
+
+.Toastify__progress-bar {
+  height: 3px !important;
+  background: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Fix the purple subscription toast */
+.pf-quick-actions .pf-quick-card:first-child {
+  background: linear-gradient(135deg, #1b4b8c, #143a6e) !important; /* Your blue instead of purple */
+}

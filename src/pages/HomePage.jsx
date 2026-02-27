@@ -205,7 +205,7 @@ const HomeHeader = ({ businessName, cartCount, smartListCount, navigate }) => {
       </div>
 
       <div className="hp-header-right">
-        {/* ✅ Enhanced Notification Button with Badge */}
+        {/* ✅ FIXED: Notification Button with Proper Badge */}
         <button
           className="hp-header-btn hp-notification-btn"
           onClick={handleNotificationClick}
@@ -214,7 +214,7 @@ const HomeHeader = ({ businessName, cartCount, smartListCount, navigate }) => {
         >
           <FiBell className="hp-icon" />
           {unreadCount > 0 && (
-            <span className="hp-notification-badge">
+            <span className="hp-badge notification-badge">
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           )}
@@ -223,7 +223,7 @@ const HomeHeader = ({ businessName, cartCount, smartListCount, navigate }) => {
         {/* Smart List Button */}
         <button
           className="hp-header-btn"
-          onClick={() => navigate("/cart-page")}
+          onClick={() => navigate("/cart-page")}     
           aria-label="Smart Lists"
         >
           <FiList className="hp-icon" />
@@ -236,12 +236,12 @@ const HomeHeader = ({ businessName, cartCount, smartListCount, navigate }) => {
 
         {/* Cart Button */}
         <button
-          className="hp-header-btn hp-cart-btn"
+          className="hp-header-btn hp-cart-btn"      
           onClick={() => navigate("/cart")}
           aria-label="Cart"
           data-role="cart-icon"
         >
-          <FiShoppingCart className="hp-icon" />
+          <FiShoppingCart className="hp-icon" />     
           {cartCount > 0 && (
             <span className="hp-badge">{cartCount > 9 ? "9+" : cartCount}</span>
           )}

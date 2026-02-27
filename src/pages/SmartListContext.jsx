@@ -9,6 +9,7 @@ import React, {
 import API from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { fetchProducts } from "../services/products";
+import { safeApiCall } from '../utils/apiHelpers';
 
 const SmartListContext = createContext();
 
@@ -75,65 +76,63 @@ export function SmartListProvider({ children }) {
 
   /** 📋 Fetch SmartLists for logged-in user - WITH ERROR HANDLING */
   const fetchLists = useCallback(
-    async (activeUser = user) => {
-      if (!activeUser) {
-        setLists([]);
-        setLoading(false);
-        return;
-      }
+  async (activeUser = user) => {
+    if (!activeUser) {
+      setLists([]);
+      setLoading(false);
+      return;
+    }
 
-      setLoading(true);
-      setError(null);
+    setLoading(true);
+    setError(null);
+    
+    // ✅ Use safe API call
+    const result = await safeApiCall("/orders/smartlists/");
+    
+    if (result.success) {
+      const data = Array.isArray(result.data?.results)
+        ? result.data.results
+        : Array.isArray(result.data)
+        ? result.data
+        : [];
+
+      const mapped = data.map((list) => ({
+        id: list.id,
+        name: list.name ?? "Unnamed SmartList",
+        created_at: list.created_at,
+        updated_at: list.updated_at,
+        items: (list.items || []).map(enrichItem),
+      }));
+
+      setLists(mapped);
+      localStorage.setItem(`smartlists_${activeUser.id}`, JSON.stringify(mapped));
+    } else {
+      if (result.isNotFound) {
+        console.info("📝 SmartLists feature not implemented yet");
+        setError("SmartLists feature coming soon!");
+      } else if (result.isTimeout) {
+        setError("Connection timeout - please try again");
+      } else {
+        setError("Unable to load smartlists");
+      }
       
-      try {
-        const res = await API.get("/orders/smartlists/");
-        const data = Array.isArray(res.data?.results)
-          ? res.data.results
-          : Array.isArray(res.data)
-          ? res.data
-          : [];
-
-        const mapped = data.map((list) => ({
-          id: list.id,
-          name: list.name ?? "Unnamed SmartList",
-          created_at: list.created_at,
-          updated_at: list.updated_at,
-          items: (list.items || []).map(enrichItem),
-        }));
-
-        setLists(mapped);
-        localStorage.setItem(`smartlists_${activeUser.id}`, JSON.stringify(mapped));
-      } catch (err) {
-        console.error("❌ fetchLists failed:", err);
-        
-        // ✅ FIXED: Handle 404 errors gracefully
-        if (err.response?.status === 404) {
-          console.warn("📝 SmartLists endpoint not found - feature may not be implemented yet");
+      // Try to load from cache
+      const cached = localStorage.getItem(`smartlists_${activeUser?.id}`);
+      if (cached) {
+        try {
+          setLists(JSON.parse(cached));
+        } catch (parseErr) {
           setLists([]);
-          setError("SmartLists feature is not available yet.");
-        } else {
-          // Try to load from cache
-          const cached = localStorage.getItem(`smartlists_${activeUser?.id}`);
-          if (cached) {
-            try {
-              setLists(JSON.parse(cached));
-              setError("Using cached data - connection issues detected.");
-            } catch (parseErr) {
-              console.error("Failed to parse cached smartlists:", parseErr);
-              setLists([]);
-              setError("Unable to load smartlists.");
-            }
-          } else {
-            setLists([]);
-            setError("Unable to load smartlists.");
-          }
         }
-      } finally {
-        setLoading(false);
+      } else {
+        setLists([]);
       }
-    },
-    [user, products]
-  );
+    }
+    
+    setLoading(false);
+  },
+  [user, products]
+);
 
   /** 🚀 Sync SmartLists whenever user changes */
   useEffect(() => {

@@ -876,48 +876,23 @@
   font-family: 'Arial', sans-serif;
 }
 
-/* Updated loyalty card without redeem button */
+/* ===== FIX LOYALTY CARD COLORS ===== */
 .pf-loyalty-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 16px;
-  padding: 24px;
-  margin: 20px 0;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
-}
-
-.pf-loyalty-content {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  position: relative;
-  z-index: 2;
+  background: linear-gradient(135deg, #d4a017, #b8860b) !important; /* Your yellow */
 }
 
 .pf-loyalty-icon {
-  width: 48px;
-  height: 48px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 24px;
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: #fff !important;
 }
 
-.pf-loyalty-info {
-  flex: 1;
-  color: white;
+.pf-loyalty-value {
+  color: #fff !important;
 }
 
-.pf-loyalty-label {
-  display: block;
-  font-size: 14px;
-  opacity: 0.9;
-  margin-bottom: 4px;
+.pf-loyalty-label,
+.pf-loyalty-subtitle {
+  color: rgba(255, 255, 255, 0.9) !important;
 }
 
 .pf-loyalty-value {
@@ -956,10 +931,7 @@
   font-weight: 600;
 }
 
-/* Toast notification styling override */
-.Toastify__toast--success {
-  background: linear-gradient(135deg, #4F46E5, #7C3AED) !important;
-}
+
 
 /* Responsive adjustments */
 @media (max-width: 768px) {

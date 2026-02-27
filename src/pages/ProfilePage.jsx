@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import API from "../services/api";
 import { useTheme } from "../context/ThemeContext";
 import { useCart } from "../pages/CartContext";
+import { useSmartLists } from "../pages/SmartListContext"; // ✅ Added import
 import toast from "react-hot-toast";
 import "./Profile.css";
 
@@ -164,7 +165,7 @@ const QuickActions = ({ smartListsCount = 0, onNavigate }) => {
     toast.success("🚀 New feature coming soon!", {
       duration: 3000,
       style: {
-        background: '#4F46E5',
+        background: 'linear-gradient(135deg, #1b4b8c, #143a6e)', // ✅ Your blue
         color: 'white',
         borderRadius: '12px',
         padding: '16px',
@@ -261,7 +262,7 @@ const LogoutModal = ({ isOpen, onClose, onConfirm, isLoading }) => {
             ) : (
               <>
                 <FiLogOut />
-                Sign Out
+                <span>Sign Out</span>
               </>
             )}
           </button>
@@ -305,19 +306,28 @@ export default function ProfilePage() {
   const { theme, toggleTheme } = useTheme();
   const { clearCart, user } = useCart();
 
+  // ✅ FIXED: Import and use SmartLists context like BottomNav does
+  let totalSmartListCount = 0;
+  try {
+    const smartListContext = useSmartLists();
+    totalSmartListCount = smartListContext?.totalSmartListCount || 0;
+  } catch (error) {
+    console.warn('SmartLists context not available in ProfilePage:', error);
+    totalSmartListCount = 0;
+  }
+
   // State
   const [profile, setProfile] = useState(null);
   const [orderSummary, setOrderSummary] = useState({
     total_orders: 0,
     total_spent: 0,
   });
-  const [smartListsCount, setSmartListsCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  // Fetch profile data and smart lists count
+  // Fetch profile data
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -328,15 +338,6 @@ export default function ProfilePage() {
         
         setProfile(profileRes.data);
         setOrderSummary(summaryRes.data);
-
-        // Fetch smart lists count
-        try {
-          const smartListsRes = await API.get("/smart-lists/");
-          setSmartListsCount(smartListsRes.data?.length || 0);
-        } catch (smartListError) {
-          console.warn("Failed to fetch smart lists count:", smartListError);
-          setSmartListsCount(0);
-        }
 
       } catch (err) {
         console.error("Failed to load profile:", err);
@@ -425,7 +426,7 @@ export default function ProfilePage() {
 
         {/* Quick Actions */}
         <QuickActions
-          smartListsCount={smartListsCount}
+          smartListsCount={totalSmartListCount} // ✅ Use the context value
           onNavigate={handleNavigate}
         />
 
@@ -434,7 +435,7 @@ export default function ProfilePage() {
           <MenuItem
             icon={FiUser}
             label="Edit Profile"
-                        onClick={() => navigate("/edit-profile")}
+            onClick={() => navigate("/edit-profile")}
           />
           <MenuItem
             icon={FiMapPin}
@@ -515,3 +516,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+                

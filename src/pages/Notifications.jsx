@@ -56,9 +56,10 @@ const formatNotificationTime = (timestamp) => {
   return notifTime.toLocaleDateString();
 };
 
-// Individual notification component
+// Update the NotificationCard component
 const NotificationCard = ({ notification, onMarkAsRead, onDelete }) => {
   const [isRemoving, setIsRemoving] = useState(false);
+  const navigate = useNavigate();
 
   const handleDelete = () => {
     setIsRemoving(true);
@@ -73,10 +74,20 @@ const NotificationCard = ({ notification, onMarkAsRead, onDelete }) => {
     }
   };
 
+  const handleCardClick = () => {
+    handleMarkAsRead();
+    
+    // ✅ FIXED: Navigate to order if order_id exists
+    if (notification.order_id) {
+      navigate(`/orders?orderId=${notification.order_id}`);
+    }
+  };
+
   return (
     <div 
       className={`notification-card ${!notification.is_read ? 'unread' : 'read'} ${isRemoving ? 'removing' : ''}`}
-      onClick={handleMarkAsRead}
+      onClick={handleCardClick}
+      style={{ cursor: notification.order_id ? 'pointer' : 'default' }}
     >
       <div className="notif-icon-wrapper">
         {getNotificationIcon(notification.type)}
@@ -98,6 +109,7 @@ const NotificationCard = ({ notification, onMarkAsRead, onDelete }) => {
           <div className="notif-order-info">
             <FiPackage />
             <span>Order #{notification.order_id}</span>
+            <span className="notif-view-order">Tap to view order</span>
           </div>
         )}
       </div>

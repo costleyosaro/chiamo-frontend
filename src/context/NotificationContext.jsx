@@ -1,6 +1,7 @@
 // src/context/NotificationContext.jsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import API from '../services/api';
+import { useAuth } from './AuthContext';
 
 const NotificationContext = createContext();   
 
@@ -13,23 +14,43 @@ export const useNotifications = () => {
 };
 
 export const NotificationProvider = ({ children }) => {
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Load notifications with proper error handling
+  // Load notifications with comprehensive error handling
   const loadNotifications = async () => {      
+    // Don't try to load notifications if user is not logged in
+    if (!user) {
+      setNotifications([]);
+      setUnreadCount(0);
+      setError(null);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    
     try {
       const response = await API.get('/orders/notifications/');
       
-      // ✅ FIXED: Proper data validation
-      const notificationData = response.data;
+      // ✅ FIXED: Comprehensive data validation
+      let notificationData = response.data;
       
+      // Handle different response formats
       if (Array.isArray(notificationData)) {
         setNotifications(notificationData);
         setUnreadCount(notificationData.filter(n => !n.is_read).length);
       } else if (notificationData && Array.isArray(notificationData.results)) {
         setNotifications(notificationData.results);
         setUnreadCount(notificationData.results.filter(n => !n.is_read).length);
+      } else if (notificationData && typeof notificationData === 'object') {
+        // If it's an object but not an array, wrap it
+        const notifications = [notificationData];
+        setNotifications(notifications);
+        setUnreadCount(notifications.filter(n => !n.is_read).length);
       } else {
         console.warn('Unexpected notification data format:', notificationData);
         setNotifications([]);
@@ -37,14 +58,37 @@ export const NotificationProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Failed to load notifications:', error);
-      // ✅ FIXED: Always set to empty array on error
+      
+      // Handle different error types
+      if (error.response?.status === 401) {
+        console.warn('User not authenticated for notifications');
+        setError('Please log in to view notifications');
+      } else if (error.response?.status === 404) {
+        console.warn('Notifications endpoint not found');
+        setError('Notifications feature not available yet');
+      } else if (error.code === 'ECONNABORTED') {
+        setError('Request timeout - please try again');
+      } else if (error.code === 'ERR_NETWORK') {
+        setError('Network error - please check your connection');
+      } else {
+        setError('Failed to load notifications');
+      }
+      
+      // Always set to empty array on error to prevent crashes
       setNotifications([]);
       setUnreadCount(0);
+    } finally {
+      setLoading(false);
     }
   };
 
   // Add new notification
   const addNotification = (notification) => {
+    if (!notification || typeof notification !== 'object') {
+      console.warn('Invalid notification data:', notification);
+      return;
+    }
+
     setNotifications(prev => [notification, ...prev]);
     if (!notification.is_read) {
       setUnreadCount(prev => prev + 1);        
@@ -56,6 +100,8 @@ export const NotificationProvider = ({ children }) => {
 
   // Mark as read
   const markAsRead = async (notificationId) => {
+    if (!user || !notificationId) return;
+    
     try {
       await API.patch(`/orders/notifications/${notificationId}/`, { is_read: true });
       setNotifications(prev =>
@@ -66,6 +112,7 @@ export const NotificationProvider = ({ children }) => {
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
+      // Don't throw error, just log it
     }
   };
 
@@ -94,18 +141,33 @@ export const NotificationProvider = ({ children }) => {
     }
   };
 
-  // Poll for new notifications
+  // Poll for new notifications only when user is logged in
   useEffect(() => {
+    if (!user) {
+      setNotifications([]);
+      setUnreadCount(0);
+      setError(null);
+      return;
+    }
+
+    // Load notifications immediately
     loadNotifications();
 
-    const interval = setInterval(loadNotifications, 30000); // Check every 30 seconds
+    // Set up polling interval - reduced frequency to reduce server load
+    const interval = setInterval(() => {
+      if (user) { // Double check user is still logged in
+        loadNotifications();
+      }
+    }, 60000); // ✅ Check every 60 seconds instead of 30
 
     return () => clearInterval(interval);      
-  }, []);
+  }, [user]); // Only depend on user, not the function
 
   const value = {
     notifications,
     unreadCount,
+    loading,
+    error,
     addNotification,
     markAsRead,
     loadNotifications,

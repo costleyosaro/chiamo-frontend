@@ -2,13 +2,17 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import API from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import { useNotifications } from "../context/NotificationContext";
 
 const CartContext = createContext();
 
 export function CartProvider({ children }) {
-  const { user, refreshUser, loading: authLoading } = useAuth(); // ✅ Use AuthContext
+  const { user, refreshUser, loading: authLoading } = useAuth();
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // ✅ Get notification functions
+  const { createOrderNotification, createCartReminder } = useNotifications();
 
   // 🧮 Cart badge count
   const cartCount = cart.reduce((sum, item) => sum + (item.quantity || 0), 0);
@@ -90,15 +94,48 @@ export function CartProvider({ children }) {
     })();
   }, [user, authLoading, fetchCart]);
 
-  // 🛒 Add item to cart
+  // ✅ Trigger cart reminder when cart gets items
+  useEffect(() => {
+    if (user && cartCount > 0) {
+      // Trigger cart reminder when cart reaches 3+ items
+      if (cartCount >= 3) {
+        const lastReminderTime = localStorage.getItem(`cart_reminder_${user.id}`);
+        const now = Date.now();
+        const oneHour = 60 * 60 * 1000;
+        
+        // Only remind once per hour to avoid spam
+        if (!lastReminderTime || (now - parseInt(lastReminderTime)) > oneHour) {
+          createCartReminder(cartCount);
+          localStorage.setItem(`cart_reminder_${user.id}`, now.toString());
+        }
+      }
+    }
+  }, [cartCount, user, createCartReminder]);
+
+  // 🛒 Add item to cart with notification
   const addToCart = async (productIdentifier, quantity = 1, productName = "") => {
     if (!user) throw new Error("You must be logged in to add items to cart");
+    
     try {
       const payload = { product_id: productIdentifier, quantity };
       await API.post("/orders/cart/add/", payload);
       await fetchCart(user);
+      
       const namePart = productName ? ` ${productName}` : "";
-      return `Added ${quantity}${namePart} to cart successfully`;
+      const successMessage = `Added ${quantity}${namePart} to cart successfully`;
+      
+      // ✅ Create notification for cart addition
+      if (createCartReminder && productName) {
+        // Create a simple cart notification
+        setTimeout(() => {
+          const newCartCount = cartCount + quantity;
+          if (newCartCount >= 2) { // Notify when cart has 2+ items
+            createCartReminder(newCartCount);
+          }
+        }, 1000);
+      }
+      
+      return successMessage;
     } catch (err) {
       console.error("addToCart failed:", err);
       throw err;
@@ -140,6 +177,8 @@ export function CartProvider({ children }) {
       await API.post("/orders/cart/clear/");
       setCart([]);
       localStorage.removeItem(`cart_${user.id}`);
+      // Clear cart reminder timestamp
+      localStorage.removeItem(`cart_reminder_${user.id}`);
       return true;
     } catch (err) {
       console.error("clearCart failed:", err);
@@ -147,11 +186,28 @@ export function CartProvider({ children }) {
     }
   };
 
-  // 💳 Checkout
+  // 💳 Checkout with order notification
   const checkout = async () => {
     if (!user) throw new Error("You must be logged in to checkout");
+    
     try {
       const res = await API.post("/orders/checkout/");
+      
+      // ✅ Create order notification after successful checkout
+      if (res.data && createOrderNotification) {
+        const orderId = res.data.order_id || res.data.id || res.data.order?.id;
+        const orderTotal = res.data.total || res.data.order?.total || 
+                          cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        
+        if (orderId) {
+          // Create order placed notification
+          createOrderNotification(orderId, 'placed', orderTotal);
+          
+          // Clear cart reminder timestamp since order is placed
+          localStorage.removeItem(`cart_reminder_${user.id}`);
+        }
+      }
+      
       await fetchCart(user);
       return res.data;
     } catch (err) {
@@ -160,12 +216,23 @@ export function CartProvider({ children }) {
     }
   };
 
+  // ✅ Manual function to create order notifications (for testing or manual triggers)
+  const notifyOrderUpdate = (orderId, event = 'placed', orderTotal = null) => {
+    if (createOrderNotification) {
+      createOrderNotification(orderId, event, orderTotal);
+    }
+  };
+
+  // ✅ Calculate cart total for notifications
+  const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
   return (
     <CartContext.Provider
       value={{
         user,
         cart,
         cartCount,
+        cartTotal, // ✅ Added cart total
         loading,
         fetchCart,
         addToCart,
@@ -173,7 +240,8 @@ export function CartProvider({ children }) {
         removeFromCart,
         clearCart,
         checkout,
-        refreshUser, // ✅ from AuthContext
+        refreshUser,
+        notifyOrderUpdate, // ✅ Added manual notification trigger
       }}
     >
       {children}

@@ -383,6 +383,29 @@ export default function OrdersPage() {
     }
   }, [newOrderIdFromNav]);
 
+  // Add this to your OrdersPage.jsx useEffect
+useEffect(() => {
+  // Check for highlight parameter in URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const highlightOrderId = urlParams.get('highlight');
+  
+  if (highlightOrderId) {
+    // Scroll to and highlight the specific order
+    setTimeout(() => {
+      const orderElement = document.querySelector(`[data-order-id="${highlightOrderId}"]`);
+      if (orderElement) {
+        orderElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        orderElement.classList.add('order-highlighted');
+        
+        // Remove highlight after 3 seconds
+        setTimeout(() => {
+          orderElement.classList.remove('order-highlighted');
+        }, 3000);
+      }
+    }, 500);
+  }
+}, []);
+
   // Fetch orders
   useEffect(() => {
     const fetchOrders = async () => {

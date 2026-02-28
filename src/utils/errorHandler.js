@@ -1,4 +1,4 @@
-// src/utils/errorHandler.js
+
 export const handleApiError = (error, context = '') => {
   // Don't log timeout errors as errors, just warnings
   if (error.code === 'ECONNABORTED') {

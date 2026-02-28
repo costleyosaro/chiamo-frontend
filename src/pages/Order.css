@@ -251,6 +251,51 @@
   position: relative;
 }
 
+
+/* ===== ORDER HIGHLIGHTING ===== */
+.order-highlighted {
+  background: linear-gradient(135deg, #fef3c7, #fde68a) !important;
+  border: 2px solid #d4a017 !important;
+  box-shadow: 0 0 20px rgba(212, 160, 23, 0.3) !important;
+  animation: highlightPulse 2s ease-in-out;
+}
+
+@keyframes highlightPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+/* ===== NOTIFICATION ENHANCEMENTS ===== */
+.notification-card.clickable {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.notification-card.clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.notif-action-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: rgba(27, 75, 140, 0.1);
+  border-radius: 8px;
+  font-size: 12px;
+  color: #1b4b8c;
+}
+
+.notif-action-text {
+  font-weight: 500;
+}
+
 .ord-card:hover {
   border-color: rgba(27, 75, 140, 0.3);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
@@ -371,6 +416,7 @@
 .ord-card-time svg {
   font-size: 12px;
 }
+
 
 .ord-card-menu {
   width: 32px;

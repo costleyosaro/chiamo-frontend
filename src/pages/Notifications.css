@@ -54,6 +54,59 @@
   box-shadow: var(--notif-shadow);
 }
 
+/* ===== NOTIFICATION ACTION INFO ===== */
+.notif-action-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: rgba(27, 75, 140, 0.1);
+  border-radius: 8px;
+  font-size: 12px;
+  color: #1b4b8c;
+}
+
+.notif-action-text {
+  font-weight: 500;
+}
+
+/* ===== CLICKABLE NOTIFICATION CARDS ===== */
+.notification-card.clickable {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.notification-card.clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== NOTIFICATION ICONS ===== */
+.notif-icon.order {
+  color: #1b4b8c;
+}
+
+.notif-icon.delivery {
+  color: #10b981;
+}
+
+.notif-icon.payment {
+  color: #d4a017;
+}
+
+.notif-icon.support {
+  color: #ef4444;
+}
+
+.notif-icon.promo {
+  color: #8b5cf6;
+}
+
+.notif-icon.default {
+  color: #6b7280;
+}
+
 .notif-back-btn {
   display: flex;
   align-items: center;

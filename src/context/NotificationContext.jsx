@@ -35,19 +35,54 @@ export const NotificationProvider = ({ children }) => {
     try {
       const response = await API.get('/orders/notifications/');
       
-      // Handle Django response format
+      // ✅ FIXED: Handle Django pagination format properly
       let notificationData = response.data;
+      let notifications = [];
+      
+      console.log('Raw notification response:', notificationData);
       
       if (Array.isArray(notificationData)) {
-        setNotifications(notificationData);
-        setUnreadCount(notificationData.filter(n => !n.is_read).length);
+        // Direct array response
+        notifications = notificationData;
+      } else if (notificationData && Array.isArray(notificationData.results)) {
+        // Django pagination format: {count: 0, next: null, previous: null, results: []}
+        notifications = notificationData.results;
+        console.log('Using paginated results:', notifications);
       } else {
         console.warn('Unexpected notification data format:', notificationData);
-        setNotifications([]);
-        setUnreadCount(0);
+        notifications = [];
       }
+      
+      setNotifications(notifications);
+      setUnreadCount(notifications.filter(n => !n.is_read).length);
+      
+      // ✅ Store in localStorage for persistence
+      if (user?.id) {
+        localStorage.setItem(`notifications_${user.id}`, JSON.stringify(notifications));
+      }
+      
     } catch (error) {
       console.error('Failed to load notifications:', error);
+      
+      // ✅ Load from localStorage as fallback
+      if (user?.id) {
+        const cached = localStorage.getItem(`notifications_${user.id}`);
+        if (cached) {
+          try {
+            const cachedNotifications = JSON.parse(cached);
+            setNotifications(cachedNotifications);
+            setUnreadCount(cachedNotifications.filter(n => !n.is_read).length);
+            console.log('Loaded notifications from cache:', cachedNotifications);
+          } catch (parseError) {
+            console.error('Failed to parse cached notifications:', parseError);
+            setNotifications([]);
+            setUnreadCount(0);
+          }
+        } else {
+          setNotifications([]);
+          setUnreadCount(0);
+        }
+      }
       
       // Handle different error types
       if (error.response?.status === 401) {
@@ -61,9 +96,6 @@ export const NotificationProvider = ({ children }) => {
       } else {
         setError('Failed to load notifications');
       }
-      
-      setNotifications([]);
-      setUnreadCount(0);
     } finally {
       setLoading(false);
     }
@@ -103,7 +135,7 @@ export const NotificationProvider = ({ children }) => {
 
     const notificationData = messages[event] || messages.placed;
     
-    // Add to local state immediately for instant UI feedback
+    // ✅ Create local notification immediately for instant feedback
     const tempNotification = {
       id: `temp_${Date.now()}`,
       title: notificationData.title,
@@ -118,11 +150,23 @@ export const NotificationProvider = ({ children }) => {
     setUnreadCount(prev => prev + 1);
     playNotificationSound();
 
-    // The Django backend will create the actual notification
-    // when the order is created, so we'll refresh to get the real one
-    setTimeout(() => {
-      loadNotifications();
-    }, 2000);
+    // ✅ Try to create on backend (Django will handle this via signals)
+    try {
+      await API.post('/orders/notifications/', {
+        title: notificationData.title,
+        message: notificationData.message,
+        type: notificationData.type,
+        order_id: orderId
+      });
+      
+      // Refresh notifications to get the real one from backend
+      setTimeout(() => {
+        loadNotifications();
+      }, 2000);
+    } catch (error) {
+      console.warn('Failed to create notification on backend:', error);
+      // Keep the local notification even if backend fails
+    }
   };
 
   // Create cart reminder notification
@@ -141,6 +185,12 @@ export const NotificationProvider = ({ children }) => {
     setNotifications(prev => [notification, ...prev]);
     setUnreadCount(prev => prev + 1);
     playNotificationSound();
+    
+    // ✅ Update localStorage
+    if (user?.id) {
+      const updatedNotifications = [notification, ...notifications];
+      localStorage.setItem(`notifications_${user.id}`, JSON.stringify(updatedNotifications));
+    }
   };
 
   // Create promotional notification
@@ -159,22 +209,41 @@ export const NotificationProvider = ({ children }) => {
     setNotifications(prev => [notification, ...prev]);
     setUnreadCount(prev => prev + 1);
     playNotificationSound();
+    
+    // ✅ Update localStorage
+    if (user?.id) {
+      const updatedNotifications = [notification, ...notifications];
+      localStorage.setItem(`notifications_${user.id}`, JSON.stringify(updatedNotifications));
+    }
   };
 
   // Mark as read using Django endpoint
   const markAsRead = async (notificationId) => {
     if (!user || !notificationId) return;
     
-    try {
-      await API.patch(`/orders/notifications/${notificationId}/mark_read/`);
-      setNotifications(prev =>
-        prev.map(n =>
-          n.id === notificationId ? { ...n, is_read: true } : n
-        )
-      );
-      setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch (error) {
-      console.error('Failed to mark notification as read:', error);
+    // ✅ Update local state immediately
+    setNotifications(prev =>
+      prev.map(n =>
+        n.id === notificationId ? { ...n, is_read: true } : n
+      )
+    );
+    setUnreadCount(prev => Math.max(0, prev - 1));
+    
+    // ✅ Update localStorage
+    const updatedNotifications = notifications.map(n =>
+      n.id === notificationId ? { ...n, is_read: true } : n
+    );
+    if (user?.id) {
+      localStorage.setItem(`notifications_${user.id}`, JSON.stringify(updatedNotifications));
+    }
+    
+    // ✅ Sync with backend (only for real notifications, not temp ones)
+    if (typeof notificationId === 'number') {
+      try {
+        await API.patch(`/orders/notifications/${notificationId}/mark_read/`);
+      } catch (error) {
+        console.error('Failed to mark notification as read on backend:', error);
+      }
     }
   };
 
@@ -182,38 +251,40 @@ export const NotificationProvider = ({ children }) => {
   const markAllAsRead = async () => {
     if (!user) return;
 
-    try {
-      // Mark all unread notifications as read
-      const unreadNotifications = notifications.filter(n => !n.is_read);
-      
-      for (const notification of unreadNotifications) {
-        if (typeof notification.id === 'number') { // Only mark real notifications, not temp ones
-          await API.patch(`/orders/notifications/${notification.id}/mark_read/`);
-        }
-      }
+    // ✅ Update local state immediately
+    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+    setUnreadCount(0);
+    
+    // ✅ Update localStorage
+    const updatedNotifications = notifications.map(n => ({ ...n, is_read: true }));
+    if (user?.id) {
+      localStorage.setItem(`notifications_${user.id}`, JSON.stringify(updatedNotifications));
+    }
 
-      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-      setUnreadCount(0);
+    // ✅ Sync with backend for real notifications
+    try {
+      const realNotifications = notifications.filter(n => typeof n.id === 'number');
+      for (const notification of realNotifications) {
+        await API.patch(`/orders/notifications/${notification.id}/mark_read/`);
+      }
     } catch (error) {
-      console.error('Failed to mark all as read:', error);
+      console.error('Failed to mark all as read on backend:', error);
     }
   };
 
-  // Delete notification (local only for temp notifications)
+  // Delete notification (works for both local and backend)
   const deleteNotification = (notificationId) => {
     setNotifications(prev => prev.filter(n => n.id !== notificationId));
     const notification = notifications.find(n => n.id === notificationId);
     if (notification && !notification.is_read) {
       setUnreadCount(prev => Math.max(0, prev - 1));
     }
-  };
-
-  // Auto-cleanup old local notifications (keep only last 50)
-  const cleanupOldNotifications = () => {
-    setNotifications(prev => {
-      const sorted = prev.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-      return sorted.slice(0, 50);
-    });
+    
+    // ✅ Update localStorage
+    const updatedNotifications = notifications.filter(n => n.id !== notificationId);
+    if (user?.id) {
+      localStorage.setItem(`notifications_${user.id}`, JSON.stringify(updatedNotifications));
+    }
   };
 
   // Play notification sound
@@ -226,7 +297,6 @@ export const NotificationProvider = ({ children }) => {
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
 
-      // Create a pleasant notification sound  
       oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
       oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
       oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.2);
@@ -244,6 +314,19 @@ export const NotificationProvider = ({ children }) => {
   // Load notifications when user changes
   useEffect(() => {
     if (user) {
+      // ✅ Load from localStorage first for instant display
+      const cached = localStorage.getItem(`notifications_${user.id}`);
+      if (cached) {
+        try {
+          const cachedNotifications = JSON.parse(cached);
+          setNotifications(cachedNotifications);
+          setUnreadCount(cachedNotifications.filter(n => !n.is_read).length);
+        } catch (error) {
+          console.error('Failed to parse cached notifications:', error);
+        }
+      }
+      
+      // Then load from backend
       loadNotifications();
       
       // Poll for new notifications every 2 minutes
@@ -253,13 +336,7 @@ export const NotificationProvider = ({ children }) => {
         }
       }, 120000);
 
-      // Cleanup old notifications every 10 minutes
-      const cleanupInterval = setInterval(cleanupOldNotifications, 600000);
-
-      return () => {
-        clearInterval(interval);
-        clearInterval(cleanupInterval);
-      };
+      return () => clearInterval(interval);
     } else {
       setNotifications([]);
       setUnreadCount(0);

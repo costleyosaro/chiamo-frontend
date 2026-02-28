@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
+// src/pages/Notifications.jsx
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useNotifications } from "../context/NotificationContext"; // ✅ Use the context
-import UniversalBackButton from "../components/UniversalBackButton";
+import { useNotifications } from "../context/NotificationContext";
 import { 
   FiBell, 
   FiCheck, 
@@ -13,26 +13,27 @@ import {
   FiCheckCircle,
   FiClock,
   FiX,
-  FiChevronLeft
+  FiChevronLeft,
+  FiGift,
+  FiInfo
 } from "react-icons/fi";
 import { HiOutlineSparkles } from "react-icons/hi";
 import "./Notifications.css";
 
-// Get notification icon based on type
+// Get notification icon based on Django backend type
 const getNotificationIcon = (type) => {
   switch (type) {
-    case 'order_placed':
-    case 'order_confirmed':
+    case 'order':
       return <FiShoppingCart className="notif-icon order" />;
-    case 'order_shipped':
-    case 'order_delivered':
+    case 'delivery':
       return <FiTruck className="notif-icon delivery" />;
-    case 'order_cancelled':
-      return <FiX className="notif-icon cancelled" />;
-    case 'payment_success':
-      return <FiCheckCircle className="notif-icon success" />;
-    case 'payment_failed':
-      return <FiAlertCircle className="notif-icon error" />;
+    case 'payment':
+      return <FiCheckCircle className="notif-icon payment" />;
+    case 'support':
+      return <FiAlertCircle className="notif-icon support" />;
+    case 'promo':
+      return <FiGift className="notif-icon promo" />;
+    case 'system':
     default:
       return <FiBell className="notif-icon default" />;
   }
@@ -56,7 +57,13 @@ const formatNotificationTime = (timestamp) => {
   return notifTime.toLocaleDateString();
 };
 
-// Update the NotificationCard component
+// Extract order ID from notification message
+const extractOrderId = (message) => {
+  const match = message.match(/#(\d+)/);
+  return match ? match[1] : null;
+};
+
+// Enhanced NotificationCard component
 const NotificationCard = ({ notification, onMarkAsRead, onDelete }) => {
   const [isRemoving, setIsRemoving] = useState(false);
   const navigate = useNavigate();
@@ -77,17 +84,29 @@ const NotificationCard = ({ notification, onMarkAsRead, onDelete }) => {
   const handleCardClick = () => {
     handleMarkAsRead();
     
-    // ✅ FIXED: Navigate to order if order_id exists
-    if (notification.order_id) {
-      navigate(`/orders?orderId=${notification.order_id}`);
+    // Extract order ID from message or use order_id field
+    const orderId = notification.order_id || extractOrderId(notification.message);
+    
+    if (orderId && (notification.type === 'order' || notification.type === 'delivery')) {
+      // Navigate to orders page with order ID for highlighting
+      navigate(`/orders?highlight=${orderId}`);
+    } else if (notification.type === 'promo') {
+      navigate('/all-products');
+    } else if (notification.type === 'support') {
+      navigate('/support');
     }
   };
 
+  // Determine if notification is clickable
+  const isClickable = notification.type === 'order' || 
+                     notification.type === 'delivery' || 
+                     notification.type === 'promo' || 
+                     notification.type === 'support';
+
   return (
     <div 
-      className={`notification-card ${!notification.is_read ? 'unread' : 'read'} ${isRemoving ? 'removing' : ''}`}
-      onClick={handleCardClick}
-      style={{ cursor: notification.order_id ? 'pointer' : 'default' }}
+      className={`notification-card ${!notification.is_read ? 'unread' : 'read'} ${isRemoving ? 'removing' : ''} ${isClickable ? 'clickable' : ''}`}
+      onClick={isClickable ? handleCardClick : handleMarkAsRead}
     >
       <div className="notif-icon-wrapper">
         {getNotificationIcon(notification.type)}
@@ -105,11 +124,28 @@ const NotificationCard = ({ notification, onMarkAsRead, onDelete }) => {
         
         <p className="notif-message">{notification.message}</p>
         
-        {notification.order_id && (
+        {/* Show order info for order-related notifications */}
+        {(notification.type === 'order' || notification.type === 'delivery') && (
           <div className="notif-order-info">
             <FiPackage />
-            <span>Order #{notification.order_id}</span>
-            <span className="notif-view-order">Tap to view order</span>
+            <span>Order #{notification.order_id || extractOrderId(notification.message)}</span>
+            {isClickable && <span className="notif-view-order">Tap to view order</span>}
+          </div>
+        )}
+
+        {/* Show action button for promotional notifications */}
+        {notification.type === 'promo' && (
+          <div className="notif-action-info">
+            <FiGift />
+            <span className="notif-action-text">Tap to view offers</span>
+          </div>
+        )}
+
+        {/* Show action button for support notifications */}
+        {notification.type === 'support' && (
+          <div className="notif-action-info">
+            <FiInfo />
+            <span className="notif-action-text">Tap for support</span>
           </div>
         )}
       </div>
@@ -161,23 +197,25 @@ export default function Notifications() {
   const navigate = useNavigate();
   const [filter, setFilter] = useState('all'); // all, unread, read
   
-  // ✅ FIXED: Use the NotificationContext instead of direct API calls
   const { 
     notifications, 
     loading, 
     error, 
     unreadCount, 
     markAsRead, 
-    loadNotifications,
-    playNotificationSound 
+    markAllAsRead,
+    deleteNotification,
+    loadNotifications
   } = useNotifications();
 
-  // ✅ FIXED: Handle delete notification (fallback to local state if API fails)
-  const [localNotifications, setLocalNotifications] = useState([]);
-  
+  // Add sample notifications for testing (remove this in production)
   useEffect(() => {
-    setLocalNotifications(notifications);
-  }, [notifications]);
+    // Only add sample notifications if there are no real notifications
+    if (notifications.length === 0 && !loading && !error) {
+      // You can remove this in production - it's just for testing
+      console.log("No notifications found - this is normal if backend doesn't have any");
+    }
+  }, [notifications, loading, error]);
 
   // Mark notification as read
   const handleMarkAsRead = async (notificationId) => {
@@ -188,42 +226,37 @@ export default function Notifications() {
     }
   };
 
-  // Delete notification (local only since API might not support it)
+  // Delete notification
   const handleDeleteNotification = (notificationId) => {
-    setLocalNotifications(prev => prev.filter(n => n.id !== notificationId));
+    deleteNotification(notificationId);
   };
 
   // Mark all as read
   const handleMarkAllAsRead = async () => {
     try {
-      // Mark all unread notifications as read
-      const unreadNotifications = localNotifications.filter(n => !n.is_read);
-      for (const notification of unreadNotifications) {
-        await markAsRead(notification.id);
-      }
+      await markAllAsRead();
     } catch (err) {
       console.error("Failed to mark all as read:", err);
     }
   };
 
-  // Clear all notifications (local only)
+  // Clear all notifications
   const handleClearAll = () => {
     if (window.confirm("Are you sure you want to delete all notifications?")) {
-      setLocalNotifications([]);
+      notifications.forEach(notification => {
+        deleteNotification(notification.id);
+      });
     }
   };
 
-  // ✅ FIXED: Use localNotifications and ensure it's always an array
-  const safeNotifications = Array.isArray(localNotifications) ? localNotifications : [];
-  
   // Filter notifications
-  const filteredNotifications = safeNotifications.filter(notification => {
+  const filteredNotifications = notifications.filter(notification => {
     if (filter === 'unread') return !notification.is_read;
     if (filter === 'read') return notification.is_read;
     return true;
   });
 
-  const currentUnreadCount = safeNotifications.filter(n => !n.is_read).length;
+  const currentUnreadCount = notifications.filter(n => !n.is_read).length;
 
   if (loading) {
     return (
@@ -283,7 +316,7 @@ export default function Notifications() {
             <span className="notif-unread-badge">{currentUnreadCount}</span>
           )}
         </div>
-        {safeNotifications.length > 0 && (
+        {notifications.length > 0 && (
           <div className="notif-header-actions">
             <button 
               className="notif-action-btn secondary"
@@ -305,13 +338,13 @@ export default function Notifications() {
       </div>
 
       {/* Filter tabs */}
-      {safeNotifications.length > 0 && (
+      {notifications.length > 0 && (
         <div className="notif-filters">
           <button 
             className={`notif-filter-btn ${filter === 'all' ? 'active' : ''}`}
             onClick={() => setFilter('all')}
           >
-            All ({safeNotifications.length})
+            All ({notifications.length})
           </button>
           <button 
             className={`notif-filter-btn ${filter === 'unread' ? 'active' : ''}`}
@@ -323,7 +356,7 @@ export default function Notifications() {
             className={`notif-filter-btn ${filter === 'read' ? 'active' : ''}`}
             onClick={() => setFilter('read')}
           >
-            Read ({safeNotifications.length - currentUnreadCount})
+            Read ({notifications.length - currentUnreadCount})
           </button>
         </div>
       )}

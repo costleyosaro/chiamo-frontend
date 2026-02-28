@@ -11,8 +11,9 @@ export function CartProvider({ children }) {
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // ✅ Get notification functions
-  const { createOrderNotification, createCartReminder } = useNotifications();
+  // ✅ Get notification functions with safety checks
+  const notificationContext = useNotifications();
+  const { createOrderNotification, createCartReminder } = notificationContext || {};
 
   // 🧮 Cart badge count
   const cartCount = cart.reduce((sum, item) => sum + (item.quantity || 0), 0);
@@ -69,8 +70,16 @@ export function CartProvider({ children }) {
         console.error("fetchCart failed:", err);
         if (activeUser?.id) {
           const saved = localStorage.getItem(`cart_${activeUser.id}`);
-          if (saved) setCart(JSON.parse(saved));
-          else setCart([]);
+          if (saved) {
+            try {
+              setCart(JSON.parse(saved));
+            } catch (parseErr) {
+              console.error("Failed to parse saved cart:", parseErr);
+              setCart([]);
+            }
+          } else {
+            setCart([]);
+          }
         }
       } finally {
         setLoading(false);
@@ -85,7 +94,14 @@ export function CartProvider({ children }) {
       if (authLoading) return; // wait for AuthContext to finish
       if (user) {
         const saved = localStorage.getItem(`cart_${user.id}`);
-        if (saved) setCart(JSON.parse(saved));
+        if (saved) {
+          try {
+            setCart(JSON.parse(saved));
+          } catch (parseErr) {
+            console.error("Failed to parse saved cart:", parseErr);
+            setCart([]);
+          }
+        }
         await fetchCart(user);
       } else {
         setCart([]);
@@ -94,9 +110,9 @@ export function CartProvider({ children }) {
     })();
   }, [user, authLoading, fetchCart]);
 
-  // ✅ Trigger cart reminder when cart gets items
+  // ✅ Trigger cart reminder when cart gets items (with safety checks)
   useEffect(() => {
-    if (user && cartCount > 0) {
+    if (user && cartCount > 0 && createCartReminder && typeof createCartReminder === 'function') {
       // Trigger cart reminder when cart reaches 3+ items
       if (cartCount >= 3) {
         const lastReminderTime = localStorage.getItem(`cart_reminder_${user.id}`);
@@ -105,8 +121,12 @@ export function CartProvider({ children }) {
         
         // Only remind once per hour to avoid spam
         if (!lastReminderTime || (now - parseInt(lastReminderTime)) > oneHour) {
-          createCartReminder(cartCount);
-          localStorage.setItem(`cart_reminder_${user.id}`, now.toString());
+          try {
+            createCartReminder(cartCount);
+            localStorage.setItem(`cart_reminder_${user.id}`, now.toString());
+          } catch (error) {
+            console.error("Failed to create cart reminder:", error);
+          }
         }
       }
     }
@@ -124,13 +144,16 @@ export function CartProvider({ children }) {
       const namePart = productName ? ` ${productName}` : "";
       const successMessage = `Added ${quantity}${namePart} to cart successfully`;
       
-      // ✅ Create notification for cart addition
-      if (createCartReminder && productName) {
-        // Create a simple cart notification
+      // ✅ Create notification for cart addition (with safety checks)
+      if (createCartReminder && typeof createCartReminder === 'function' && productName) {
         setTimeout(() => {
-          const newCartCount = cartCount + quantity;
-          if (newCartCount >= 2) { // Notify when cart has 2+ items
-            createCartReminder(newCartCount);
+          try {
+            const newCartCount = cartCount + quantity;
+            if (newCartCount >= 2) { // Notify when cart has 2+ items
+              createCartReminder(newCartCount);
+            }
+          } catch (error) {
+            console.error("Failed to create cart notification:", error);
           }
         }, 1000);
       }
@@ -193,18 +216,22 @@ export function CartProvider({ children }) {
     try {
       const res = await API.post("/orders/checkout/");
       
-      // ✅ Create order notification after successful checkout
-      if (res.data && createOrderNotification) {
+      // ✅ Create order notification after successful checkout (with safety checks)
+      if (res.data && createOrderNotification && typeof createOrderNotification === 'function') {
         const orderId = res.data.order_id || res.data.id || res.data.order?.id;
         const orderTotal = res.data.total || res.data.order?.total || 
                           cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
         
         if (orderId) {
-          // Create order placed notification
-          createOrderNotification(orderId, 'placed', orderTotal);
-          
-          // Clear cart reminder timestamp since order is placed
-          localStorage.removeItem(`cart_reminder_${user.id}`);
+          try {
+            // Create order placed notification
+            createOrderNotification(orderId, 'placed', orderTotal);
+            
+            // Clear cart reminder timestamp since order is placed
+            localStorage.removeItem(`cart_reminder_${user.id}`);
+          } catch (error) {
+            console.error("Failed to create order notification:", error);
+          }
         }
       }
       
@@ -218,13 +245,35 @@ export function CartProvider({ children }) {
 
   // ✅ Manual function to create order notifications (for testing or manual triggers)
   const notifyOrderUpdate = (orderId, event = 'placed', orderTotal = null) => {
-    if (createOrderNotification) {
-      createOrderNotification(orderId, event, orderTotal);
+    if (createOrderNotification && typeof createOrderNotification === 'function') {
+      try {
+        createOrderNotification(orderId, event, orderTotal);
+      } catch (error) {
+        console.error("Failed to create order update notification:", error);
+      }
+    } else {
+      console.warn("createOrderNotification function not available");
     }
   };
 
   // ✅ Calculate cart total for notifications
   const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+  // ✅ Test function to manually trigger notifications (for development)
+  const testNotifications = () => {
+    if (user) {
+      // Test cart reminder
+      if (createCartReminder && typeof createCartReminder === 'function') {
+        createCartReminder(cartCount || 3);
+      }
+      
+      // Test order notification
+      if (createOrderNotification && typeof createOrderNotification === 'function') {
+        const testOrderId = Math.floor(Math.random() * 1000) + 1;
+        createOrderNotification(testOrderId, 'placed', cartTotal || 5000);
+      }
+    }
+  };
 
   return (
     <CartContext.Provider
@@ -232,7 +281,7 @@ export function CartProvider({ children }) {
         user,
         cart,
         cartCount,
-        cartTotal, // ✅ Added cart total
+        cartTotal,
         loading,
         fetchCart,
         addToCart,
@@ -241,7 +290,8 @@ export function CartProvider({ children }) {
         clearCart,
         checkout,
         refreshUser,
-        notifyOrderUpdate, // ✅ Added manual notification trigger
+        notifyOrderUpdate,
+        testNotifications, // ✅ Added for testing notifications
       }}
     >
       {children}
@@ -250,5 +300,9 @@ export function CartProvider({ children }) {
 }
 
 export function useCart() {
-  return useContext(CartContext);
+  const context = useContext(CartContext);
+  if (!context) {
+    throw new Error('useCart must be used within a CartProvider');
+  }
+  return context;
 }

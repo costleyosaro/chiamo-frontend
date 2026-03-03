@@ -1,0 +1,178 @@
+/* Universal Back Button Styles */
+.universal-back-btn {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  font-family: inherit;
+}
+
+.universal-back-btn:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  color: #1f2937;
+}
+
+.universal-back-btn:active {
+  transform: translateY(0);
+}
+
+.universal-back-btn svg {
+  font-size: 18px;
+  transition: transform 0.2s ease;
+}
+
+.universal-back-btn:hover svg {
+  transform: translateX(-2px);
+}
+
+.back-text {
+  font-weight: 600;
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  .universal-back-btn {
+    background: rgba(31, 41, 55, 0.95);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #f9fafb;
+  }
+  
+  .universal-back-btn:hover {
+    background: rgba(31, 41, 55, 1);
+    color: #ffffff;
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .universal-back-btn {
+    top: 15px;
+    left: 15px;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  
+  .universal-back-btn svg {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .universal-back-btn {
+    top: 10px;
+    left: 10px;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  
+  .universal-back-btn svg {
+    font-size: 14px;
+  }
+  
+  .back-text {
+    display: none; /* Hide text on very small screens */
+  }
+}
+
+/* Compact version (icon only) */
+.universal-back-btn.compact {
+  padding: 8px;
+  min-width: 40px;
+  justify-content: center;
+}
+
+.universal-back-btn.compact .back-text {
+  display: none;
+}
+
+/* Different color variants */
+.universal-back-btn.primary {
+  background: linear-gradient(135deg, #4F46E5, #7C3AED);
+  color: white;
+  border: none;
+}
+
+.universal-back-btn.primary:hover {
+  background: linear-gradient(135deg, #4338CA, #6D28D9);
+}
+
+.universal-back-btn.danger {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.universal-back-btn.danger:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #b91c1c;
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .universal-back-btn {
+    background: #ffffff;
+    border: 2px solid #000000;
+    color: #000000;
+  }
+  
+  .universal-back-btn:hover {
+    background: #000000;
+    color: #ffffff;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .universal-back-btn {
+    transition: none;
+  }
+  
+  .universal-back-btn:hover {
+    transform: none;
+  }
+  
+  .universal-back-btn svg {
+    transition: none;
+  }
+  
+  .universal-back-btn:hover svg {
+    transform: none;
+  }
+}
+
+/* Focus states for accessibility */
+.universal-back-btn:focus-visible {
+  outline: 3px solid #F59E0B;
+  outline-offset: 2px;
+}
+
+/* Safe area for devices with notches */
+@supports (padding: max(0px)) {
+  .universal-back-btn {
+    top: max(20px, env(safe-area-inset-top) + 10px);
+    left: max(20px, env(safe-area-inset-left) + 10px);
+  }
+  
+  @media (max-width: 768px) {
+    .universal-back-btn {
+      top: max(15px, env(safe-area-inset-top) + 5px);
+      left: max(15px, env(safe-area-inset-left) + 5px);
+    }
+  }
+}

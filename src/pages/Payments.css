@@ -1,0 +1,128 @@
+/* === PAYMENTS PAGE (CHIAMO ORDER 1.0) === */
+:root {
+  --payments-primary: #043c79;
+  --payments-primary-dark: #05316b;
+  --payments-accent: #ffd54f;
+  --payments-bg-light: #f8fafc;
+  --payments-bg-dark: #0f1115;
+  --payments-text-dark: #e8e8e8;
+}
+
+/* === WRAPPER === */
+.payments-page {
+  min-height: 100vh;
+  background: var(--payments-bg-light);
+  color: #222;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 16px;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+[data-theme="dark"] .payments-page {
+  background: var(--payments-bg-dark);
+  color: var(--payments-text-dark);
+}
+
+/* === BACK BUTTON === */
+.payments-back-btn {
+  align-self: flex-start;
+  background: transparent;
+  color: var(--payments-primary);
+  border: none;
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 30px;
+  cursor: pointer;
+  transition: color 0.25s ease;
+}
+
+.payments-back-btn:hover {
+  color: var(--payments-primary-dark);
+}
+
+[data-theme="dark"] .payments-back-btn {
+  color: var(--payments-accent);
+}
+
+[data-theme="dark"] .payments-back-btn:hover {
+  color: #ffe680;
+}
+
+/* === CONTENT AREA === */
+.payments-content {
+  text-align: center;
+  margin-top: 80px;
+}
+
+.payments-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+/* === COMING SOON BOX === */
+.payments-coming-soon {
+  display: inline-block;
+  background: #ffffff;
+  padding: 50px 40px;
+  border-radius: 20px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+[data-theme="dark"] .payments-coming-soon {
+  background: #1a1a1a;
+  box-shadow: 0 6px 24px rgba(255, 215, 80, 0.1);
+}
+
+.payments-coming-soon h2 {
+  font-size: 2rem;
+  color: var(--payments-primary);
+  font-weight: 800;
+  margin-bottom: 15px;
+}
+
+[data-theme="dark"] .payments-coming-soon h2 {
+  color: var(--payments-accent);
+}
+
+.payments-coming-soon p {
+  font-size: 1rem;
+  color: #555;
+  line-height: 1.6;
+}
+
+[data-theme="dark"] .payments-coming-soon p {
+  color: #ccc;
+}
+
+/* === RESPONSIVENESS === */
+@media (max-width: 768px) {
+  .payments-coming-soon {
+    padding: 40px 24px;
+  }
+
+  .payments-coming-soon h2 {
+    font-size: 1.6rem;
+  }
+
+  .payments-title {
+    font-size: 1.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .payments-coming-soon {
+    padding: 30px 20px;
+  }
+
+  .payments-coming-soon h2 {
+    font-size: 1.4rem;
+  }
+
+  .payments-coming-soon p {
+    font-size: 0.9rem;
+  }
+}

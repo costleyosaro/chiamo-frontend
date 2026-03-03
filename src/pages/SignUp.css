@@ -1,0 +1,1835 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Caprasimo&display=swap');
+
+/* ===== CSS Variables - SAME AS LOGIN ===== */
+:root {
+  --primary-color: #1b4b8c;
+  --primary-dark: #143a6e;
+  --primary-light: #2a5fa8;
+  --accent-color: #d4a017;
+  --accent-dark: #b8860b;
+  --accent-light: #f0c14b;
+  --text-dark: #1a1a2e;
+  --text-medium: #4a4a5a;
+  --text-light: #7a7a8a;
+  --bg-light: #f8fafc;
+  --bg-card: #ffffff;
+  --border-color: #e2e8f0;
+  --success-color: #10b981;
+  --error-color: #ef4444;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.12);
+  --shadow-glow: 0 0 40px rgba(27, 75, 140, 0.15);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== Container - SAME AS LOGIN ===== */
+.signup-new-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 50%, #f8fafc 100%);
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ===== Animated Background Shapes - SAME AS LOGIN ===== */
+.signup-new-bg-shapes {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.shape-new {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.6;
+  animation: float-new 20s ease-in-out infinite;
+}
+
+.shape-new-1 {
+  width: 400px;
+  height: 400px;
+  background: linear-gradient(135deg, rgba(27, 75, 140, 0.1), rgba(27, 75, 140, 0.05));
+  top: -100px;
+  right: -100px;
+  animation-delay: 0s;
+}
+
+.shape-new-2 {
+  width: 300px;
+  height: 300px;
+  background: linear-gradient(135deg, rgba(212, 160, 23, 0.1), rgba(212, 160, 23, 0.05));
+  bottom: -50px;
+  left: -50px;
+  animation-delay: -5s;
+}
+
+.shape-new-3 {
+  width: 200px;
+  height: 200px;
+  background: linear-gradient(135deg, rgba(27, 75, 140, 0.08), rgba(212, 160, 23, 0.08));
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation-delay: -10s;
+}
+
+.shape-new-4 {
+  width: 150px;
+  height: 150px;
+  background: linear-gradient(135deg, rgba(27, 75, 140, 0.06), rgba(27, 75, 140, 0.03));
+  bottom: 20%;
+  right: 10%;
+  animation-delay: -15s;
+}
+
+@keyframes float-new {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate(20px, -20px) rotate(5deg);
+  }
+  50% {
+    transform: translate(-10px, 20px) rotate(-5deg);
+  }
+  75% {
+    transform: translate(-20px, -10px) rotate(3deg);
+  }
+}
+
+/* ===== Signup Card - SAME AS LOGIN ===== */
+.signup-new-card {
+  background: var(--bg-card);
+  padding: 48px 44px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg), var(--shadow-glow);
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  animation: slideUp-new 0.6s ease-out;
+}
+
+@keyframes slideUp-new {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Logo Section - SAME AS LOGIN ===== */
+.signup-new-logo {
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 8px;
+  opacity: 0;
+  animation: fadeInDown-new 0.8s ease forwards 0.2s;
+}
+
+.signup-new-logo-text {
+  font-family: "Caprasimo", cursive;
+  font-size: 28px;
+  font-weight: 400;
+  color: var(--primary-color);
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  transition: var(--transition);
+}
+
+.signup-new-logo-text span {
+  color: var(--accent-color);
+  margin-left: 2px;
+  transition: var(--transition);
+}
+
+.signup-new-logo:hover .signup-new-logo-text span {
+  color: var(--accent-dark);
+  transform: scale(1.05);
+}
+
+@keyframes fadeInDown-new {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Form - SAME AS LOGIN ===== */
+.signup-new-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn-new 0.8s ease forwards 0.3s;
+  opacity: 0;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+.signup-new-form::-webkit-scrollbar {
+  width: 6px;
+}
+
+.signup-new-form::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.signup-new-form::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.signup-new-form::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+@keyframes fadeIn-new {
+  to {
+    opacity: 1;
+  }
+}
+
+.signup-new-form h2 {
+  text-align: center;
+  margin: 0 0 8px 0;
+  color: var(--text-dark);
+  font-weight: 700;
+  font-size: 28px;
+  letter-spacing: -0.5px;
+}
+
+.signup-new-subtitle {
+  text-align: center;
+  color: var(--text-light);
+  font-size: 14px;
+  margin: 0 0 32px 0;
+  font-weight: 400;
+}
+
+/* ===== Input Groups - SAME AS LOGIN ===== */
+.input-new-group {
+  position: relative;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.input-new-group .input-new-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-light);
+  font-size: 16px;
+  transition: all 0.3s ease;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 1;
+}
+
+.input-new-group.icon-new-hidden .input-new-icon {
+  opacity: 0;
+  transform: translateY(-50%) scale(0.8);
+}
+
+.input-new-group input {
+  width: 100%;
+  padding: 16px 16px 16px 48px;
+  font-size: 15px;
+  font-weight: 500;
+  font-family: inherit;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: var(--transition);
+  box-sizing: border-box;
+  background: var(--bg-light);
+  color: var(--text-dark);
+}
+
+.input-new-group.icon-new-hidden input {
+  padding-left: 16px;
+}
+
+.input-new-group input:hover {
+  border-color: #cbd5e1;
+  background: #ffffff;
+}
+
+.input-new-group input:focus {
+  border-color: var(--primary-color);
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(27, 75, 140, 0.1);
+}
+
+.input-new-group label {
+  position: absolute;
+  left: 48px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  color: var(--text-light);
+  padding: 0 6px;
+  font-size: 14px;
+  font-weight: 500;
+  pointer-events: none;
+  transition: var(--transition);
+}
+
+.input-new-group.icon-new-hidden label {
+  left: 16px;
+}
+
+.input-new-group input:focus + label,
+.input-new-group input:not(:placeholder-shown) + label {
+  top: 0;
+  left: 12px !important;
+  font-size: 12px;
+  color: var(--primary-color);
+  background: white;
+  padding: 2px 8px;
+  font-weight: 600;
+  border-radius: 4px;
+}
+
+/* ===== Password Field - SAME AS LOGIN ===== */
+.password-new-group {
+  position: relative;
+}
+
+.password-new-group input {
+  padding-right: 50px;
+}
+
+.password-new-group.icon-new-hidden input {
+  padding-left: 16px;
+  padding-right: 50px;
+}
+
+.password-new-toggle {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: var(--text-light);
+  font-size: 18px;
+  padding: 4px;
+  transition: var(--transition);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.password-new-toggle:hover {
+  color: var(--primary-color);
+}
+
+/* ===== Sales Executive Dropdown ===== */
+.select-new-wrapper {
+  position: relative;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.select-new-field {
+  width: 100%;
+  padding: 16px 50px 16px 48px;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 500;
+  font-family: inherit;
+  background: var(--bg-light);
+  transition: var(--transition);
+  appearance: none;
+  cursor: pointer;
+  color: var(--text-dark);
+  box-sizing: border-box;
+  outline: none;
+}
+
+.select-new-field:hover {
+  border-color: #cbd5e1;
+  background: #ffffff;
+}
+
+.select-new-field:focus {
+  border-color: var(--primary-color);
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(27, 75, 140, 0.1);
+}
+
+.select-new-field option {
+  padding: 12px;
+  font-size: 15px;
+  color: var(--text-dark);
+  background: #ffffff;
+  font-family: inherit;
+}
+
+.select-new-field option:first-child {
+  color: var(--text-light);
+  font-style: italic;
+}
+
+.select-new-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-light);
+  font-size: 16px;
+  pointer-events: none;
+  z-index: 2;
+  transition: var(--transition);
+}
+
+.select-new-arrow {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-light);
+  pointer-events: none;
+  transition: transform 0.3s ease;
+  z-index: 2;
+  font-size: 14px;
+}
+
+.select-new-wrapper:focus-within .select-new-arrow {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.select-new-wrapper:focus-within .select-new-icon {
+  color: var(--primary-color);
+}
+
+/* ===== Location Field ===== */
+.location-new-field {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.location-new-input-wrapper {
+  flex: 1;
+  position: relative;
+  min-width: 200px;
+}
+
+.location-new-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-light);
+  font-size: 16px;
+  z-index: 2;
+  transition: var(--transition);
+  pointer-events: none;
+}
+
+.location-new-input-wrapper.has-new-value .location-new-icon {
+  opacity: 0;
+  transform: translateY(-50%) scale(0.8);
+}
+
+.location-new-field input {
+  width: 100%;
+  padding: 16px 16px 16px 48px;
+  border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 500;
+  font-family: inherit;
+  outline: none;
+  background: var(--bg-light);
+  color: var(--text-medium);
+  box-sizing: border-box;
+  transition: var(--transition);
+}
+
+.location-new-input-wrapper.has-new-value input {
+  padding-left: 16px;
+}
+
+.location-new-field input:focus {
+  border-color: var(--primary-color);
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(27, 75, 140, 0.1);
+}
+
+/* ===== Location & Camera Buttons ===== */
+.location-new-btn {
+  background: linear-gradient(135deg, var(--accent-color), var(--accent-dark));
+  color: white;
+  border: none;
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  transition: var(--transition);
+  min-width: 120px;
+  justify-content: center;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(212, 160, 23, 0.3);
+}
+
+.location-new-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--accent-dark), #9a7209);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(212, 160, 23, 0.4);
+}
+
+.location-new-btn:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.location-new-btn.loading {
+  background: var(--accent-dark);
+  cursor: wait;
+}
+
+.location-new-btn.loading span {
+  animation: pulse-new 1.5s ease-in-out infinite;
+}
+
+.camera-new-btn {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  border: none;
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: var(--transition);
+  white-space: nowrap;
+  min-width: 100px;
+  box-shadow: 0 4px 12px rgba(27, 75, 140, 0.3);
+}
+
+.camera-new-btn:hover {
+  background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(27, 75, 140, 0.4);
+}
+
+.camera-new-btn:active {
+  transform: translateY(0);
+}
+
+.camera-new-btn svg {
+  font-size: 16px;
+}
+
+/* ===== Photo Preview ===== */
+.photo-new-preview {
+  margin: 0 0 20px;
+  padding: 16px;
+  background: var(--bg-light);
+  border-radius: var(--radius-md);
+  border: 2px dashed var(--border-color);
+  text-align: center;
+  animation: fadeIn-new 0.5s ease;
+}
+
+.photo-new-preview img {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 10px;
+  box-shadow: var(--shadow-sm);
+}
+
+.photo-new-preview p {
+  color: var(--text-medium);
+  font-size: 12px;
+  margin: 0;
+}
+
+/* ===== Terms & Conditions - SAME AS LOGIN CHECKBOX STYLE ===== */
+.terms-new-container {
+  margin: 8px 0 24px;
+}
+
+.terms-new-checkbox {
+  display: flex;
+  align-items: flex-start;
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+  color: var(--text-medium);
+  transition: color 0.3s ease;
+  font-weight: 500;
+  position: relative;
+  padding-left: 32px;
+}
+
+.terms-new-checkbox:hover {
+  color: #495057;
+}
+
+.terms-new-checkbox input {
+  display: none;
+}
+
+.checkmark-new {
+  position: absolute;
+  left: 0;
+  top: 2px;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border: 2px solid #e1e5e9;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.checkmark-new:after {
+  content: "";
+  position: absolute;
+  display: none;
+  left: 5px;
+  top: 2px;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.terms-new-checkbox input:checked ~ .checkmark-new {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(27, 75, 140, 0.1);
+}
+
+.terms-new-checkbox input:checked ~ .checkmark-new:after {
+  display: block;
+  animation: checkmark-appear-new 0.3s ease-in-out;
+}
+
+.terms-new-checkbox:hover .checkmark-new {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(27, 75, 140, 0.1);
+}
+
+.terms-new-text {
+  font-size: 13px;
+  color: var(--text-medium);
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.privacy-new-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 600;
+  transition: var(--transition);
+}
+
+.privacy-new-link:hover {
+  color: var(--accent-color);
+  text-decoration: underline;
+}
+
+@keyframes checkmark-appear-new {
+  0% {
+    opacity: 0;
+    transform: rotate(45deg) scale(0.5);
+  }
+  50% {
+    opacity: 0.7;
+    transform: rotate(45deg) scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(45deg) scale(1);
+  }
+}
+
+/* ===== Submit Button - SAME AS LOGIN ===== */
+.signup-new-btn {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  color: white;
+  padding: 16px 24px;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 4px 16px rgba(27, 75, 140, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.signup-new-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.signup-new-btn:hover::before {
+  left: 100%;
+}
+
+.signup-new-btn:hover:not(.disabled):not(.loading) {
+  background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(27, 75, 140, 0.4);
+}
+
+.signup-new-btn:active:not(.disabled):not(.loading) {
+  transform: translateY(0);
+}
+
+.signup-new-btn.disabled {
+  background: #a0aec0;
+  cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.7;
+}
+
+.signup-new-btn.loading {
+  cursor: wait;
+}
+
+.btn-new-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.spinner-new {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin-new 0.8s linear infinite;
+}
+
+@keyframes spin-new {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse-new {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ===== Divider - SAME AS LOGIN ===== */
+.divider-new {
+  display: flex;
+  align-items: center;
+  margin: 24px 0;
+  gap: 16px;
+}
+
+.divider-new::before,
+.divider-new::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+}
+
+.divider-new span {
+  color: var(--text-light);
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ===== Already Have Account - SAME AS LOGIN ===== */
+.already-new-account {
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-medium);
+  margin: 0;
+}
+
+.already-new-account a {
+  color: var(--primary-color);
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: 4px;
+  transition: var(--transition);
+}
+
+.already-new-account a:hover {
+  color: var(--accent-color);
+  text-decoration: underline;
+}
+
+/* ===== Security Note - SAME AS LOGIN ===== */
+.security-new-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+  width: 100%;
+  animation: fadeIn-new 1s ease forwards 0.5s;
+  opacity: 0;
+}
+
+.security-new-note .lock-new-icon {
+  font-size: 14px;
+}
+
+.security-new-note span:last-child {
+  font-size: 12px;
+  color: var(--text-light);
+  font-weight: 500;
+}
+
+/* ===== Responsive Design - SAME AS LOGIN ===== */
+@media (max-width: 768px) {
+  .location-new-field {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .location-new-input-wrapper {
+    min-width: 100%;
+  }
+  
+  .location-new-btn,
+  .camera-new-btn {
+    width: 100%;
+    min-width: 100%;
+    padding: 16px;
+    font-size: 16px;
+  }
+  
+  .select-new-field {
+    font-size: 16px;
+    padding: 16px 50px 16px 48px;
+  }
+  
+  .signup-new-form {
+    max-height: 80vh;
+  }
+}
+
+@media (max-width: 540px) {
+  .signup-new-container {
+    padding: 16px;
+  }
+
+  .signup-new-card {
+    padding: 32px 24px 28px;
+    border-radius: var(--radius-md);
+  }
+
+  .signup-new-logo-text {
+    font-size: 24px;
+  }
+
+  .signup-new-form h2 {
+    font-size: 24px;
+  }
+
+  .signup-new-subtitle {
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+
+  .input-new-group input,
+  .select-new-field {
+    padding: 14px 14px 14px 44px;
+    font-size: 16px;
+  }
+
+  .input-new-group.icon-new-hidden input {
+    padding-left: 14px;
+  }
+
+  .select-new-field {
+    padding: 14px 44px 14px 44px;
+  }
+
+  .input-new-group .input-new-icon,
+  .select-new-icon {
+    font-size: 14px;
+    left: 14px;
+  }
+
+  .input-new-group label {
+    font-size: 13px;
+    left: 44px;
+  }
+
+  .input-new-group.icon-new-hidden label {
+    left: 14px;
+  }
+
+  .password-new-toggle {
+    font-size: 16px;
+    right: 12px;
+  }
+
+  .select-new-arrow {
+    right: 12px;
+    font-size: 12px;
+  }
+
+  .location-new-field input {
+    padding: 14px 14px 14px 44px;
+    font-size: 16px;
+  }
+
+  .location-new-input-wrapper.has-new-value input {
+    padding-left: 14px;
+  }
+
+  .location-new-icon {
+    left: 14px;
+    font-size: 14px;
+  }
+
+  .signup-new-btn {
+    padding: 14px 20px;
+    font-size: 15px;
+  }
+
+  .terms-new-text {
+    font-size: 12px;
+  }
+
+  .security-new-note {
+    flex-direction: column;
+    gap: 4px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 360px) {
+  .signup-new-card {
+    padding: 20px 16px;
+  }
+
+  .signup-new-logo-text {
+    font-size: 22px;
+  }
+
+  .signup-new-form h2 {
+    font-size: 22px;
+  }
+
+  .input-new-group input,
+  .select-new-field,
+  .location-new-field input {
+    padding: 12px 12px 12px 40px;
+    font-size: 16px;
+  }
+
+  .input-new-group.icon-new-hidden input,
+  .location-new-input-wrapper.has-new-value input {
+    padding-left: 12px;
+  }
+
+    .select-new-field {
+    padding: 12px 40px 12px 40px;
+  }
+
+  .input-new-group .input-new-icon,
+  .select-new-icon,
+  .location-new-icon {
+    left: 12px;
+    font-size: 13px;
+  }
+
+  .select-new-arrow {
+    right: 10px;
+  }
+
+  .password-new-toggle {
+    right: 10px;
+    font-size: 15px;
+  }
+}
+
+/* ===== Focus Visible for Accessibility - SAME AS LOGIN ===== */
+.signup-new-btn:focus-visible,
+.camera-new-btn:focus-visible,
+.location-new-btn:focus-visible {
+  outline: 3px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+.terms-new-checkbox input:focus-visible ~ .checkmark-new {
+  outline: 3px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+.input-new-group input:focus-visible,
+.select-new-field:focus-visible {
+  outline: 3px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+.privacy-new-link:focus-visible,
+.already-new-account a:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ===== High Contrast Mode Support ===== */
+@media (prefers-contrast: high) {
+  .checkmark-new {
+    border-width: 3px;
+  }
+  
+  .terms-new-checkbox input:checked ~ .checkmark-new {
+    background: #000;
+    border-color: #000;
+  }
+  
+  .terms-new-checkbox input:checked ~ .checkmark-new:after {
+    border-color: #fff;
+    border-width: 0 3px 3px 0;
+  }
+}
+
+/* ===== Reduced Motion Support ===== */
+@media (prefers-reduced-motion: reduce) {
+  .shape-new {
+    animation: none;
+  }
+  
+  .signup-new-card {
+    animation: none;
+  }
+  
+  .signup-new-form {
+    animation: none;
+    opacity: 1;
+  }
+  
+  .signup-new-logo {
+    animation: none;
+    opacity: 1;
+  }
+  
+  .signup-new-btn::before {
+    transition: none;
+  }
+  
+  .spinner-new {
+    animation: none;
+  }
+  
+  .location-new-btn.loading span {
+    animation: none;
+  }
+  
+  .security-new-note {
+    animation: none;
+    opacity: 1;
+  }
+  
+  .checkmark-new:after {
+    animation: none;
+  }
+}
+
+/* ===== Enhanced Button Interactions ===== */
+.location-new-btn:active,
+.camera-new-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.signup-new-btn:active:not(.disabled):not(.loading) {
+  transform: translateY(1px);
+  box-shadow: 0 2px 12px rgba(27, 75, 140, 0.3);
+}
+
+/* ===== Form Validation Indicators ===== */
+.input-new-group input:valid:not(:placeholder-shown) {
+  border-color: var(--success-color);
+}
+
+.input-new-group input:invalid:not(:placeholder-shown):not(:focus) {
+  border-color: var(--error-color);
+}
+
+.select-new-field:valid:not([value=""]) {
+  border-color: var(--success-color);
+}
+
+/* ===== Loading States ===== */
+.location-new-btn.loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.location-new-btn.loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  animation: shimmer-new 1.5s infinite;
+}
+
+@keyframes shimmer-new {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* ===== Enhanced Focus States ===== */
+.input-new-group input:focus,
+.select-new-field:focus,
+.location-new-field input:focus {
+  transform: translateY(-1px);
+}
+
+.location-new-btn:focus,
+.camera-new-btn:focus,
+.signup-new-btn:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* ===== Micro-interactions ===== */
+.input-new-group .input-new-icon,
+.select-new-icon,
+.location-new-icon {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.input-new-group:hover .input-new-icon,
+.select-new-wrapper:hover .select-new-icon,
+.location-new-input-wrapper:hover .location-new-icon {
+  transform: translateY(-50%) scale(1.1);
+  color: var(--primary-color);
+}
+
+/* ===== Enhanced Loading Animation ===== */
+.btn-new-loading .spinner-new {
+  animation: spin-new 0.8s linear infinite, pulse-new 2s ease-in-out infinite;
+}
+
+/* ===== Dark Theme Support (if you have dark mode) ===== */
+[data-theme="dark"] .checkmark-new {
+  background: #2d3748;
+  border-color: #4a5568;
+}
+
+[data-theme="dark"] .terms-new-checkbox {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .terms-new-checkbox:hover {
+  color: #f7fafc;
+}
+
+[data-theme="dark"] .privacy-new-link {
+  color: #63b3ed;
+}
+
+[data-theme="dark"] .privacy-new-link:hover {
+  color: #90cdf4;
+}
+
+[data-theme="dark"] .already-new-account a {
+  color: #63b3ed;
+}
+
+[data-theme="dark"] .already-new-account a:hover {
+  color: #90cdf4;
+}
+
+/* ===== Custom Toast Styles - SAME AS LOGIN ===== */
+.toast-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toast-icon {
+  font-size: 24px;
+}
+
+.toast-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.toast-text strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.toast-text span {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.Toastify__toast--success {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  border-radius: 12px !important;
+}
+
+.Toastify__toast--error {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  border-radius: 12px !important;
+}
+
+.Toastify__progress-bar {
+  height: 3px !important;
+}
+
+/* ===== Smooth Transitions for All Interactive Elements ===== */
+.input-new-group input,
+.select-new-field,
+.location-new-field input,
+.location-new-btn,
+.camera-new-btn,
+.signup-new-btn,
+.checkmark-new,
+.terms-new-checkbox,
+.privacy-new-link,
+.already-new-account a {
+  transition: var(--transition);
+}  .select-new-field {
+    padding: 12px 40px 12px 40px;
+  }
+
+  .input-new-group .input-new-icon,
+  .select-new-icon,
+  .location-new-icon {
+    left: 12px;
+    font-size: 13px;
+  }
+
+  .select-new-arrow {
+    right: 10px;
+  }
+
+  .password-new-toggle {
+    right: 10px;
+    font-size: 15px;
+  }
+
+/* ===== Focus Visible for Accessibility - SAME AS LOGIN ===== */
+.signup-new-btn:focus-visible,
+.camera-new-btn:focus-visible,
+.location-new-btn:focus-visible {
+  outline: 3px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+.terms-new-checkbox input:focus-visible ~ .checkmark-new {
+  outline: 3px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+.input-new-group input:focus-visible,
+.select-new-field:focus-visible {
+  outline: 3px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+.privacy-new-link:focus-visible,
+.already-new-account a:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ===== High Contrast Mode Support ===== */
+@media (prefers-contrast: high) {
+  .checkmark-new {
+    border-width: 3px;
+  }
+  
+  .terms-new-checkbox input:checked ~ .checkmark-new {
+    background: #000;
+    border-color: #000;
+  }
+  
+  .terms-new-checkbox input:checked ~ .checkmark-new:after {
+    border-color: #fff;
+    border-width: 0 3px 3px 0;
+  }
+}
+
+/* ===== Reduced Motion Support ===== */
+@media (prefers-reduced-motion: reduce) {
+  .shape-new {
+    animation: none;
+  }
+  
+  .signup-new-card {
+    animation: none;
+  }
+  
+  .signup-new-form {
+    animation: none;
+    opacity: 1;
+  }
+  
+  .signup-new-logo {
+    animation: none;
+    opacity: 1;
+  }
+  
+  .signup-new-btn::before {
+    transition: none;
+  }
+  
+  .spinner-new {
+    animation: none;
+  }
+  
+  .location-new-btn.loading span {
+    animation: none;
+  }
+  
+  .security-new-note {
+    animation: none;
+    opacity: 1;
+  }
+  
+  .checkmark-new:after {
+    animation: none;
+  }
+}
+
+/* ===== Enhanced Button Interactions ===== */
+.location-new-btn:active,
+.camera-new-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.signup-new-btn:active:not(.disabled):not(.loading) {
+  transform: translateY(1px);
+  box-shadow: 0 2px 12px rgba(27, 75, 140, 0.3);
+}
+
+/* ===== Form Validation Indicators ===== */
+.input-new-group input:valid:not(:placeholder-shown) {
+  border-color: var(--success-color);
+}
+
+.input-new-group input:invalid:not(:placeholder-shown):not(:focus) {
+  border-color: var(--error-color);
+}
+
+.select-new-field:valid:not([value=""]) {
+  border-color: var(--success-color);
+}
+
+/* ===== Loading States ===== */
+.location-new-btn.loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.location-new-btn.loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  animation: shimmer-new 1.5s infinite;
+}
+
+@keyframes shimmer-new {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* ===== Enhanced Focus States ===== */
+.input-new-group input:focus,
+.select-new-field:focus,
+.location-new-field input:focus {
+  transform: translateY(-1px);
+}
+
+.location-new-btn:focus,
+.camera-new-btn:focus,
+.signup-new-btn:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* ===== Micro-interactions ===== */
+.input-new-group .input-new-icon,
+.select-new-icon,
+.location-new-icon {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.input-new-group:hover .input-new-icon,
+.select-new-wrapper:hover .select-new-icon,
+.location-new-input-wrapper:hover .location-new-icon {
+  transform: translateY(-50%) scale(1.1);
+  color: var(--primary-color);
+}
+
+/* ===== Enhanced Loading Animation ===== */
+.btn-new-loading .spinner-new {
+  animation: spin-new 0.8s linear infinite, pulse-new 2s ease-in-out infinite;
+}
+
+/* ===== Dark Theme Support (if you have dark mode) ===== */
+[data-theme="dark"] .checkmark-new {
+  background: #2d3748;
+  border-color: #4a5568;
+}
+
+[data-theme="dark"] .terms-new-checkbox {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .terms-new-checkbox:hover {
+  color: #f7fafc;
+}
+
+[data-theme="dark"] .privacy-new-link {
+  color: #63b3ed;
+}
+
+[data-theme="dark"] .privacy-new-link:hover {
+  color: #90cdf4;
+}
+
+[data-theme="dark"] .already-new-account a {
+  color: #63b3ed;
+}
+
+[data-theme="dark"] .already-new-account a:hover {
+  color: #90cdf4;
+}
+
+/* ===== Custom Toast Styles - SAME AS LOGIN ===== */
+.toast-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toast-icon {
+  font-size: 24px;
+}
+
+.toast-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.toast-text strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.toast-text span {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.Toastify__toast--success {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  border-radius: 12px !important;
+}
+
+.Toastify__toast--error {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  border-radius: 12px !important;
+}
+
+.Toastify__progress-bar {
+  height: 3px !important;
+}
+
+/* ===== Smooth Transitions for All Interactive Elements ===== */
+.input-new-group input,
+.select-new-field,
+.location-new-field input,
+.location-new-btn,
+.camera-new-btn,
+.signup-new-btn,
+.checkmark-new,
+.terms-new-checkbox,
+.privacy-new-link,
+.already-new-account a {
+  transition: var(--transition);
+}  .select-new-field {
+    padding: 12px 40px 12px 40px;
+  }
+
+  .input-new-group .input-new-icon,
+  .select-new-icon,
+  .location-new-icon {
+    left: 12px;
+    font-size: 13px;
+  }
+
+  .select-new-arrow {
+    right: 10px;
+  }
+
+  .password-new-toggle {
+    right: 10px;
+    font-size: 15px;
+  }
+
+
+/* ===== Focus Visible for Accessibility - SAME AS LOGIN ===== */
+.signup-new-btn:focus-visible,
+.camera-new-btn:focus-visible,
+.location-new-btn:focus-visible {
+  outline: 3px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+.terms-new-checkbox input:focus-visible ~ .checkmark-new {
+  outline: 3px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+.input-new-group input:focus-visible,
+.select-new-field:focus-visible {
+  outline: 3px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+.privacy-new-link:focus-visible,
+.already-new-account a:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ===== High Contrast Mode Support ===== */
+@media (prefers-contrast: high) {
+  .checkmark-new {
+    border-width: 3px;
+  }
+  
+  .terms-new-checkbox input:checked ~ .checkmark-new {
+    background: #000;
+    border-color: #000;
+  }
+  
+  .terms-new-checkbox input:checked ~ .checkmark-new:after {
+    border-color: #fff;
+    border-width: 0 3px 3px 0;
+  }
+}
+
+/* ===== Reduced Motion Support ===== */
+@media (prefers-reduced-motion: reduce) {
+  .shape-new {
+    animation: none;
+  }
+  
+  .signup-new-card {
+    animation: none;
+  }
+  
+  .signup-new-form {
+    animation: none;
+    opacity: 1;
+  }
+  
+  .signup-new-logo {
+    animation: none;
+    opacity: 1;
+  }
+  
+  .signup-new-btn::before {
+    transition: none;
+  }
+  
+  .spinner-new {
+    animation: none;
+  }
+  
+  .location-new-btn.loading span {
+    animation: none;
+  }
+  
+  .security-new-note {
+    animation: none;
+    opacity: 1;
+  }
+  
+  .checkmark-new:after {
+    animation: none;
+  }
+}
+
+/* ===== Enhanced Button Interactions ===== */
+.location-new-btn:active,
+.camera-new-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.signup-new-btn:active:not(.disabled):not(.loading) {
+  transform: translateY(1px);
+  box-shadow: 0 2px 12px rgba(27, 75, 140, 0.3);
+}
+
+/* ===== Form Validation Indicators ===== */
+.input-new-group input:valid:not(:placeholder-shown) {
+  border-color: var(--success-color);
+}
+
+.input-new-group input:invalid:not(:placeholder-shown):not(:focus) {
+  border-color: var(--error-color);
+}
+
+.select-new-field:valid:not([value=""]) {
+  border-color: var(--success-color);
+}
+
+/* ===== Loading States ===== */
+.location-new-btn.loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.location-new-btn.loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  animation: shimmer-new 1.5s infinite;
+}
+
+@keyframes shimmer-new {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* ===== Enhanced Focus States ===== */
+.input-new-group input:focus,
+.select-new-field:focus,
+.location-new-field input:focus {
+  transform: translateY(-1px);
+}
+
+.location-new-btn:focus,
+.camera-new-btn:focus,
+.signup-new-btn:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* ===== Micro-interactions ===== */
+.input-new-group .input-new-icon,
+.select-new-icon,
+.location-new-icon {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.input-new-group:hover .input-new-icon,
+.select-new-wrapper:hover .select-new-icon,
+.location-new-input-wrapper:hover .location-new-icon {
+  transform: translateY(-50%) scale(1.1);
+  color: var(--primary-color);
+}
+
+/* ===== Enhanced Loading Animation ===== */
+.btn-new-loading .spinner-new {
+  animation: spin-new 0.8s linear infinite, pulse-new 2s ease-in-out infinite;
+}
+
+/* ===== Dark Theme Support (if you have dark mode) ===== */
+[data-theme="dark"] .checkmark-new {
+  background: #2d3748;
+  border-color: #4a5568;
+}
+
+[data-theme="dark"] .terms-new-checkbox {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .terms-new-checkbox:hover {
+  color: #f7fafc;
+}
+
+[data-theme="dark"] .privacy-new-link {
+  color: #63b3ed;
+}
+
+[data-theme="dark"] .privacy-new-link:hover {
+  color: #90cdf4;
+}
+
+[data-theme="dark"] .already-new-account a {
+  color: #63b3ed;
+}
+
+[data-theme="dark"] .already-new-account a:hover {
+  color: #90cdf4;
+}
+
+/* ===== Custom Toast Styles - SAME AS LOGIN ===== */
+.toast-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toast-icon {
+  font-size: 24px;
+}
+
+.toast-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.toast-text strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.toast-text span {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.Toastify__toast--success {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  border-radius: 12px !important;
+}
+
+.Toastify__toast--error {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  border-radius: 12px !important;
+}
+
+.Toastify__progress-bar {
+  height: 3px !important;
+}
+
+/* ===== Smooth Transitions for All Interactive Elements ===== */
+.input-new-group input,
+.select-new-field,
+.location-new-field input,
+.location-new-btn,
+.camera-new-btn,
+.signup-new-btn,
+.checkmark-new,
+.terms-new-checkbox,
+.privacy-new-link,
+.already-new-account a {
+  transition: var(--transition);
+}

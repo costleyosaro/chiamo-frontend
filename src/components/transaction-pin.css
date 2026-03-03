@@ -1,0 +1,252 @@
+/* transaction-pin.css
+   Plain CSS (no Tailwind). Uses your global CSS variables:
+   --bg-color, --text-color, --card-bg, --accent-color, --border-color, --loading-bg
+   Brand yellow used: #f1b700
+*/
+
+:root {
+  --tp-yellow: #f1b700;
+  --tp-dark-blue: #002b5b;
+  --tp-overlay: rgba(0,0,0,0.58);
+  --tp-box-bg: #f2f3f5;
+}
+
+/* overlay full screen */
+.tp-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.55);
+  padding: 18px;
+  overflow-y: auto;
+}
+
+/* modal container */
+.tp-modal {
+  width: 100%;
+  max-width: 420px;
+  background: var(--card-bg, #fff);
+  color: var(--text-color, #111827);
+  border-radius: 14px;
+  box-shadow: 0 20px 50px rgba(2,6,23,0.28);
+  padding: 20px;
+  position: relative;
+  text-align: center;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* small variant (for Set PIN) */
+.tp-modal.tp-modal-sm {
+  max-width: 420px;
+  padding: 18px;
+}
+
+/* close button */
+.tp-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  border: none;
+  background: transparent;
+  color: var(--text-color);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* title & subtitle */
+.tp-title {
+  margin: 6px 0 14px 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+}
+
+.tp-sub {
+  margin: 0 0 10px 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* PIN row */
+.tp-pin-row {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.tp-pin-row.small-row { gap: 10px; margin-bottom: 8px; }
+
+/* each box */
+.tp-pin-box {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  border: 2px solid rgba(17,24,39,0.08);
+  background: transparent;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition: all .15s ease;
+}
+
+.tp-pin-box.filled {
+  border-color: var(--tp-yellow);
+  background: rgba(241,183,0,0.08);
+}
+
+.tp-pin-dot {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+/* error */
+.tp-error {
+  color: #d32f2f;
+  font-size: 13px;
+  margin-top: 6px;
+  margin-bottom: 8px;
+}
+
+/* forgot */
+.tp-forgot {
+  margin-bottom: 6px;
+}
+.tp-forgot-btn {
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* secure label */
+.tp-secure-label {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding: 8px 0;
+  color: #6b7280;
+  font-size: 13px;
+  margin-bottom: 6px;
+  border-top: 1px solid rgba(0,0,0,0.04);
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+
+.tp-secure-badge {
+  display:inline-block;
+  width:18px;
+  height:18px;
+  border-radius:4px;
+  background: var(--tp-yellow);
+  color: #002b5b;
+  font-size:12px;
+  line-height:18px;
+  text-align:center;
+  font-weight:700;
+}
+
+/* keypad grid */
+.tp-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+.tp-key {
+  background: #e8e9ec;
+  border: none;
+  border-radius: 10px;
+  height: 64px;
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .12s ease, transform .08s ease;
+  display: flex;
+  align-items:center;
+  justify-content:center;
+  color: #111827;
+}
+
+.tp-key:hover { transform: translateY(-2px); background: #f6f7f9; }
+
+.tp-key-back {
+  background: #f0f0f0;
+}
+
+.tp-key-empty { background: transparent; }
+
+/* submit button */
+.tp-submit {
+  width: 100%;
+  background: var(--tp-yellow);
+  color: var(--tp-dark-blue);
+  border: none;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  margin-top: 6px;
+  cursor: pointer;
+  transition: background .12s ease;
+}
+
+.tp-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.tp-submit:hover:not(:disabled) { background: #ffd84a; }
+
+/* cancel */
+.tp-cancel {
+  margin-top: 10px;
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+/* responsive sizes */
+@media (max-width: 480px) {
+  .tp-pin-box { width: 46px; height: 46px; }
+  .tp-key { height: 56px; font-size: 18px; }
+  .tp-modal { padding: 16px; border-radius: 12px; width: 100%; max-width: 420px; }
+  .tp-title { font-size: 18px; }
+}
+
+/* dark mode overrides (uses your global CSS variables) */
+[data-theme="dark"] .tp-overlay {
+  background: rgba(2,6,23,0.6);
+}
+[data-theme="dark"] .tp-modal {
+  background: #111827; /* or var(--card-bg) set for dark */
+  color: #f3f4f6;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.7);
+}
+[data-theme="dark"] .tp-pin-box {
+  border-color: rgba(255,255,255,0.06);
+}
+[data-theme="dark"] .tp-pin-box.filled {
+  background: rgba(241,183,0,0.08);
+  border-color: var(--tp-yellow);
+}
+[data-theme="dark"] .tp-key {
+  background: #1f2937;
+  color: #e6edf3;
+}
+[data-theme="dark"] .tp-key-back {
+  background: #111827;
+}
+[data-theme="dark"] .tp-secure-label {
+  color: #cbd5e1;
+  border-top-color: rgba(255,255,255,0.03);
+  border-bottom-color: rgba(255,255,255,0.03);
+}

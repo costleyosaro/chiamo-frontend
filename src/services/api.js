@@ -25,7 +25,7 @@ const saveAccessToken = (token) => {
   API.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 };
 
-const skipAuthEndpoints = ["token/", "signup/", "login/", "register/"];
+const skipAuthEndpoints = ["token/", "signup/", "login/", "register/","customers/forgot-password/"];
 const shouldSkipAuth = (url) =>
   skipAuthEndpoints.some((endpoint) => url.includes(endpoint));
 

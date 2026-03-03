@@ -31,7 +31,7 @@ import { BiSupport } from "react-icons/bi";
 import "./AboutPage.css";
 
 // Import your about image
-import aboutImage from "../assets/about-profile.jpg";
+// import aboutImage from "../assets/about-profile.jpg";
 
 // ============ CONFIGURATION ============
 const COMPANY_INFO = {
@@ -51,6 +51,9 @@ const COMPANY_INFO = {
     speed, transparency, and trust."`,
 };
 
+// Replace the import line with:
+// import aboutProfile from "../assets/about-profile.jpg"
+const aboutProfile = "https://via.placeholder.com/400x300/1b4b8c/ffffff?text=About+Us";
 // ============ STATS DATA ============
 const STATS = [
   { number: "10K+", label: "Happy Customers", icon: FiUsers },

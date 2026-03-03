@@ -20,12 +20,22 @@ export const NotificationProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // ✅ FIXED: Check if user is authenticated before making API calls
+  const isAuthenticated = () => {
+    const accessToken = localStorage.getItem("access");
+    const refreshToken = localStorage.getItem("refresh");
+    return !!(user && (accessToken || refreshToken));
+  };
+
   // Load notifications from Django backend
   const loadNotifications = async () => {      
-    if (!user) {
+    // ✅ FIXED: Check authentication first
+    if (!isAuthenticated()) {
+      console.log("User not authenticated, clearing notifications");
       setNotifications([]);
       setUnreadCount(0);
       setError(null);
+      setLoading(false);
       return;
     }
 
@@ -64,7 +74,16 @@ export const NotificationProvider = ({ children }) => {
     } catch (error) {
       console.error('Failed to load notifications:', error);
       
-      // ✅ Load from localStorage as fallback
+      // ✅ FIXED: Better error handling for authentication issues
+      if (error.response?.status === 401) {
+        console.log("Authentication failed, clearing notifications");
+        setNotifications([]);
+        setUnreadCount(0);
+        setError(null); // Don't show error for auth issues
+        return;
+      }
+      
+      // ✅ Load from localStorage as fallback for other errors
       if (user?.id) {
         const cached = localStorage.getItem(`notifications_${user.id}`);
         if (cached) {
@@ -84,16 +103,14 @@ export const NotificationProvider = ({ children }) => {
         }
       }
       
-      // Handle different error types
-      if (error.response?.status === 401) {
-        setError('Please log in to view notifications');
-      } else if (error.response?.status === 404) {
+      // Handle different error types (but not auth errors)
+      if (error.response?.status === 404) {
         setError('Notifications feature not available yet');
       } else if (error.code === 'ECONNABORTED') {
         setError('Request timeout - please try again');
       } else if (error.code === 'ERR_NETWORK') {
         setError('Network error - please check your connection');
-      } else {
+      } else if (error.response?.status !== 401) {
         setError('Failed to load notifications');
       }
     } finally {
@@ -103,7 +120,7 @@ export const NotificationProvider = ({ children }) => {
 
   // Create notification for order events (called from order context)
   const createOrderNotification = async (orderId, event = 'placed', orderTotal = null) => {
-    if (!user) return;
+    if (!isAuthenticated()) return;
 
     const messages = {
       placed: {
@@ -161,7 +178,9 @@ export const NotificationProvider = ({ children }) => {
       
       // Refresh notifications to get the real one from backend
       setTimeout(() => {
-        loadNotifications();
+        if (isAuthenticated()) {
+          loadNotifications();
+        }
       }, 2000);
     } catch (error) {
       console.warn('Failed to create notification on backend:', error);
@@ -171,7 +190,7 @@ export const NotificationProvider = ({ children }) => {
 
   // Create cart reminder notification
   const createCartReminder = (itemCount) => {
-    if (!user) return;
+    if (!isAuthenticated()) return;
 
     const notification = {
       id: `cart_${Date.now()}`,
@@ -195,7 +214,7 @@ export const NotificationProvider = ({ children }) => {
 
   // Create promotional notification
   const createPromoNotification = (title, message) => {
-    if (!user) return;
+    if (!isAuthenticated()) return;
 
     const notification = {
       id: `promo_${Date.now()}`,
@@ -219,7 +238,7 @@ export const NotificationProvider = ({ children }) => {
 
   // Mark as read using Django endpoint
   const markAsRead = async (notificationId) => {
-    if (!user || !notificationId) return;
+    if (!isAuthenticated() || !notificationId) return;
     
     // ✅ Update local state immediately
     setNotifications(prev =>
@@ -249,7 +268,7 @@ export const NotificationProvider = ({ children }) => {
 
   // Mark all as read
   const markAllAsRead = async () => {
-    if (!user) return;
+    if (!isAuthenticated()) return;
 
     // ✅ Update local state immediately
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
@@ -311,9 +330,9 @@ export const NotificationProvider = ({ children }) => {
     }
   };
 
-  // Load notifications when user changes
+  // ✅ FIXED: Better useEffect with proper authentication checks
   useEffect(() => {
-    if (user) {
+    if (isAuthenticated()) {
       // ✅ Load from localStorage first for instant display
       const cached = localStorage.getItem(`notifications_${user.id}`);
       if (cached) {
@@ -329,20 +348,23 @@ export const NotificationProvider = ({ children }) => {
       // Then load from backend
       loadNotifications();
       
-      // Poll for new notifications every 2 minutes
+      // Poll for new notifications every 2 minutes (only if authenticated)
       const interval = setInterval(() => {
-        if (user) {
+        if (isAuthenticated()) {
           loadNotifications();
         }
       }, 120000);
 
       return () => clearInterval(interval);
     } else {
+      // ✅ Clear everything when not authenticated
+      console.log("User not authenticated, clearing notification state");
       setNotifications([]);
       setUnreadCount(0);
       setError(null);
+      setLoading(false);
     }
-  }, [user]);
+  }, [user]); // ✅ Only depend on user, not authentication tokens
 
   const value = {
     notifications,

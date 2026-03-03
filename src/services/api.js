@@ -25,9 +25,26 @@ const saveAccessToken = (token) => {
   API.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 };
 
-const skipAuthEndpoints = ["token/", "signup/", "login/", "register/","customers/forgot-password/"];
+// ✅ FIXED: Updated skipAuthEndpoints with correct paths
+const skipAuthEndpoints = [
+  "token/", 
+  "signup/", 
+  "login/", 
+  "register/",
+  "customers/forgot-password/",
+  "customers/verify-otp/",
+  "customers/reset-password/"
+];
+
 const shouldSkipAuth = (url) =>
   skipAuthEndpoints.some((endpoint) => url.includes(endpoint));
+
+// ✅ FIXED: Check if user is authenticated
+const isAuthenticated = () => {
+  const accessToken = getAccessToken();
+  const refreshToken = getRefreshToken();
+  return !!(accessToken || refreshToken);
+};
 
 // Request interceptor
 API.interceptors.request.use(
@@ -71,7 +88,7 @@ async function refreshAccessToken() {
   }
 }
 
-// Response interceptor for token refresh
+// ✅ FIXED: Enhanced response interceptor with better error handling
 API.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -83,8 +100,31 @@ API.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // Handle 401 errors (token expired)
+    // ✅ FIXED: Better 401 handling - check if we should even try to refresh
     if (error.response?.status === 401 && !originalRequest._retry) {
+      // Skip auth refresh for endpoints that don't need authentication
+      if (shouldSkipAuth(originalRequest.url)) {
+        return Promise.reject(error);
+      }
+
+      // Check if we have a refresh token before trying to refresh
+      const refreshToken = getRefreshToken();
+      if (!refreshToken) {
+        console.log("No refresh token available, clearing auth state");
+        localStorage.removeItem("access");
+        localStorage.removeItem("refresh");
+        delete API.defaults.headers.common["Authorization"];
+        
+        // Only redirect if not already on auth pages
+        const currentPath = window.location.pathname;
+        const authPages = ['/login', '/register', '/forgot-password', '/'];
+        if (!authPages.includes(currentPath)) {
+          console.log("Redirecting to login due to missing refresh token");
+          window.location.href = '/login';
+        }
+        return Promise.reject(error);
+      }
+
       if (isRefreshing) {
         // If already refreshing, wait for it to complete
         return new Promise((resolve) => {
@@ -105,8 +145,17 @@ API.interceptors.response.use(
         return API(originalRequest);
       } catch (refreshError) {
         console.error("❌ Token refresh failed:", refreshError);
-        // Redirect to login if not already there
-        if (window.location.pathname !== '/login') {
+        
+        // Clear all auth data
+        localStorage.removeItem("access");
+        localStorage.removeItem("refresh");
+        delete API.defaults.headers.common["Authorization"];
+        
+        // Only redirect if not already on auth pages
+        const currentPath = window.location.pathname;
+        const authPages = ['/login', '/register', '/forgot-password', '/'];
+        if (!authPages.includes(currentPath)) {
+          console.log("Redirecting to login due to refresh failure");
           window.location.href = '/login';
         }
         return Promise.reject(refreshError);
@@ -118,5 +167,19 @@ API.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// ✅ ADDED: Helper function to clear auth state
+export const clearAuthState = () => {
+  localStorage.removeItem("access");
+  localStorage.removeItem("refresh");
+  delete API.defaults.headers.common["Authorization"];
+  isRefreshing = false;
+  refreshSubscribers = [];
+};
+
+// ✅ ADDED: Helper function to check authentication status
+export const checkAuthStatus = () => {
+  return isAuthenticated();
+};
 
 export default API;

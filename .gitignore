@@ -68,3 +68,5 @@ Thumbs.db
 *.log
 npm-debug.log*
 "@ | Set-Content -Path .gitignore -Encoding UTF8
+.vercel
+.env*.local

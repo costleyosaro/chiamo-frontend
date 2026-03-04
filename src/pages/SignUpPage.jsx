@@ -222,13 +222,13 @@ const SignUpPage = () => {
     setIsLoading(true);
 
     try {
-      // Prepare payload with all lowercase fields (except passwords)
       const payload = {
         name: formData.name.toLowerCase(),
         businessName: formData.businessName.toLowerCase(),
-        phone: formData.phone.toLowerCase(),
+        phone: formData.phone,                  // ← Don't lowercase phone!
         email: formData.email.toLowerCase(),
-        password: formData.password, // Keep original case for password
+        password: formData.password,
+        confirmPassword: formData.password,      // ← ADD THIS LINE!
       };
 
       // Add optional fields if they have values
@@ -248,6 +248,7 @@ const SignUpPage = () => {
       }
 
       const response = await API.post("customers/register/", payload);
+      
 
       if (response && (response.status === 200 || response.status === 201 || response.data)) {
         toast.success("✅ Registration successful! 🎉", { position: "top-center" });

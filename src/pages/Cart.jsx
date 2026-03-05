@@ -16,8 +16,6 @@ import {
   FiShoppingCart,
   FiChevronLeft,
   FiTrash2,
-  FiPlus,
-  FiMinus,
   FiPackage,
   FiTruck,
   FiShield,
@@ -78,7 +76,7 @@ const formatCurrency = (val) =>
 // ============ SUB-COMPONENTS ============
 
 // Header Component - UPDATED WITH CART ICON
-const CartHeader = ({ itemCount, onBack, onClear }) => (
+const CartHeader = ({ itemCount, onBack }) => (
   <header className="cart-header">
     <button className="cart-back-btn" onClick={onBack} aria-label="Go back">
       <FiChevronLeft />
@@ -90,17 +88,10 @@ const CartHeader = ({ itemCount, onBack, onClear }) => (
       )}
     </div>
     <div className="cart-header-right">
-      {itemCount > 0 ? (
-        <button className="cart-clear-btn" onClick={onClear} aria-label="Clear cart">
-          <FiTrash2 />
-          <span className="clear-text">Clear All</span>
-        </button>
-      ) : (
-        <div className="cart-icon-display">
-          <FiShoppingCart />
-          <span className="cart-badge">0</span>
-        </div>
-      )}
+      <div className="cart-icon-display">
+        <FiShoppingCart />
+        {itemCount > 0 && <span className="cart-badge">{itemCount}</span>}
+      </div>
     </div>
   </header>
 );
@@ -217,13 +208,14 @@ const CartItem = ({ item, onUpdateQty, onRemove }) => {
 
           <div className="cart-item-footer">
             <div className="cart-qty-selector">
+              {/* ✅ MINUS symbol instead of FiMinus icon */}
               <button
                 className="cart-qty-btn minus"
                 onClick={() => onUpdateQty(item.productId, Math.max(1, qty - 1))}
                 disabled={qty <= 1}
                 aria-label="Decrease quantity"
               >
-                <FiMinus />
+                −
               </button>
 
               {isEditing ? (
@@ -247,12 +239,13 @@ const CartItem = ({ item, onUpdateQty, onRemove }) => {
                 </span>
               )}
 
+              {/* ✅ PLUS symbol instead of FiPlus icon */}
               <button
                 className="cart-qty-btn plus"
                 onClick={() => onUpdateQty(item.productId, qty + 1)}
                 aria-label="Increase quantity"
               >
-                <FiPlus />
+                +
               </button>
             </div>
             <span className="cart-item-total">{formatCurrency(total)}</span>
@@ -295,23 +288,14 @@ const CartItem = ({ item, onUpdateQty, onRemove }) => {
     </>
   );
 };
-
 // Cart Items Section with Clear All Button
-const CartItemsSection = ({ cart, onUpdateQty, onRemove, onClearAll }) => (
+const CartItemsSection = ({ cart, onUpdateQty, onRemove }) => (
   <section className="cart-items-section">
     <div className="cart-items-header">
       <h2 className="cart-items-title">
         <FiShoppingCart />
         Cart Items ({cart.length})
       </h2>
-      <button 
-        className="cart-clear-all-btn"
-        onClick={onClearAll}
-        title="Clear all items"
-      >
-        <FiTrash2 />
-        Clear All
-      </button>
     </div>
     <div className="cart-items">
       {cart.map((item) => (
@@ -325,7 +309,6 @@ const CartItemsSection = ({ cart, onUpdateQty, onRemove, onClearAll }) => (
     </div>
   </section>
 );
-
 // ============ DELIVERY METHOD SELECTOR ============
 const DeliverySection = ({ method, setMethod, subtotal }) => {
   const deliveryFee = getDeliveryFee(subtotal, "delivery");
@@ -588,7 +571,6 @@ export default function Cart() {
   const [processing, setProcessing] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
   const [showSetPinModal, setShowSetPinModal] = useState(false);
-  const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [deliveryMethod, setDeliveryMethod] = useState("delivery");
 
   const storedUser = JSON.parse(localStorage.getItem("auth_user") || "{}");
@@ -752,51 +734,36 @@ export default function Cart() {
     setShowClearConfirm(true);
   };
 
-  const confirmClearCart = () => {
-    clearCart();
-    setShowClearConfirm(false);
-    toast.success("Cart cleared successfully", {
-      style: {
-        background: '#1b4b8c',
-        color: '#fff',
-      }
-    });
-  };
 
-  return (
+
+return (
     <div className="cart-page">
-      {/* Header */}
+      {/* Header — no onClear prop */}
       <CartHeader
         itemCount={cart.length}
         onBack={() => navigate(-1)}
-        onClear={handleClearCart}
       />
 
-      {/* Main Content */}
       <div className="cart-content">
         {cart.length === 0 ? (
           <EmptyCart onShop={() => navigate("/all-products")} />
         ) : (
           <>
-            {/* Cart Items with Clear All Button */}
+            {/* Cart Items — no onClearAll prop */}
             <CartItemsSection
               cart={cart}
               onUpdateQty={updateQty}
               onRemove={removeFromCart}
-              onClearAll={handleClearCart}
             />
 
-            {/* Delivery Method */}
             <DeliverySection
               method={deliveryMethod}
               setMethod={setDeliveryMethod}
               subtotal={subtotal}
             />
 
-            {/* Delivery Pricing Info */}
             <DeliveryPricingInfo />
 
-            {/* Order Summary */}
             <OrderSummary
               subtotal={subtotal}
               deliveryFee={deliveryFee}
@@ -804,13 +771,11 @@ export default function Cart() {
               total={grandTotal}
             />
 
-            {/* Trust Badges */}
             <TrustBadges />
           </>
         )}
       </div>
 
-      {/* Checkout Bar */}
       {cart.length > 0 && (
         <CheckoutButton
           total={grandTotal}
@@ -820,38 +785,7 @@ export default function Cart() {
         />
       )}
 
-      {/* Clear Cart Confirmation Modal */}
-      {showClearConfirm && (
-        <div
-          className="cart-modal-overlay"
-          onClick={() => setShowClearConfirm(false)}
-        >
-          <div className="cart-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="cart-modal-icon warning">
-              <FiAlertCircle />
-            </div>
-            <h3 className="cart-modal-title">Clear Cart?</h3>
-            <p className="cart-modal-text">
-              Are you sure you want to remove all items from your cart? This action cannot be undone.
-            </p>
-            <div className="cart-modal-actions">
-              <button
-                className="cart-modal-btn cancel"
-                onClick={() => setShowClearConfirm(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="cart-modal-btn confirm"
-                onClick={confirmClearCart}
-              >
-                <FiTrash2 />
-                Clear All
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ❌ NO Clear Cart Modal anymore */}
 
       {/* Transaction PIN Modal */}
       <TransactionPinModal
@@ -865,24 +799,17 @@ export default function Cart() {
         }}
       />
 
-      {/* Set Transaction PIN Modal */}
       <SetTransactionPinModal
         isOpen={showSetPinModal}
         onClose={() => setShowSetPinModal(false)}
         customerId={customerId}
         onSuccess={() => {
-          toast.success("PIN set successfully!", {
-            style: {
-              background: '#10b981',
-              color: '#fff',
-            }
-          });
+          toast.success("PIN set successfully!");
           setShowSetPinModal(false);
           setShowPinModal(true);
         }}
       />
 
-      {/* Bottom Spacer */}
       <div className="cart-bottom-spacer"></div>
     </div>
   );

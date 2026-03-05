@@ -513,20 +513,32 @@
   padding: 2px;
 }
 
+/* ============ QUANTITY SELECTOR WITH SYMBOLS ============ */
 .cart-qty-btn {
+  width: 38px;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: none;
   background: transparent;
-  color: var(--text-secondary, #4a4a5a);
-  border-radius: 6px;
+  border: none;
+  font-size: 22px;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 14px;
-  font-weight: 600;
+  user-select: none;
+  line-height: 1;
+  font-family: "Inter", -apple-system, sans-serif;
+}
+
+.cart-qty-btn.minus {
+  color: #ef4444;
+  font-size: 24px;
+}
+
+.cart-qty-btn.plus {
+  color: #10b981;
+  font-size: 24px;
 }
 
 .cart-qty-btn:hover:not(:disabled) {

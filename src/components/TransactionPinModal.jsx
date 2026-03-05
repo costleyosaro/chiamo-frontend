@@ -72,8 +72,8 @@ export default function TransactionPinModal({
     setLoading(true);
     setError("");
     try {
+      // ✅ Just send pin — backend uses request.user (authenticated)
       const res = await API.post("/customers/validate-pin/", {
-        customer_id: customerId,
         pin: pinValue,
       });
 
@@ -82,7 +82,9 @@ export default function TransactionPinModal({
         setDigits(["", "", "", ""]);
         onSuccess?.();
         onClose();
-      } else if (res.data?.message?.toLowerCase?.().includes("not set")) {
+      } else if (
+        res.data?.message?.toLowerCase?.().includes("not set")
+      ) {
         onClose();
         onRequestSetPin?.();
       } else {
@@ -90,7 +92,10 @@ export default function TransactionPinModal({
         setDigits(["", "", "", ""]);
       }
     } catch (err) {
-      const msg = err?.response?.data?.detail || err?.response?.data?.error || "PIN validation failed";
+      const msg =
+        err?.response?.data?.detail ||
+        err?.response?.data?.error ||
+        "PIN validation failed";
       if (String(msg).toLowerCase().includes("not set")) {
         onClose();
         onRequestSetPin?.();
@@ -103,7 +108,6 @@ export default function TransactionPinModal({
       setLoading(false);
     }
   };
-
   // keypad numbers layout similar to OPay: 1-9, blank, 0, back
   const padKeys = [1,2,3,4,5,6,7,8,9,"",0,"back"];
 

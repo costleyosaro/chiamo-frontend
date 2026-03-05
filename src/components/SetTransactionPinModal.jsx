@@ -64,14 +64,18 @@ export default function SetTransactionPinModal({ isOpen, onClose, customerId, on
     setLoading(true);
     setError("");
     try {
-      await API.post("/customers/set-pin/", { customer_id: customerId, pin: p });
+      // ✅ Just send pin — backend uses request.user
+      await API.post("/customers/set-pin/", { pin: p });
       toast.success("Transaction PIN set");
       setPin(["", "", "", ""]);
       setConfirmPin(["", "", "", ""]);
       onSuccess?.();
       onClose();
     } catch (err) {
-      const msg = err?.response?.data?.detail || err?.response?.data?.error || "Failed to set PIN";
+      const msg =
+        err?.response?.data?.detail ||
+        err?.response?.data?.error ||
+        "Failed to set PIN";
       setError(String(msg));
       toast.error(String(msg));
     } finally {

@@ -27,13 +27,14 @@ const saveAccessToken = (token) => {
 
 // ✅ FIXED: Updated skipAuthEndpoints with correct paths
 const skipAuthEndpoints = [
-  "token/", 
-  "signup/", 
-  "login/", 
+  "token/",
+  "signup/",
+  "login/",
   "register/",
   "customers/forgot-password/",
+  "customers/reset-password/",
+  "customers/reset-password/confirm/",   
   "customers/verify-otp/",
-  "customers/reset-password/"
 ];
 
 const shouldSkipAuth = (url) =>

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import API from "../services/api";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -19,7 +19,9 @@ const ResetPasswordPage = () => {
     e.preventDefault();
 
     if (password.length < 6) {
-      toast.error("Password must be at least 6 characters!", { position: "top-center" });
+      toast.error("Password must be at least 6 characters!", {
+        position: "top-center",
+      });
       return;
     }
 
@@ -31,27 +33,32 @@ const ResetPasswordPage = () => {
     setIsLoading(true);
 
     try {
-      // ✅ Correct endpoint and payload
+      // ✅ CORRECT endpoint and payload
       const response = await API.post("customers/reset-password/confirm/", {
         uid: uid,
         token: token,
         new_password: password,
       });
 
-      toast.success("Password reset successful! 🎉", { position: "top-center" });
-      setTimeout(() => navigate("/login"), 2000);
+      toast.success("Password reset successful! 🎉 Redirecting to login...", {
+        position: "top-center",
+      });
 
+      setTimeout(() => navigate("/login"), 2500);
     } catch (err) {
       console.error("Reset password error:", err);
 
       if (err.response?.data?.error) {
         toast.error(err.response.data.error, { position: "top-center" });
       } else if (err.response?.status === 400) {
-        toast.error("Invalid or expired reset link. Please request a new one.", {
+        toast.error(
+          "Reset link has expired or is invalid. Please request a new one.",
+          { position: "top-center" }
+        );
+      } else {
+        toast.error("Failed to reset password. Please try again.", {
           position: "top-center",
         });
-      } else {
-        toast.error("Failed to reset password ❌", { position: "top-center" });
       }
     } finally {
       setIsLoading(false);
@@ -61,22 +68,24 @@ const ResetPasswordPage = () => {
   return (
     <div className="auth-container">
       <div className="logo-section">
-        <div className="logo-text">
-          Chiamo<span>Order</span>
-        </div>
+        <Link to="/" style={{ textDecoration: "none" }}>
+          <div className="logo-text">
+            Chiamo<span>Order</span>
+          </div>
+        </Link>
       </div>
 
       <form className="auth-form" onSubmit={handleSubmit}>
-        <h2>Reset Password</h2>
-        <p style={{ color: "#666", marginBottom: "20px" }}>
-          Enter your new password below
+        <h2>Create New Password</h2>
+        <p style={{ color: "#888", marginBottom: "20px", fontSize: "14px" }}>
+          Your new password must be at least 6 characters
         </p>
 
+        {/* New Password */}
         <div className="input-group">
           <FaLock className="input-icon" />
           <input
             type={showPassword ? "text" : "password"}
-            name="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder=" "
@@ -92,18 +101,18 @@ const ResetPasswordPage = () => {
           </span>
         </div>
 
+        {/* Confirm Password */}
         <div className="input-group">
           <FaLock className="input-icon" />
           <input
             type={showConfirm ? "text" : "password"}
-            name="confirmPassword"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             placeholder=" "
             required
             minLength={6}
           />
-          <label>Confirm New Password</label>
+          <label>Confirm Password</label>
           <span
             className="password-toggle"
             onClick={() => setShowConfirm(!showConfirm)}
@@ -119,6 +128,12 @@ const ResetPasswordPage = () => {
         >
           {isLoading ? "Resetting..." : "Reset Password"}
         </button>
+
+        <p style={{ textAlign: "center", marginTop: "15px" }}>
+          <Link to="/login" style={{ color: "#4CAF50" }}>
+            Back to Login
+          </Link>
+        </p>
       </form>
 
       <ToastContainer

@@ -1,9 +1,9 @@
 // src/pages/Cart.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "./CartContext";
 import { useSmartLists } from "./SmartListContext";
-import { useNotifications } from "../context/NotificationContext"; // ✅ Added notification context
+import { useNotifications } from "../context/NotificationContext";
 import API from "../services/api";
 import toast from "react-hot-toast";
 import TransactionPinModal from "../components/TransactionPinModal";
@@ -11,19 +11,15 @@ import SetTransactionPinModal from "../components/SetTransactionPinModal";
 import { imageUrl, PLACEHOLDER } from "../utils/image";
 import "./Cart.css";
 
-// Icons
+// Icons — removed FiTrash2 (replaced with emoji)
 import {
   FiShoppingCart,
   FiChevronLeft,
-  FiTrash2,
   FiPackage,
   FiTruck,
   FiShield,
-  FiPercent,
   FiChevronRight,
   FiAlertCircle,
-  FiCheck,
-  FiX,
   FiShoppingBag,
   FiCreditCard,
   FiInfo,
@@ -51,14 +47,13 @@ const getDeliveryFee = (subtotal, method) => {
 };
 
 const getNextTier = (subtotal) => {
-  // Find the next tier the user can unlock
   const sortedTiers = [...DELIVERY_TIERS].sort((a, b) => a.min - b.min);
   for (const tier of sortedTiers) {
     if (subtotal < tier.min) {
       return { threshold: tier.min, fee: tier.fee, remaining: tier.min - subtotal };
     }
   }
-  return null; // Already at the best tier
+  return null;
 };
 
 // ============ HELPER FUNCTIONS ============
@@ -75,7 +70,7 @@ const formatCurrency = (val) =>
 
 // ============ SUB-COMPONENTS ============
 
-// Header Component - UPDATED WITH CART ICON
+// Header Component
 const CartHeader = ({ itemCount, onBack }) => (
   <header className="cart-header">
     <button className="cart-back-btn" onClick={onBack} aria-label="Go back">
@@ -113,7 +108,7 @@ const EmptyCart = ({ onShop }) => (
   </div>
 );
 
-// Cart Item Component — UPDATED with individual delete button
+// ✅ Cart Item Component — dustbin emoji instead of FiTrash2
 const CartItem = ({ item, onUpdateQty, onRemove }) => {
   const price = parsePrice(item.price);
   const qty = Number(item.quantity) || 1;
@@ -194,13 +189,14 @@ const CartItem = ({ item, onUpdateQty, onRemove }) => {
         <div className="cart-item-content">
           <div className="cart-item-header">
             <h3 className="cart-item-name">{item.name}</h3>
+            {/* ✅ Dustbin emoji instead of FiTrash2 react icon */}
             <button
               className="cart-item-delete-btn"
               onClick={handleDeleteClick}
               aria-label="Delete item"
               title="Remove from cart"
             >
-              <FiTrash2 />
+              🗑️
             </button>
           </div>
 
@@ -208,7 +204,6 @@ const CartItem = ({ item, onUpdateQty, onRemove }) => {
 
           <div className="cart-item-footer">
             <div className="cart-qty-selector">
-              {/* ✅ MINUS symbol instead of FiMinus icon */}
               <button
                 className="cart-qty-btn minus"
                 onClick={() => onUpdateQty(item.productId, Math.max(1, qty - 1))}
@@ -239,7 +234,6 @@ const CartItem = ({ item, onUpdateQty, onRemove }) => {
                 </span>
               )}
 
-              {/* ✅ PLUS symbol instead of FiPlus icon */}
               <button
                 className="cart-qty-btn plus"
                 onClick={() => onUpdateQty(item.productId, qty + 1)}
@@ -253,7 +247,7 @@ const CartItem = ({ item, onUpdateQty, onRemove }) => {
         </div>
       </div>
 
-      {/* Individual Delete Confirmation Modal */}
+      {/* Individual Delete Confirmation Modal — emoji instead of icon */}
       {showDeleteConfirm && (
         <div
           className="cart-modal-overlay"
@@ -278,8 +272,7 @@ const CartItem = ({ item, onUpdateQty, onRemove }) => {
                 className="cart-modal-btn confirm"
                 onClick={confirmDelete}
               >
-                <FiTrash2 />
-                Remove
+                🗑️ Remove
               </button>
             </div>
           </div>
@@ -288,14 +281,15 @@ const CartItem = ({ item, onUpdateQty, onRemove }) => {
     </>
   );
 };
-// Cart Items Section with Clear All Button
-const CartItemsSection = ({ cart, onUpdateQty, onRemove }) => (
+
+// ✅ Cart Items Section — "Cart Items()" replaced with "Clear All" button
+const CartItemsSection = ({ cart, onUpdateQty, onRemove, onClearAll }) => (
   <section className="cart-items-section">
     <div className="cart-items-header">
-      <h2 className="cart-items-title">
-        <FiShoppingCart />
-        Cart Items ({cart.length})
-      </h2>
+      {/* ✅ Clear All button replaces the duplicate "Cart Items (X)" text */}
+      <button className="cart-clear-all-btn" onClick={onClearAll}>
+        🗑️ Clear All Items
+      </button>
     </div>
     <div className="cart-items">
       {cart.map((item) => (
@@ -309,6 +303,7 @@ const CartItemsSection = ({ cart, onUpdateQty, onRemove }) => (
     </div>
   </section>
 );
+
 // ============ DELIVERY METHOD SELECTOR ============
 const DeliverySection = ({ method, setMethod, subtotal }) => {
   const deliveryFee = getDeliveryFee(subtotal, "delivery");
@@ -323,9 +318,7 @@ const DeliverySection = ({ method, setMethod, subtotal }) => {
         Delivery Method
       </h3>
 
-      {/* Delivery Options */}
       <div className="cart-delivery-options">
-        {/* Delivery Option */}
         <button
           className={`cart-delivery-option ${method === "delivery" ? "active" : ""}`}
           onClick={() => setMethod("delivery")}
@@ -351,7 +344,6 @@ const DeliverySection = ({ method, setMethod, subtotal }) => {
           </div>
         </button>
 
-        {/* Pickup Option */}
         <button
           className={`cart-delivery-option ${method === "pickup" ? "active" : ""}`}
           onClick={() => setMethod("pickup")}
@@ -374,7 +366,6 @@ const DeliverySection = ({ method, setMethod, subtotal }) => {
         </button>
       </div>
 
-      {/* Free Delivery Progress Bar — only show for delivery method */}
       {method === "delivery" && !isFreeDelivery && (
         <div className="cart-delivery-progress">
           <div className="cart-delivery-progress-header">
@@ -406,7 +397,6 @@ const DeliverySection = ({ method, setMethod, subtotal }) => {
         </div>
       )}
 
-      {/* Free Delivery Achieved */}
       {method === "delivery" && isFreeDelivery && (
         <div className="cart-delivery-free-banner">
           <HiOutlineSparkles />
@@ -415,8 +405,6 @@ const DeliverySection = ({ method, setMethod, subtotal }) => {
         </div>
       )}
 
-      {/* Pickup Info */}
-            {/* Pickup Info */}
       {method === "pickup" && (
         <div className="cart-delivery-pickup-info">
           <FiMapPin />
@@ -566,12 +554,13 @@ export default function Cart() {
   const { cart, updateQty, removeFromCart, clearCart } = useCart();
   const smartListsContext = useSmartLists();
   const setOrders = smartListsContext?.setOrders;
-  const { addNotification, playNotificationSound } = useNotifications(); // ✅ Added notification hooks
+  const { addNotification, playNotificationSound } = useNotifications();
 
   const [processing, setProcessing] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
   const [showSetPinModal, setShowSetPinModal] = useState(false);
   const [deliveryMethod, setDeliveryMethod] = useState("delivery");
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const storedUser = JSON.parse(localStorage.getItem("auth_user") || "{}");
   const customerId =
@@ -581,6 +570,35 @@ export default function Cart() {
     storedUser?.pk ||
     storedUser?.profile?.id ||
     null;
+
+  // ✅ FIX: Track original item order so items don't jump when qty changes
+  const itemOrderRef = useRef([]);
+
+  useEffect(() => {
+    const currentIds = cart.map((item) => item.productId || item.id);
+    // Keep existing order, append only genuinely new items
+    const existingOrder = itemOrderRef.current.filter((id) =>
+      currentIds.includes(id)
+    );
+    const newIds = currentIds.filter((id) => !existingOrder.includes(id));
+    itemOrderRef.current = [...existingOrder, ...newIds];
+  }, [cart]);
+
+  // ✅ Stable-sorted cart that never reorders on qty change
+  const stableCart = useMemo(() => {
+    const order = itemOrderRef.current;
+    return [...cart].sort((a, b) => {
+      const idA = a.productId || a.id;
+      const idB = b.productId || b.id;
+      const indexA = order.indexOf(idA);
+      const indexB = order.indexOf(idB);
+      // If somehow not found, keep original array order
+      if (indexA === -1 && indexB === -1) return 0;
+      if (indexA === -1) return 1;
+      if (indexB === -1) return -1;
+      return indexA - indexB;
+    });
+  }, [cart]);
 
   // Calculate totals
   const subtotal = cart.reduce((sum, item) => {
@@ -600,7 +618,7 @@ export default function Cart() {
         delivery_method: deliveryMethod,
         delivery_fee: deliveryFee,
       });
-      
+
       const orderId =
         res.data?.order_id ||
         res.data?.order?.order_id ||
@@ -610,35 +628,32 @@ export default function Cart() {
       // ✅ Create notification for successful order
       const notification = {
         id: Date.now(),
-        type: 'order_placed',
-        title: 'Order Placed Successfully! 🎉',
+        type: "order_placed",
+        title: "Order Placed Successfully! 🎉",
         message: `Your order #${orderId} has been placed and is being processed. Total: ${formatCurrency(grandTotal)}`,
         order_id: orderId,
         is_read: false,
         created_at: new Date().toISOString(),
         delivery_method: deliveryMethod,
-        total: grandTotal
+        total: grandTotal,
       };
 
-      // Add notification to global state
       addNotification(notification);
-
-      // Play notification sound
       playNotificationSound();
 
+      // ✅ Clear cart BEFORE navigating
       await clearCart().catch(() => {});
+      // Also reset the order ref
+      itemOrderRef.current = [];
 
-      toast.success(
-        `Order #${orderId} placed successfully!`,
-        { 
-          duration: 4000, 
-          icon: "🎉",
-          style: {
-            background: '#10b981',
-            color: '#fff',
-          }
-        }
-      );
+      toast.success(`Order #${orderId} placed successfully!`, {
+        duration: 4000,
+        icon: "🎉",
+        style: {
+          background: "#10b981",
+          color: "#fff",
+        },
+      });
 
       if (typeof setOrders === "function") {
         const optimisticOrder = {
@@ -650,46 +665,48 @@ export default function Cart() {
           source: "cart",
           status: res.data?.order?.status || "pending",
           created_at: new Date().toISOString(),
-          items: cart.map(item => ({
+          items: cart.map((item) => ({
             name: item.name,
             quantity: item.quantity,
-            price: parsePrice(item.price)
+            price: parsePrice(item.price),
           })),
           total: res.data?.order?.total || grandTotal,
           delivery_method: deliveryMethod,
+          isNew: true, // ✅ Flag for "New Order" label
         };
         setOrders((prev) => [optimisticOrder, ...(prev || [])]);
       }
 
-      // ✅ Add follow-up notification after 2 seconds
+      // ✅ Follow-up notification
       setTimeout(() => {
         const followUpNotification = {
           id: Date.now() + 1,
-          type: 'order_confirmed',
-          title: 'Order Confirmed! 📦',
+          type: "order_confirmed",
+          title: "Order Confirmed! 📦",
           message: `Order #${orderId} has been confirmed and will be processed shortly. You'll receive updates on delivery status.`,
           order_id: orderId,
           is_read: false,
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
         };
         addNotification(followUpNotification);
       }, 2000);
 
+      // ✅ Redirect to orders page
       setTimeout(
         () => navigate("/orders", { state: { newOrderId: orderId } }),
         3000
       );
     } catch (err) {
       console.error("Order creation error:", err);
-      
-      // ✅ Create error notification
+
       const errorNotification = {
         id: Date.now(),
-        type: 'payment_failed',
-        title: 'Order Failed ❌',
-        message: 'There was an issue processing your order. Please try again or contact support.',
+        type: "payment_failed",
+        title: "Order Failed ❌",
+        message:
+          "There was an issue processing your order. Please try again or contact support.",
         is_read: false,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
       };
       addNotification(errorNotification);
 
@@ -699,9 +716,9 @@ export default function Cart() {
         "Failed to place order. Please try again.";
       toast.error(msg, {
         style: {
-          background: '#ef4444',
-          color: '#fff',
-        }
+          background: "#ef4444",
+          color: "#fff",
+        },
       });
     } finally {
       setProcessing(false);
@@ -729,31 +746,37 @@ export default function Cart() {
     }
   };
 
-  // Handle clear cart
-  const handleClearCart = () => {
+  // ✅ Handle clear all cart
+  const handleClearAll = () => {
     setShowClearConfirm(true);
   };
 
+  const confirmClearAll = async () => {
+    setShowClearConfirm(false);
+    try {
+      await clearCart();
+      itemOrderRef.current = [];
+      toast.success("Cart cleared successfully!", { icon: "🗑️" });
+    } catch {
+      toast.error("Failed to clear cart");
+    }
+  };
 
-
-return (
+  return (
     <div className="cart-page">
-      {/* Header — no onClear prop */}
-      <CartHeader
-        itemCount={cart.length}
-        onBack={() => navigate(-1)}
-      />
+      <CartHeader itemCount={cart.length} onBack={() => navigate(-1)} />
 
       <div className="cart-content">
         {cart.length === 0 ? (
           <EmptyCart onShop={() => navigate("/all-products")} />
         ) : (
           <>
-            {/* Cart Items — no onClearAll prop */}
+            {/* ✅ Pass stableCart (fixed order) + onClearAll */}
             <CartItemsSection
-              cart={cart}
+              cart={stableCart}
               onUpdateQty={updateQty}
               onRemove={removeFromCart}
+              onClearAll={handleClearAll}
             />
 
             <DeliverySection
@@ -785,7 +808,39 @@ return (
         />
       )}
 
-      {/* ❌ NO Clear Cart Modal anymore */}
+      {/* ✅ Clear All Cart Confirmation Modal */}
+      {showClearConfirm && (
+        <div
+          className="cart-modal-overlay"
+          onClick={() => setShowClearConfirm(false)}
+        >
+          <div className="cart-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="cart-modal-icon warning">
+              <FiAlertCircle />
+            </div>
+            <h3 className="cart-modal-title">Clear Entire Cart?</h3>
+            <p className="cart-modal-text">
+              This will remove all {cart.length} item
+              {cart.length > 1 ? "s" : ""} from your cart. This action cannot be
+              undone.
+            </p>
+            <div className="cart-modal-actions">
+              <button
+                className="cart-modal-btn cancel"
+                onClick={() => setShowClearConfirm(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="cart-modal-btn confirm"
+                onClick={confirmClearAll}
+              >
+                🗑️ Clear All
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Transaction PIN Modal */}
       <TransactionPinModal

@@ -3,14 +3,12 @@ import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import "./SplashScreen.css";
 
-
-
 // ============ CONFIGURATION ============
 const CONFIG = {
-  title: "Chiamo Order",
+  title: "ChiamoOrder",
   tagline: "Shop smarter, Order faster.",
-  splashDuration: 5000, // 5 seconds
-  letterDelay: 0.08,
+  splashDuration: 5000,
+  letterDelay: 0.06,
 };
 
 // ============ IMAGE URLS ============
@@ -23,7 +21,33 @@ const IMAGES = {
 
 // ============ ANIMATED TITLE ============
 const AnimatedTitle = ({ text }) => {
-  const letters = text.split("");
+  // Split into "Chiamo" and "Order"
+  const chiamoEnd = text.indexOf("Order");
+  const part1 = text.slice(0, chiamoEnd);
+  const part2 = text.slice(chiamoEnd);
+
+  const renderLetters = (str, className) =>
+    str.split("").map((char, i) => (
+      <motion.span
+        key={`${className}-${i}`}
+        className={`title-letter ${className}`}
+        variants={{
+          hidden: { opacity: 0, y: 25, scale: 0.9 },
+          visible: {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            transition: {
+              type: "spring",
+              stiffness: 350,
+              damping: 22,
+            },
+          },
+        }}
+      >
+        {char === " " ? "\u00A0" : char}
+      </motion.span>
+    ));
 
   return (
     <motion.div
@@ -41,49 +65,25 @@ const AnimatedTitle = ({ text }) => {
         },
       }}
     >
-      {letters.map((char, i) => (
-        <motion.span
-          key={i}
-          className="title-letter"
-          variants={{
-            hidden: { opacity: 0, y: 30 },
-            visible: {
-              opacity: 1,
-              y: 0,
-              transition: {
-                type: "spring",
-                stiffness: 400,
-                damping: 20,
-              },
-            },
-          }}
-        >
-          {char === " " ? "\u00A0" : char}
-        </motion.span>
-      ))}
+      {renderLetters(part1, "title-primary")}
+      {renderLetters(part2, "title-accent")}
     </motion.div>
   );
 };
 
-// ============ LOADING DOTS ============
-const LoadingDots = () => (
-  <div className="loading-dots">
-    {[0, 1, 2].map((i) => (
-      <motion.span
-        key={i}
-        className="dot"
-        animate={{
-          scale: [1, 1.3, 1],
-          opacity: [0.5, 1, 0.5],
-        }}
-        transition={{
-          duration: 0.8,
-          repeat: Infinity,
-          delay: i * 0.15,
-          ease: "easeInOut",
-        }}
-      />
-    ))}
+// ============ PROGRESS BAR ============
+const ProgressBar = ({ duration }) => (
+  <div className="splash-progress-track">
+    <motion.div
+      className="splash-progress-fill"
+      initial={{ width: "0%" }}
+      animate={{ width: "100%" }}
+      transition={{
+        duration: duration / 1000 - 0.5,
+        ease: "easeInOut",
+        delay: 0.3,
+      }}
+    />
   </div>
 );
 
@@ -95,46 +95,36 @@ const SplashScreen = ({ onFinish }) => {
   const [showFooter, setShowFooter] = useState(false);
 
   const partnerLogos = useMemo(
-  () => [
-    { src: IMAGES.chiamoLogo, alt: "Chiamo Multitrade" },
-    { src: IMAGES.ghadcoLogo, alt: "Ghadco Nigeria" },
-    { src: IMAGES.mamudaLogo, alt: "Mamuda Group" },
-  ],
-  []
-);
+    () => [
+      { src: IMAGES.chiamoLogo, alt: "Chiamo Multitrade" },
+      { src: IMAGES.ghadcoLogo, alt: "Ghadco Nigeria" },
+      { src: IMAGES.mamudaLogo, alt: "Mamuda Group" },
+    ],
+    []
+  );
 
   useEffect(() => {
     const timers = [];
-
-    // Show main content
     timers.push(setTimeout(() => setShowContent(true), 200));
-
-    // Show tagline
     timers.push(setTimeout(() => setShowTagline(true), 1200));
-
-    // Show footer
     timers.push(setTimeout(() => setShowFooter(true), 1800));
-
-    // Finish splash
     timers.push(
       setTimeout(() => {
         setShow(false);
         setTimeout(() => {
           if (typeof onFinish === "function") onFinish();
-        }, 400);
+        }, 500);
       }, CONFIG.splashDuration)
     );
-
     return () => timers.forEach(clearTimeout);
   }, [onFinish]);
 
-  // Skip on tap (after content is visible)
   const handleSkip = useCallback(() => {
     if (showTagline) {
       setShow(false);
       setTimeout(() => {
         if (typeof onFinish === "function") onFinish();
-      }, 400);
+      }, 500);
     }
   }, [onFinish, showTagline]);
 
@@ -144,52 +134,75 @@ const SplashScreen = ({ onFinish }) => {
         <motion.div
           className="splash-screen"
           initial={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
+          exit={{ opacity: 0, scale: 1.02 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
           onClick={handleSkip}
         >
+          {/* Subtle background accents */}
+          <div className="splash-bg-accent splash-bg-accent-1" />
+          <div className="splash-bg-accent splash-bg-accent-2" />
+
           {/* Main Content */}
           <div className="splash-main">
             {/* Logo */}
             <motion.div
               className="logo-wrapper"
-              initial={{ scale: 0.8, opacity: 0 }}
+              initial={{ scale: 0.6, opacity: 0, rotate: -10 }}
               animate={
                 showContent
-                  ? { scale: 1, opacity: 1 }
-                  : { scale: 0.8, opacity: 0 }
+                  ? { scale: 1, opacity: 1, rotate: 0 }
+                  : { scale: 0.6, opacity: 0, rotate: -10 }
               }
               transition={{
-                duration: 0.6,
+                duration: 0.7,
                 ease: [0.16, 1, 0.3, 1],
               }}
             >
-              <img src={IMAGES.mainLogo} alt="Chiamo Order" className="splash-logo" />
+              <div className="logo-glow" />
+              <img
+                src={IMAGES.mainLogo}
+                alt="Chiamo Order"
+                className="splash-logo"
+              />
             </motion.div>
 
             {/* Title */}
             {showContent && <AnimatedTitle text={CONFIG.title} />}
 
+            {/* Divider line */}
+            <motion.div
+              className="splash-divider"
+              initial={{ scaleX: 0, opacity: 0 }}
+              animate={
+                showTagline
+                  ? { scaleX: 1, opacity: 1 }
+                  : { scaleX: 0, opacity: 0 }
+              }
+              transition={{ duration: 0.4, ease: "easeOut" }}
+            />
+
             {/* Tagline */}
             <motion.p
               className="splash-tagline"
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={
-                showTagline ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }
+                showTagline
+                  ? { opacity: 1, y: 0 }
+                  : { opacity: 0, y: 12 }
               }
               transition={{ duration: 0.5, ease: "easeOut" }}
             >
               {CONFIG.tagline}
             </motion.p>
 
-            {/* Loading Indicator */}
+            {/* Progress Bar */}
             <motion.div
-              className="loading-wrapper"
+              className="splash-progress-wrapper"
               initial={{ opacity: 0 }}
               animate={showTagline ? { opacity: 1 } : { opacity: 0 }}
               transition={{ duration: 0.4, delay: 0.2 }}
             >
-              <LoadingDots />
+              <ProgressBar duration={CONFIG.splashDuration} />
             </motion.div>
           </div>
 
@@ -198,7 +211,9 @@ const SplashScreen = ({ onFinish }) => {
             className="splash-footer"
             initial={{ opacity: 0, y: 20 }}
             animate={
-              showFooter ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }
+              showFooter
+                ? { opacity: 1, y: 0 }
+                : { opacity: 0, y: 20 }
             }
             transition={{ duration: 0.5, ease: "easeOut" }}
           >
@@ -210,15 +225,15 @@ const SplashScreen = ({ onFinish }) => {
                   src={logo.src}
                   alt={logo.alt}
                   className="partner-logo"
-                  initial={{ opacity: 0, scale: 0.8 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={
                     showFooter
-                      ? { opacity: 1, scale: 1 }
-                      : { opacity: 0, scale: 0.8 }
+                      ? { opacity: 1, y: 0 }
+                      : { opacity: 0, y: 10 }
                   }
                   transition={{
                     duration: 0.4,
-                    delay: index * 0.1,
+                    delay: index * 0.12,
                     ease: "easeOut",
                   }}
                 />
@@ -233,7 +248,7 @@ const SplashScreen = ({ onFinish }) => {
             animate={showFooter ? { opacity: 1 } : { opacity: 0 }}
             transition={{ duration: 0.3, delay: 0.5 }}
           >
-            Tap to continue
+            Tap anywhere to continue
           </motion.span>
         </motion.div>
       )}

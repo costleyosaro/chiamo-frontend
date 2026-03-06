@@ -1,15 +1,19 @@
 /* ============================================
-   CHIAMO ORDER - CLEAN PROFESSIONAL SPLASH
-   Inspired by OPay's minimal design
+   CHIAMO ORDER - WHITE PROFESSIONAL SPLASH
+   Clean, Sleek, Modern Design
    ============================================ */
 
 /* ============ VARIABLES ============ */
 :root {
-  --splash-bg: #07102a;
-  --splash-primary: #ffd84a;
-  --splash-white: #ffffff;
-  --splash-white-muted: rgba(255, 255, 255, 0.6);
-  --splash-white-dim: rgba(255, 255, 255, 0.4);
+  --splash-bg: #ffffff;
+  --splash-primary: #1b4b8c;
+  --splash-accent: #f5a623;
+  --splash-text: #1a1a2e;
+  --splash-text-muted: #6b7280;
+  --splash-text-dim: #9ca3af;
+  --splash-border: #e5e7eb;
+  --splash-glow: rgba(27, 75, 140, 0.08);
+  --splash-accent-glow: rgba(245, 166, 35, 0.06);
 }
 
 /* ============ MAIN CONTAINER ============ */
@@ -25,6 +29,39 @@
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
+  overflow: hidden;
+}
+
+/* ============ BACKGROUND ACCENTS ============ */
+.splash-bg-accent {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.splash-bg-accent-1 {
+  width: 500px;
+  height: 500px;
+  top: -150px;
+  right: -150px;
+  background: radial-gradient(
+    circle,
+    rgba(27, 75, 140, 0.04) 0%,
+    transparent 70%
+  );
+}
+
+.splash-bg-accent-2 {
+  width: 400px;
+  height: 400px;
+  bottom: -100px;
+  left: -100px;
+  background: radial-gradient(
+    circle,
+    rgba(245, 166, 35, 0.04) 0%,
+    transparent 70%
+  );
 }
 
 /* ============ MAIN CONTENT ============ */
@@ -37,17 +74,42 @@
   padding: 2rem;
   width: 100%;
   max-width: 500px;
+  position: relative;
+  z-index: 1;
 }
 
 /* ============ LOGO ============ */
 .logo-wrapper {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.75rem;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Subtle glow behind logo */
+.logo-glow {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    var(--splash-glow) 0%,
+    var(--splash-accent-glow) 40%,
+    transparent 70%
+  );
+  z-index: 0;
+  pointer-events: none;
 }
 
 .splash-logo {
-  width: clamp(140px, 35vw, 200px);
-  height: clamp(140px, 35vw, 200px);
+  width: clamp(120px, 30vw, 170px);
+  height: clamp(120px, 30vw, 170px);
   object-fit: contain;
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 4px 20px rgba(27, 75, 140, 0.1));
 }
 
 /* ============ TITLE ============ */
@@ -56,65 +118,96 @@
   justify-content: center;
   align-items: baseline;
   flex-wrap: wrap;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .title-letter {
   display: inline-block;
-  font-size: clamp(2rem, 7vw, 3.5rem);
-  font-weight: 800;
+  font-family: "Righteous", "Poppins", sans-serif;
+  font-size: clamp(1.8rem, 6vw, 3rem);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* "Chiamo" in primary blue */
+.title-letter.title-primary {
   color: var(--splash-primary);
-  letter-spacing: 1px;
-  text-transform: uppercase;
+}
+
+/* "Order" in accent gold */
+.title-letter.title-accent {
+  color: var(--splash-accent);
+}
+
+/* ============ DIVIDER ============ */
+.splash-divider {
+  width: 50px;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--splash-primary),
+    var(--splash-accent)
+  );
+  border-radius: 3px;
+  margin-bottom: 1rem;
+  transform-origin: center;
 }
 
 /* ============ TAGLINE ============ */
 .splash-tagline {
-  font-size: clamp(0.95rem, 3vw, 1.15rem);
+  font-family: "Inter", -apple-system, sans-serif;
+  font-size: clamp(0.9rem, 2.8vw, 1.1rem);
   font-weight: 500;
-  color: var(--splash-white);
+  color: var(--splash-text-muted);
   text-align: center;
-  margin: 0 0 2rem 0;
-  letter-spacing: 0.5px;
+  margin: 0 0 2.5rem 0;
+  letter-spacing: 0.3px;
+  line-height: 1.5;
 }
 
-/* ============ LOADING DOTS ============ */
-.loading-wrapper {
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* ============ PROGRESS BAR ============ */
+.splash-progress-wrapper {
+  width: 100%;
+  max-width: 200px;
 }
 
-.loading-dots {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.splash-progress-track {
+  width: 100%;
+  height: 3px;
+  background: var(--splash-border);
+  border-radius: 3px;
+  overflow: hidden;
 }
 
-.dot {
-  width: 10px;
-  height: 10px;
-  background-color: var(--splash-primary);
-  border-radius: 50%;
+.splash-progress-fill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--splash-primary),
+    var(--splash-accent)
+  );
+  border-radius: 3px;
 }
 
 /* ============ FOOTER ============ */
 .splash-footer {
   width: 100%;
-  padding: 1.5rem 2rem 2rem;
+  padding: 1.5rem 2rem 2.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: 0.85rem;
+  position: relative;
+  z-index: 1;
 }
 
 .powered-by {
-  font-size: 0.8rem;
+  font-family: "Inter", -apple-system, sans-serif;
+  font-size: 0.7rem;
   font-weight: 600;
-  color: var(--splash-white-muted);
+  color: var(--splash-text-dim);
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 2.5px;
   margin: 0;
 }
 
@@ -122,14 +215,19 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: clamp(1.25rem, 5vw, 2rem);
+  gap: clamp(1.5rem, 5vw, 2.5rem);
 }
 
 .partner-logo {
-  width: clamp(45px, 12vw, 65px);
+  width: clamp(40px, 11vw, 58px);
   height: auto;
   object-fit: contain;
+  opacity: 0.55;
+  transition: opacity 0.3s ease;
+}
 
+.partner-logo:hover {
+  opacity: 0.85;
 }
 
 /* ============ SKIP HINT ============ */
@@ -138,9 +236,12 @@
   bottom: 1rem;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 0.75rem;
-  color: var(--splash-white-dim);
+  font-family: "Inter", -apple-system, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--splash-text-dim);
   letter-spacing: 0.5px;
+  z-index: 1;
 }
 
 /* ============ RESPONSIVE ============ */
@@ -152,7 +253,21 @@
   }
 
   .splash-footer {
-    padding: 1.25rem 1.5rem 1.75rem;
+    padding: 1.25rem 1.5rem 2rem;
+  }
+
+  .splash-bg-accent-1 {
+    width: 350px;
+    height: 350px;
+    top: -100px;
+    right: -100px;
+  }
+
+  .splash-bg-accent-2 {
+    width: 300px;
+    height: 300px;
+    bottom: -80px;
+    left: -80px;
   }
 }
 
@@ -162,26 +277,41 @@
     margin-bottom: 1.25rem;
   }
 
+  .logo-glow {
+    width: 160px;
+    height: 160px;
+  }
+
   .splash-tagline {
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
     padding: 0 1rem;
   }
 
-  .loading-wrapper {
-    height: 25px;
-  }
-
-  .dot {
-    width: 8px;
-    height: 8px;
+  .splash-progress-wrapper {
+    max-width: 160px;
   }
 
   .partner-logos {
-    gap: 1rem;
+    gap: 1.25rem;
   }
 
   .skip-hint {
     bottom: 0.75rem;
+    font-size: 0.65rem;
+  }
+
+  .splash-bg-accent-1 {
+    width: 250px;
+    height: 250px;
+    top: -80px;
+    right: -80px;
+  }
+
+  .splash-bg-accent-2 {
+    width: 200px;
+    height: 200px;
+    bottom: -60px;
+    left: -60px;
   }
 }
 
@@ -195,7 +325,21 @@
     padding: 1rem;
   }
 
+  .splash-logo {
+    width: 100px;
+    height: 100px;
+  }
+
+  .logo-glow {
+    width: 130px;
+    height: 130px;
+  }
+
   .partner-logo {
+    width: 36px;
+  }
+
+  .splash-divider {
     width: 40px;
   }
 }
@@ -208,6 +352,7 @@
     gap: 1.5rem;
     justify-content: center;
     align-items: center;
+    padding: 1rem;
   }
 
   .logo-wrapper {
@@ -215,6 +360,11 @@
   }
 
   .splash-logo {
+    width: 80px;
+    height: 80px;
+  }
+
+  .logo-glow {
     width: 100px;
     height: 100px;
   }
@@ -223,8 +373,9 @@
     margin-bottom: 0;
   }
 
+  .splash-divider,
   .splash-tagline,
-  .loading-wrapper {
+  .splash-progress-wrapper {
     display: none;
   }
 
@@ -239,18 +390,46 @@
   }
 
   .partner-logo {
-    width: 40px;
+    width: 36px;
   }
 
   .skip-hint {
     display: none;
   }
+
+  .splash-bg-accent {
+    display: none;
+  }
 }
 
-/* Reduced Motion */
+/* ============ REDUCED MOTION ============ */
 @media (prefers-reduced-motion: reduce) {
-  .dot {
-    animation: none;
-    opacity: 1;
+  .splash-progress-fill {
+    transition: none;
   }
+
+  .partner-logo {
+    transition: none;
+  }
+}
+
+/* ============ DARK MODE OVERRIDE (keeps white splash) ============ */
+[data-theme="dark"] .splash-screen {
+  background-color: var(--splash-bg);
+}
+
+[data-theme="dark"] .title-letter.title-primary {
+  color: var(--splash-primary);
+}
+
+[data-theme="dark"] .title-letter.title-accent {
+  color: var(--splash-accent);
+}
+
+[data-theme="dark"] .splash-tagline {
+  color: var(--splash-text-muted);
+}
+
+[data-theme="dark"] .powered-by {
+  color: var(--splash-text-dim);
 }

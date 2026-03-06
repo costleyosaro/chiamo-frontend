@@ -1,10 +1,4 @@
-/* ============================================
-   CHIAMOORDER - PROFESSIONAL LANDING PAGE
-   Clean, Modern, Stakeholder-Ready Design
-   ============================================ */
 
-/* ============ IMPORTS & VARIABLES ============ */
-/* ✅ ADD Righteous font for logo */
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&family=Righteous&display=swap");
 
 :root {
@@ -226,7 +220,7 @@ body {
 /* ✅ UPDATED: Stylish logo text font */
 .logo-text {
   font-family: "Righteous", cursive;
-  font-size: 20px;
+  font-size: 14px;
   font-weight: 400;
   color: var(--primary);
   letter-spacing: 0.5px;
@@ -240,7 +234,7 @@ body {
 /* ✅ Logo responsive sizing */
 @media (max-width: 992px) {
   .logo-text {
-    font-size: 17px;
+    font-size: 14px;
   }
 }
 
@@ -283,7 +277,7 @@ body {
   }
 
   .logo-text {
-    font-size: 11px;
+    font-size: 10px;
   }
 }
 /* Nav Links */

@@ -1,16 +1,35 @@
 // src/context/NotificationContext.jsx
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import API from '../services/api';
-import { useAuth } from './AuthContext';
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import API from "../services/api";
+import { useAuth } from "./AuthContext";
 
-const NotificationContext = createContext();   
+const NotificationContext = createContext();
 
-export const useNotifications = () => {        
+export const useNotifications = () => {
   const context = useContext(NotificationContext);
   if (!context) {
-    throw new Error('useNotifications must be used within a NotificationProvider');
+    throw new Error(
+      "useNotifications must be used within a NotificationProvider"
+    );
   }
   return context;
+};
+
+// ✅ Map frontend types → backend types
+const mapTypeToBackend = (type) => {
+  const typeMap = {
+    order_placed: "order",
+    order_confirmed: "order",
+    order_shipped: "delivery",
+    order_delivered: "delivery",
+    order_cancelled: "order",
+    payment_success: "payment",
+    payment_failed: "payment",
+    cart_reminder: "system",
+    promotion: "promo",
+    support_update: "support",
+  };
+  return typeMap[type] || type || "system";
 };
 
 export const NotificationProvider = ({ children }) => {
@@ -20,18 +39,15 @@ export const NotificationProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // ✅ FIXED: Check if user is authenticated before making API calls
-  const isAuthenticated = () => {
+  const isAuthenticated = useCallback(() => {
     const accessToken = localStorage.getItem("access");
     const refreshToken = localStorage.getItem("refresh");
     return !!(user && (accessToken || refreshToken));
-  };
+  }, [user]);
 
-  // Load notifications from Django backend
-  const loadNotifications = async () => {      
-    // ✅ FIXED: Check authentication first
+  // ============ LOAD NOTIFICATIONS FROM BACKEND ============
+  const loadNotifications = useCallback(async () => {
     if (!isAuthenticated()) {
-      console.log("User not authenticated, clearing notifications");
       setNotifications([]);
       setUnreadCount(0);
       setError(null);
@@ -41,314 +57,382 @@ export const NotificationProvider = ({ children }) => {
 
     setLoading(true);
     setError(null);
-    
+
     try {
-      const response = await API.get('/orders/notifications/');
-      
-      // ✅ FIXED: Handle Django pagination format properly
-      let notificationData = response.data;
-      let notifications = [];
-      
-      console.log('Raw notification response:', notificationData);
-      
-      if (Array.isArray(notificationData)) {
-        // Direct array response
-        notifications = notificationData;
-      } else if (notificationData && Array.isArray(notificationData.results)) {
-        // Django pagination format: {count: 0, next: null, previous: null, results: []}
-        notifications = notificationData.results;
-        console.log('Using paginated results:', notifications);
+      const response = await API.get("/orders/notifications/");
+      let data = response.data;
+      let items = [];
+
+      if (Array.isArray(data)) {
+        items = data;
+      } else if (data && Array.isArray(data.results)) {
+        items = data.results;
       } else {
-        console.warn('Unexpected notification data format:', notificationData);
-        notifications = [];
+        items = [];
       }
-      
-      setNotifications(notifications);
-      setUnreadCount(notifications.filter(n => !n.is_read).length);
-      
-      // ✅ Store in localStorage for persistence
+
+      setNotifications(items);
+      setUnreadCount(items.filter((n) => !n.is_read).length);
+
+      // Cache locally
       if (user?.id) {
-        localStorage.setItem(`notifications_${user.id}`, JSON.stringify(notifications));
+        localStorage.setItem(
+          `notifications_${user.id}`,
+          JSON.stringify(items)
+        );
       }
-      
-    } catch (error) {
-      console.error('Failed to load notifications:', error);
-      
-      // ✅ FIXED: Better error handling for authentication issues
-      if (error.response?.status === 401) {
-        console.log("Authentication failed, clearing notifications");
+    } catch (err) {
+      console.error("Failed to load notifications:", err);
+
+      if (err.response?.status === 401) {
         setNotifications([]);
         setUnreadCount(0);
-        setError(null); // Don't show error for auth issues
+        setError(null);
         return;
       }
-      
-      // ✅ Load from localStorage as fallback for other errors
+
+      // Fallback to cache
       if (user?.id) {
         const cached = localStorage.getItem(`notifications_${user.id}`);
         if (cached) {
           try {
-            const cachedNotifications = JSON.parse(cached);
-            setNotifications(cachedNotifications);
-            setUnreadCount(cachedNotifications.filter(n => !n.is_read).length);
-            console.log('Loaded notifications from cache:', cachedNotifications);
-          } catch (parseError) {
-            console.error('Failed to parse cached notifications:', parseError);
+            const cachedItems = JSON.parse(cached);
+            setNotifications(cachedItems);
+            setUnreadCount(cachedItems.filter((n) => !n.is_read).length);
+          } catch {
             setNotifications([]);
             setUnreadCount(0);
           }
-        } else {
-          setNotifications([]);
-          setUnreadCount(0);
         }
       }
-      
-      // Handle different error types (but not auth errors)
-      if (error.response?.status === 404) {
-        setError('Notifications feature not available yet');
-      } else if (error.code === 'ECONNABORTED') {
-        setError('Request timeout - please try again');
-      } else if (error.code === 'ERR_NETWORK') {
-        setError('Network error - please check your connection');
-      } else if (error.response?.status !== 401) {
-        setError('Failed to load notifications');
+
+      if (err.response?.status === 404) {
+        setError("Notifications not available yet");
+      } else if (err.code === "ERR_NETWORK") {
+        setError("Network error — check your connection");
+      } else if (err.response?.status !== 401) {
+        setError("Failed to load notifications");
       }
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAuthenticated, user]);
 
-  // Create notification for order events (called from order context)
-  const createOrderNotification = async (orderId, event = 'placed', orderTotal = null) => {
-    if (!isAuthenticated()) return;
+  // ============ ✅ ADD NOTIFICATION (used by Cart.jsx) ============
+  const addNotification = useCallback(
+    async (notificationData) => {
+      if (!isAuthenticated()) return;
 
-    const messages = {
-      placed: {
-        title: 'Order Placed Successfully! 🎉',
-        message: `Your order #${orderId}${orderTotal ? ` for ₦${orderTotal.toLocaleString()}` : ''} has been placed and is being processed.`,
-        type: 'order'
-      },
-      confirmed: {
-        title: 'Order Confirmed! ✅',
-        message: `Your order #${orderId} has been confirmed and is being prepared.`,
-        type: 'order'
-      },
-      shipped: {
-        title: 'Order Shipped! 🚚',
-        message: `Good news! Your order #${orderId} is on the way to you.`,
-        type: 'delivery'
-      },
-      delivered: {
-        title: 'Order Delivered! 📦',
-        message: `Your order #${orderId} has been delivered successfully. Enjoy your purchase!`,
-        type: 'delivery'
-      },
-      cancelled: {
-        title: 'Order Cancelled ❌',
-        message: `Your order #${orderId} has been cancelled. If you have any questions, please contact support.`,
-        type: 'order'
-      }
-    };
+      // Map type for backend compatibility
+      const backendType = mapTypeToBackend(notificationData.type);
 
-    const notificationData = messages[event] || messages.placed;
-    
-    // ✅ Create local notification immediately for instant feedback
-    const tempNotification = {
-      id: `temp_${Date.now()}`,
-      title: notificationData.title,
-      message: notificationData.message,
-      type: notificationData.type,
-      is_read: false,
-      created_at: new Date().toISOString(),
-      order_id: orderId
-    };
+      // 1) Instantly show locally
+      const tempId = `temp_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+      const localNotif = {
+        ...notificationData,
+        id: tempId,
+        type: backendType,
+        is_read: false,
+        created_at: notificationData.created_at || new Date().toISOString(),
+      };
 
-    setNotifications(prev => [tempNotification, ...prev]);
-    setUnreadCount(prev => prev + 1);
-    playNotificationSound();
+      setNotifications((prev) => [localNotif, ...prev]);
+      setUnreadCount((prev) => prev + 1);
 
-    // ✅ Try to create on backend (Django will handle this via signals)
-    try {
-      await API.post('/orders/notifications/', {
-        title: notificationData.title,
-        message: notificationData.message,
-        type: notificationData.type,
-        order_id: orderId
-      });
-      
-      // Refresh notifications to get the real one from backend
-      setTimeout(() => {
-        if (isAuthenticated()) {
-          loadNotifications();
-        }
-      }, 2000);
-    } catch (error) {
-      console.warn('Failed to create notification on backend:', error);
-      // Keep the local notification even if backend fails
-    }
-  };
-
-  // Create cart reminder notification
-  const createCartReminder = (itemCount) => {
-    if (!isAuthenticated()) return;
-
-    const notification = {
-      id: `cart_${Date.now()}`,
-      title: 'Items in your cart! 🛒',
-      message: `You have ${itemCount} item${itemCount > 1 ? 's' : ''} waiting in your cart. Complete your order now!`,
-      type: 'system',
-      is_read: false,
-      created_at: new Date().toISOString()
-    };
-
-    setNotifications(prev => [notification, ...prev]);
-    setUnreadCount(prev => prev + 1);
-    playNotificationSound();
-    
-    // ✅ Update localStorage
-    if (user?.id) {
-      const updatedNotifications = [notification, ...notifications];
-      localStorage.setItem(`notifications_${user.id}`, JSON.stringify(updatedNotifications));
-    }
-  };
-
-  // Create promotional notification
-  const createPromoNotification = (title, message) => {
-    if (!isAuthenticated()) return;
-
-    const notification = {
-      id: `promo_${Date.now()}`,
-      title: title,
-      message: message,
-      type: 'promo',
-      is_read: false,
-      created_at: new Date().toISOString()
-    };
-
-    setNotifications(prev => [notification, ...prev]);
-    setUnreadCount(prev => prev + 1);
-    playNotificationSound();
-    
-    // ✅ Update localStorage
-    if (user?.id) {
-      const updatedNotifications = [notification, ...notifications];
-      localStorage.setItem(`notifications_${user.id}`, JSON.stringify(updatedNotifications));
-    }
-  };
-
-  // Mark as read using Django endpoint
-  const markAsRead = async (notificationId) => {
-    if (!isAuthenticated() || !notificationId) return;
-    
-    // ✅ Update local state immediately
-    setNotifications(prev =>
-      prev.map(n =>
-        n.id === notificationId ? { ...n, is_read: true } : n
-      )
-    );
-    setUnreadCount(prev => Math.max(0, prev - 1));
-    
-    // ✅ Update localStorage
-    const updatedNotifications = notifications.map(n =>
-      n.id === notificationId ? { ...n, is_read: true } : n
-    );
-    if (user?.id) {
-      localStorage.setItem(`notifications_${user.id}`, JSON.stringify(updatedNotifications));
-    }
-    
-    // ✅ Sync with backend (only for real notifications, not temp ones)
-    if (typeof notificationId === 'number') {
+      // 2) POST to backend to persist in database
       try {
-        await API.patch(`/orders/notifications/${notificationId}/mark_read/`);
-      } catch (error) {
-        console.error('Failed to mark notification as read on backend:', error);
-      }
-    }
-  };
+        const payload = {
+          title: notificationData.title,
+          message: notificationData.message,
+          type: backendType,
+          order_id: notificationData.order_id
+            ? String(notificationData.order_id)
+            : null,
+        };
 
-  // Mark all as read
-  const markAllAsRead = async () => {
+        const response = await API.post("/orders/notifications/", payload);
+
+        // Replace temp notification with real one from backend
+        if (response.data && response.data.id) {
+          setNotifications((prev) =>
+            prev.map((n) => (n.id === tempId ? response.data : n))
+          );
+        }
+
+        console.log("✅ Notification saved to database:", response.data);
+      } catch (err) {
+        console.warn(
+          "⚠️ Failed to save notification to backend (kept locally):",
+          err
+        );
+        // Keep the local notification even if backend fails
+      }
+
+      // Update cache
+      if (user?.id) {
+        setNotifications((current) => {
+          localStorage.setItem(
+            `notifications_${user.id}`,
+            JSON.stringify(current)
+          );
+          return current;
+        });
+      }
+    },
+    [isAuthenticated, user]
+  );
+
+  // ============ CREATE ORDER NOTIFICATION ============
+  const createOrderNotification = useCallback(
+    async (orderId, event = "placed", orderTotal = null) => {
+      if (!isAuthenticated()) return;
+
+      const messages = {
+        placed: {
+          title: "Order Placed Successfully! 🎉",
+          message: `Your order #${orderId}${
+            orderTotal
+              ? ` for ₦${Number(orderTotal).toLocaleString()}`
+              : ""
+          } has been placed and is being processed.`,
+          type: "order",
+        },
+        confirmed: {
+          title: "Order Confirmed! ✅",
+          message: `Your order #${orderId} has been confirmed and is being prepared.`,
+          type: "order",
+        },
+        shipped: {
+          title: "Order Shipped! 🚚",
+          message: `Good news! Your order #${orderId} is on the way to you.`,
+          type: "delivery",
+        },
+        delivered: {
+          title: "Order Delivered! 📦",
+          message: `Your order #${orderId} has been delivered successfully.`,
+          type: "delivery",
+        },
+        cancelled: {
+          title: "Order Cancelled ❌",
+          message: `Your order #${orderId} has been cancelled.`,
+          type: "order",
+        },
+      };
+
+      const data = messages[event] || messages.placed;
+
+      await addNotification({
+        ...data,
+        order_id: orderId,
+      });
+
+      playNotificationSound();
+    },
+    [isAuthenticated, addNotification]
+  );
+
+  // ============ CREATE CART REMINDER ============
+  const createCartReminder = useCallback(
+    async (itemCount) => {
+      if (!isAuthenticated()) return;
+
+      await addNotification({
+        title: "Items in your cart! 🛒",
+        message: `You have ${itemCount} item${
+          itemCount > 1 ? "s" : ""
+        } waiting in your cart. Complete your order now!`,
+        type: "system",
+      });
+    },
+    [isAuthenticated, addNotification]
+  );
+
+  // ============ CREATE PROMO NOTIFICATION ============
+  const createPromoNotification = useCallback(
+    async (title, message) => {
+      if (!isAuthenticated()) return;
+
+      await addNotification({
+        title,
+        message,
+        type: "promo",
+      });
+    },
+    [isAuthenticated, addNotification]
+  );
+
+  // ============ MARK AS READ ============
+  const markAsRead = useCallback(
+    async (notificationId) => {
+      if (!isAuthenticated() || !notificationId) return;
+
+      // Update locally first
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.id === notificationId ? { ...n, is_read: true } : n
+        )
+      );
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+
+      // Sync with backend (only for real DB IDs, not temp_ IDs)
+      if (typeof notificationId === "number") {
+        try {
+          await API.patch(
+            `/orders/notifications/${notificationId}/mark_read/`
+          );
+        } catch (err) {
+          console.error("Failed to mark as read on backend:", err);
+        }
+      }
+
+      // Update cache
+      if (user?.id) {
+        setNotifications((current) => {
+          localStorage.setItem(
+            `notifications_${user.id}`,
+            JSON.stringify(current)
+          );
+          return current;
+        });
+      }
+    },
+    [isAuthenticated, user]
+  );
+
+  // ============ MARK ALL AS READ ============
+  const markAllAsRead = useCallback(async () => {
     if (!isAuthenticated()) return;
 
-    // ✅ Update local state immediately
-    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+    // Update locally
+    setNotifications((prev) =>
+      prev.map((n) => ({ ...n, is_read: true }))
+    );
     setUnreadCount(0);
-    
-    // ✅ Update localStorage
-    const updatedNotifications = notifications.map(n => ({ ...n, is_read: true }));
-    if (user?.id) {
-      localStorage.setItem(`notifications_${user.id}`, JSON.stringify(updatedNotifications));
+
+    // Sync with backend — single endpoint
+    try {
+      await API.post("/orders/notifications/mark-all-read/");
+    } catch (err) {
+      console.error("Failed to mark all as read on backend:", err);
     }
 
-    // ✅ Sync with backend for real notifications
-    try {
-      const realNotifications = notifications.filter(n => typeof n.id === 'number');
-      for (const notification of realNotifications) {
-        await API.patch(`/orders/notifications/${notification.id}/mark_read/`);
+    // Update cache
+    if (user?.id) {
+      setNotifications((current) => {
+        localStorage.setItem(
+          `notifications_${user.id}`,
+          JSON.stringify(current)
+        );
+        return current;
+      });
+    }
+  }, [isAuthenticated, user]);
+
+  // ============ DELETE NOTIFICATION ============
+  const deleteNotification = useCallback(
+    async (notificationId) => {
+      if (!notificationId) return;
+
+      // Check if unread before removing
+      const notif = notifications.find((n) => n.id === notificationId);
+      if (notif && !notif.is_read) {
+        setUnreadCount((prev) => Math.max(0, prev - 1));
       }
-    } catch (error) {
-      console.error('Failed to mark all as read on backend:', error);
-    }
-  };
 
-  // Delete notification (works for both local and backend)
-  const deleteNotification = (notificationId) => {
-    setNotifications(prev => prev.filter(n => n.id !== notificationId));
-    const notification = notifications.find(n => n.id === notificationId);
-    if (notification && !notification.is_read) {
-      setUnreadCount(prev => Math.max(0, prev - 1));
-    }
-    
-    // ✅ Update localStorage
-    const updatedNotifications = notifications.filter(n => n.id !== notificationId);
-    if (user?.id) {
-      localStorage.setItem(`notifications_${user.id}`, JSON.stringify(updatedNotifications));
-    }
-  };
+      // Remove locally
+      setNotifications((prev) =>
+        prev.filter((n) => n.id !== notificationId)
+      );
 
-  // Play notification sound
-  const playNotificationSound = () => {        
+      // Delete from backend (only for real DB IDs)
+      if (typeof notificationId === "number") {
+        try {
+          await API.delete(
+            `/orders/notifications/${notificationId}/delete/`
+          );
+        } catch (err) {
+          console.error("Failed to delete on backend:", err);
+        }
+      }
+
+      // Update cache
+      if (user?.id) {
+        setNotifications((current) => {
+          localStorage.setItem(
+            `notifications_${user.id}`,
+            JSON.stringify(current)
+          );
+          return current;
+        });
+      }
+    },
+    [isAuthenticated, notifications, user]
+  );
+
+  // ============ DELETE ALL NOTIFICATIONS ============
+  const deleteAllNotifications = useCallback(async () => {
+    if (!isAuthenticated()) return;
+
+    setNotifications([]);
+    setUnreadCount(0);
+
     try {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-      oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
-      oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.2);
-
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);       
-      
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.4);
-    } catch (error) {
-      console.warn('Could not play notification sound:', error);
+      await API.delete("/orders/notifications/delete-all/");
+    } catch (err) {
+      console.error("Failed to delete all on backend:", err);
     }
-  };
 
-  // ✅ FIXED: Better useEffect with proper authentication checks
+    if (user?.id) {
+      localStorage.removeItem(`notifications_${user.id}`);
+    }
+  }, [isAuthenticated, user]);
+
+  // ============ PLAY SOUND ============
+  const playNotificationSound = useCallback(() => {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.frequency.setValueAtTime(800, ctx.currentTime);
+      osc.frequency.setValueAtTime(600, ctx.currentTime + 0.1);
+      osc.frequency.setValueAtTime(800, ctx.currentTime + 0.2);
+
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(
+        0.01,
+        ctx.currentTime + 0.4
+      );
+
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.4);
+    } catch (err) {
+      console.warn("Could not play notification sound:", err);
+    }
+  }, []);
+
+  // ============ LOAD ON MOUNT + POLL ============
   useEffect(() => {
     if (isAuthenticated()) {
-      // ✅ Load from localStorage first for instant display
+      // Load from cache first for instant display
       const cached = localStorage.getItem(`notifications_${user.id}`);
       if (cached) {
         try {
-          const cachedNotifications = JSON.parse(cached);
-          setNotifications(cachedNotifications);
-          setUnreadCount(cachedNotifications.filter(n => !n.is_read).length);
-        } catch (error) {
-          console.error('Failed to parse cached notifications:', error);
+          const cachedItems = JSON.parse(cached);
+          setNotifications(cachedItems);
+          setUnreadCount(cachedItems.filter((n) => !n.is_read).length);
+        } catch {
+          // ignore parse errors
         }
       }
-      
+
       // Then load from backend
       loadNotifications();
-      
-      // Poll for new notifications every 2 minutes (only if authenticated)
+
+      // Poll every 2 minutes
       const interval = setInterval(() => {
         if (isAuthenticated()) {
           loadNotifications();
@@ -357,29 +441,32 @@ export const NotificationProvider = ({ children }) => {
 
       return () => clearInterval(interval);
     } else {
-      // ✅ Clear everything when not authenticated
-      console.log("User not authenticated, clearing notification state");
       setNotifications([]);
       setUnreadCount(0);
       setError(null);
       setLoading(false);
     }
-  }, [user]); // ✅ Only depend on user, not authentication tokens
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const value = {
     notifications,
     unreadCount,
     loading,
     error,
+
+    // ✅ Core functions
     loadNotifications,
+    addNotification, // ← Cart.jsx uses this
     markAsRead,
     markAllAsRead,
     deleteNotification,
+    deleteAllNotifications,
     playNotificationSound,
-    // Ecommerce-specific notification creators
+
+    // ✅ Higher-level helpers
     createOrderNotification,
     createCartReminder,
-    createPromoNotification
+    createPromoNotification,
   };
 
   return (

@@ -292,6 +292,41 @@
   color: #1b4b8c;
 }
 
+/* ✅ Invoice link styles */
+.ord-card-summary-clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 10px;
+}
+
+.ord-card-summary-clickable:hover {
+  background: rgba(27, 75, 140, 0.04);
+}
+
+.ord-card-summary-clickable:active {
+  transform: scale(0.99);
+}
+
+.ord-invoice-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent-color, #1b4b8c);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+}
+
+.ord-invoice-icon {
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.ord-card-summary-clickable:hover .ord-invoice-icon {
+  opacity: 1;
+  transform: translateX(2px);
+}
 .notif-action-text {
   font-weight: 500;
 }

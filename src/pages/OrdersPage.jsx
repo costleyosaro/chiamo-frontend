@@ -179,6 +179,7 @@ const OrderCard = ({
   onView,
 }) => {
   const [showActions, setShowActions] = useState(false);
+  const navigate = useNavigate();
   
   const totalAmount =
     order.items?.reduce(
@@ -262,13 +263,24 @@ const OrderCard = ({
         )}
       </div>
 
-      {/* Order Summary */}
-      <div className="ord-card-summary">
+
+      {/* Order Summary — clickable to invoice */}
+      <div
+        className="ord-card-summary ord-card-summary-clickable"
+        onClick={(e) => {
+          e.stopPropagation();
+          navigate(`/invoice/${order.id}`, { state: { order } });
+        }}
+        title="View Invoice"
+      >
         <div className="ord-summary-item">
           <FiBox className="ord-summary-icon" />
           <div className="ord-summary-content">
             <span className="ord-summary-label">Items</span>
-            <span className="ord-summary-value">{itemCount} items</span>
+            <span className="ord-summary-value ord-invoice-link">
+              {itemCount} items
+              <FiExternalLink className="ord-invoice-icon" />
+            </span>
           </div>
         </div>
         <div className="ord-summary-divider" />

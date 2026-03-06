@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-
+import InvoicePage from "./pages/InvoicePage";
 // Styles
 import "./main.css";
 import "./index.css";
@@ -137,6 +137,7 @@ function MainApp() {
           <Route path="profile" element={<ProfilePage />} />
           <Route path="all-products" element={<AllProducts />} />
           <Route path="order-history/:orderId" element={<OrderHistoryPage />} />
+          <Route path="/invoice/:orderId" element={<InvoicePage />} />
 
           {/* ✅ New Profile-related pages */}
           <Route path="edit-profile" element={<EditProfile />} />

@@ -11,14 +11,11 @@ export function CartProvider({ children }) {
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // ✅ Get notification functions with safety checks
   const notificationContext = useNotifications();
   const { createOrderNotification, createCartReminder } = notificationContext || {};
 
-  // 🧮 Cart badge count
   const cartCount = cart.reduce((sum, item) => sum + (item.quantity || 0), 0);
 
-  // 🧠 Normalize item structure from backend
   const normalizeItem = (item) => {
     const product = item.product || {};
     const image =
@@ -30,7 +27,7 @@ export function CartProvider({ children }) {
     const price = parseFloat(product.price ?? item.price ?? 0) || 0;
 
     return {
-      id: item.id, // cart item ID
+      id: item.id,
       productId: product.id ?? item.product_id ?? item.product ?? null,
       slug: product.slug ?? item.slug ?? null,
       name: product.name ?? item.product ?? item.name ?? "Unnamed product",
@@ -41,7 +38,6 @@ export function CartProvider({ children }) {
     };
   };
 
-  // 🛒 Fetch cart from API
   const fetchCart = useCallback(
     async (activeUser = user) => {
       if (!activeUser) {
@@ -64,7 +60,6 @@ export function CartProvider({ children }) {
         const normalized = items.map(normalizeItem);
         setCart(normalized);
 
-        // 💾 Cache per-user cart locally
         localStorage.setItem(`cart_${activeUser.id}`, JSON.stringify(normalized));
       } catch (err) {
         console.error("fetchCart failed:", err);
@@ -88,10 +83,9 @@ export function CartProvider({ children }) {
     [user]
   );
 
-  // 🔄 Sync cart when user changes (after login/logout)
   useEffect(() => {
     (async () => {
-      if (authLoading) return; // wait for AuthContext to finish
+      if (authLoading) return;
       if (user) {
         const saved = localStorage.getItem(`cart_${user.id}`);
         if (saved) {
@@ -110,16 +104,13 @@ export function CartProvider({ children }) {
     })();
   }, [user, authLoading, fetchCart]);
 
-  // ✅ Trigger cart reminder when cart gets items (with safety checks)
   useEffect(() => {
     if (user && cartCount > 0 && createCartReminder && typeof createCartReminder === 'function') {
-      // Trigger cart reminder when cart reaches 3+ items
       if (cartCount >= 3) {
         const lastReminderTime = localStorage.getItem(`cart_reminder_${user.id}`);
         const now = Date.now();
         const oneHour = 60 * 60 * 1000;
         
-        // Only remind once per hour to avoid spam
         if (!lastReminderTime || (now - parseInt(lastReminderTime)) > oneHour) {
           try {
             createCartReminder(cartCount);
@@ -132,7 +123,6 @@ export function CartProvider({ children }) {
     }
   }, [cartCount, user, createCartReminder]);
 
-  // 🛒 Add item to cart with notification
   const addToCart = async (productIdentifier, quantity = 1, productName = "") => {
     if (!user) throw new Error("You must be logged in to add items to cart");
     
@@ -144,12 +134,11 @@ export function CartProvider({ children }) {
       const namePart = productName ? ` ${productName}` : "";
       const successMessage = `Added ${quantity}${namePart} to cart successfully`;
       
-      // ✅ Create notification for cart addition (with safety checks)
       if (createCartReminder && typeof createCartReminder === 'function' && productName) {
         setTimeout(() => {
           try {
             const newCartCount = cartCount + quantity;
-            if (newCartCount >= 2) { // Notify when cart has 2+ items
+            if (newCartCount >= 2) {
               createCartReminder(newCartCount);
             }
           } catch (error) {
@@ -165,7 +154,6 @@ export function CartProvider({ children }) {
     }
   };
 
-  // 🔁 Update quantity
   const updateQty = async (productIdentifier, quantity) => {
     if (!user) throw new Error("You must be logged in to update cart");
     try {
@@ -179,7 +167,6 @@ export function CartProvider({ children }) {
     }
   };
 
-  // ❌ Remove item
   const removeFromCart = async (productIdentifier) => {
     if (!user) throw new Error("You must be logged in to remove items");
     try {
@@ -193,30 +180,34 @@ export function CartProvider({ children }) {
     }
   };
 
-  // 🧹 Clear cart
+  // ✅ FIXED: Clear local state FIRST, then try backend
   const clearCart = async () => {
     if (!user) throw new Error("You must be logged in to clear cart");
+
+    // ✅ Step 1: Immediately clear local state (optimistic)
+    setCart([]);
+    localStorage.removeItem(`cart_${user.id}`);
+    localStorage.removeItem(`cart_reminder_${user.id}`);
+
+    // ✅ Step 2: Then try clearing on the backend (non-blocking)
     try {
       await API.post("/orders/cart/clear/");
-      setCart([]);
-      localStorage.removeItem(`cart_${user.id}`);
-      // Clear cart reminder timestamp
-      localStorage.removeItem(`cart_reminder_${user.id}`);
-      return true;
     } catch (err) {
-      console.error("clearCart failed:", err);
-      throw err;
+      console.warn("Backend cart clear failed (cart already cleared locally):", err.message);
+      // Don't throw — local cart is already empty, which is what the user sees.
+      // The backend cart will sync on next fetchCart anyway,
+      // and after checkout the backend cart should already be empty.
     }
+
+    return true;
   };
 
-  // 💳 Checkout with order notification
   const checkout = async () => {
     if (!user) throw new Error("You must be logged in to checkout");
     
     try {
       const res = await API.post("/orders/checkout/");
       
-      // ✅ Create order notification after successful checkout (with safety checks)
       if (res.data && createOrderNotification && typeof createOrderNotification === 'function') {
         const orderId = res.data.order_id || res.data.id || res.data.order?.id;
         const orderTotal = res.data.total || res.data.order?.total || 
@@ -224,18 +215,19 @@ export function CartProvider({ children }) {
         
         if (orderId) {
           try {
-            // Create order placed notification
             createOrderNotification(orderId, 'placed', orderTotal);
-            
-            // Clear cart reminder timestamp since order is placed
             localStorage.removeItem(`cart_reminder_${user.id}`);
           } catch (error) {
             console.error("Failed to create order notification:", error);
           }
         }
       }
+
+      // ✅ Clear local cart immediately after successful checkout
+      setCart([]);
+      localStorage.removeItem(`cart_${user.id}`);
+      localStorage.removeItem(`cart_reminder_${user.id}`);
       
-      await fetchCart(user);
       return res.data;
     } catch (err) {
       console.error("checkout failed:", err);
@@ -243,7 +235,6 @@ export function CartProvider({ children }) {
     }
   };
 
-  // ✅ Manual function to create order notifications (for testing or manual triggers)
   const notifyOrderUpdate = (orderId, event = 'placed', orderTotal = null) => {
     if (createOrderNotification && typeof createOrderNotification === 'function') {
       try {
@@ -256,18 +247,14 @@ export function CartProvider({ children }) {
     }
   };
 
-  // ✅ Calculate cart total for notifications
   const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-  // ✅ Test function to manually trigger notifications (for development)
   const testNotifications = () => {
     if (user) {
-      // Test cart reminder
       if (createCartReminder && typeof createCartReminder === 'function') {
         createCartReminder(cartCount || 3);
       }
       
-      // Test order notification
       if (createOrderNotification && typeof createOrderNotification === 'function') {
         const testOrderId = Math.floor(Math.random() * 1000) + 1;
         createOrderNotification(testOrderId, 'placed', cartTotal || 5000);
@@ -291,7 +278,7 @@ export function CartProvider({ children }) {
         checkout,
         refreshUser,
         notifyOrderUpdate,
-        testNotifications, // ✅ Added for testing notifications
+        testNotifications,
       }}
     >
       {children}

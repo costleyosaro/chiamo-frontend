@@ -30,7 +30,6 @@ import {
   FiCopy,
   FiShare2,
   FiHeart,
-  FiBookOpen,
 } from "react-icons/fi";
 import { HiOutlineSparkles, HiOutlineClipboardList } from "react-icons/hi";
 
@@ -85,6 +84,7 @@ const formatCurrency = (val) =>
 // ============ SUB-COMPONENTS ============
 
 // Header Component - UPDATED WITH LIST ICON AND TOOLTIP
+// Header Component - UPDATED WITH EMOJI INSTEAD OF REACT ICONS
 const ListsHeader = ({ onBack, onAdd, listCount }) => {
   const [showTooltip, setShowTooltip] = useState(false);
 
@@ -100,18 +100,19 @@ const ListsHeader = ({ onBack, onAdd, listCount }) => {
         )}
       </div>
       <div className="sl-header-right">
-        <div 
+        <div
           className="sl-add-btn-wrapper"
           onMouseEnter={() => setShowTooltip(true)}
           onMouseLeave={() => setShowTooltip(false)}
         >
-          <button 
-            className="sl-add-btn" 
-            onClick={onAdd} 
+          {/* ✅ Emoji + plain "+" instead of React icons */}
+          <button
+            className="sl-add-btn"
+            onClick={onAdd}
             aria-label="Create new list"
           >
-            <FiBookOpen />
-            <FiPlus className="sl-add-plus" />
+            <span className="sl-add-emoji">📋</span>
+            <span className="sl-add-plus">+</span>
           </button>
           {showTooltip && (
             <div className="sl-tooltip">

@@ -74,20 +74,101 @@
   font-weight: 500;
 }
 
+/* ✅ Enhanced add button with emoji */
 .sl-add-btn {
-  width: 40px;
-  height: 40px;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--accent-color);
+  width: 44px;
+  height: 44px;
   border: none;
-  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-color), #d4a803);
   color: #000000;
+  border-radius: 14px;
   font-size: 20px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(224, 191, 3, 0.3);
+  padding: 0;
+}
+
+.sl-add-btn:hover {
+  background: linear-gradient(135deg, #d4a803, var(--accent-color));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(224, 191, 3, 0.45);
+}
+
+.sl-add-btn:active {
+  transform: translateY(0);
+}
+
+/* 📋 Emoji inside button */
+.sl-add-emoji {
+  font-size: 20px;
+  line-height: 1;
+}
+
+/* ✅ Plus badge overlay — plain text "+" */
+.sl-add-plus {
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  width: 18px;
+  height: 18px;
+  background: #10B981;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  color: white;
+  border: 2px solid var(--card-bg);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  line-height: 1;
+  font-family: "Inter", -apple-system, sans-serif;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sl-add-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .sl-add-emoji {
+    font-size: 18px;
+  }
+
+  .sl-add-plus {
+    width: 16px;
+    height: 16px;
+    font-size: 11px;
+    bottom: -2px;
+    right: -2px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sl-add-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+  }
+
+  .sl-add-emoji {
+    font-size: 16px;
+  }
+
+  .sl-add-plus {
+    width: 14px;
+    height: 14px;
+    font-size: 10px;
+    bottom: -2px;
+    right: -2px;
+  }
 }
 
 .sl-add-btn:hover {

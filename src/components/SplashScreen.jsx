@@ -21,7 +21,6 @@ const IMAGES = {
 
 // ============ ANIMATED TITLE ============
 const AnimatedTitle = ({ text }) => {
-  // Split into "Chiamo" and "Order"
   const chiamoEnd = text.indexOf("Order");
   const part1 = text.slice(0, chiamoEnd);
   const part2 = text.slice(chiamoEnd);
@@ -32,15 +31,16 @@ const AnimatedTitle = ({ text }) => {
         key={`${className}-${i}`}
         className={`title-letter ${className}`}
         variants={{
-          hidden: { opacity: 0, y: 25, scale: 0.9 },
+          hidden: { opacity: 0, y: 30, scale: 0.85, rotateX: -40 },
           visible: {
             opacity: 1,
             y: 0,
             scale: 1,
+            rotateX: 0,
             transition: {
               type: "spring",
-              stiffness: 350,
-              damping: 22,
+              stiffness: 300,
+              damping: 20,
             },
           },
         }}
@@ -71,19 +71,26 @@ const AnimatedTitle = ({ text }) => {
   );
 };
 
-// ============ PROGRESS BAR ============
-const ProgressBar = ({ duration }) => (
-  <div className="splash-progress-track">
-    <motion.div
-      className="splash-progress-fill"
-      initial={{ width: "0%" }}
-      animate={{ width: "100%" }}
-      transition={{
-        duration: duration / 1000 - 0.5,
-        ease: "easeInOut",
-        delay: 0.3,
-      }}
-    />
+// ============ ✅ BOUNCING DOTS LOADER ============
+const LoadingDots = () => (
+  <div className="loading-dots">
+    {[0, 1, 2, 3].map((i) => (
+      <motion.span
+        key={i}
+        className={`dot dot-${i}`}
+        animate={{
+          y: [0, -14, 0],
+          scale: [1, 1.25, 1],
+          opacity: [0.6, 1, 0.6],
+        }}
+        transition={{
+          duration: 0.7,
+          repeat: Infinity,
+          delay: i * 0.12,
+          ease: "easeInOut",
+        }}
+      />
+    ))}
   </div>
 );
 
@@ -134,31 +141,43 @@ const SplashScreen = ({ onFinish }) => {
         <motion.div
           className="splash-screen"
           initial={{ opacity: 1 }}
-          exit={{ opacity: 0, scale: 1.02 }}
+          exit={{ opacity: 0, scale: 1.03 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
           onClick={handleSkip}
         >
-          {/* Subtle background accents */}
+          {/* Background decoration */}
           <div className="splash-bg-accent splash-bg-accent-1" />
           <div className="splash-bg-accent splash-bg-accent-2" />
+          <div className="splash-bg-ring splash-bg-ring-1" />
+          <div className="splash-bg-ring splash-bg-ring-2" />
 
           {/* Main Content */}
           <div className="splash-main">
-            {/* Logo */}
+            {/* Logo with animated ring */}
             <motion.div
               className="logo-wrapper"
-              initial={{ scale: 0.6, opacity: 0, rotate: -10 }}
+              initial={{ scale: 0.5, opacity: 0 }}
               animate={
                 showContent
-                  ? { scale: 1, opacity: 1, rotate: 0 }
-                  : { scale: 0.6, opacity: 0, rotate: -10 }
+                  ? { scale: 1, opacity: 1 }
+                  : { scale: 0.5, opacity: 0 }
               }
               transition={{
-                duration: 0.7,
+                duration: 0.8,
                 ease: [0.16, 1, 0.3, 1],
               }}
             >
               <div className="logo-glow" />
+              {/* Spinning ring around logo */}
+              <motion.div
+                className="logo-ring"
+                animate={{ rotate: 360 }}
+                transition={{
+                  duration: 12,
+                  repeat: Infinity,
+                  ease: "linear",
+                }}
+              />
               <img
                 src={IMAGES.mainLogo}
                 alt="Chiamo Order"
@@ -169,7 +188,7 @@ const SplashScreen = ({ onFinish }) => {
             {/* Title */}
             {showContent && <AnimatedTitle text={CONFIG.title} />}
 
-            {/* Divider line */}
+            {/* Divider */}
             <motion.div
               className="splash-divider"
               initial={{ scaleX: 0, opacity: 0 }}
@@ -178,7 +197,7 @@ const SplashScreen = ({ onFinish }) => {
                   ? { scaleX: 1, opacity: 1 }
                   : { scaleX: 0, opacity: 0 }
               }
-              transition={{ duration: 0.4, ease: "easeOut" }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
             />
 
             {/* Tagline */}
@@ -195,14 +214,14 @@ const SplashScreen = ({ onFinish }) => {
               {CONFIG.tagline}
             </motion.p>
 
-            {/* Progress Bar */}
+            {/* ✅ Bouncing Dots Loader */}
             <motion.div
-              className="splash-progress-wrapper"
+              className="loading-wrapper"
               initial={{ opacity: 0 }}
               animate={showTagline ? { opacity: 1 } : { opacity: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
+              transition={{ duration: 0.4, delay: 0.3 }}
             >
-              <ProgressBar duration={CONFIG.splashDuration} />
+              <LoadingDots />
             </motion.div>
           </div>
 
@@ -217,7 +236,10 @@ const SplashScreen = ({ onFinish }) => {
             }
             transition={{ duration: 0.5, ease: "easeOut" }}
           >
+            {/* ✅ Deep blue "Powered by" text */}
             <p className="powered-by">Powered by</p>
+
+            {/* ✅ Full color partner logos */}
             <div className="partner-logos">
               {partnerLogos.map((logo, index) => (
                 <motion.img

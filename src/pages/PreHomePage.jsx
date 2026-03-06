@@ -35,7 +35,7 @@ import {
   FiChevronRight,
   FiArrowUpRight,
 } from "react-icons/fi";
-import { HiOutlineSparkles } from "react-icons/hi";
+import { HiOutlineSparkles, HiOutlineClipboardList } from "react-icons/hi";
 import Lottie from "lottie-react";
 import { QrReader } from "react-qr-reader";
 import { useNavigate } from "react-router-dom";
@@ -49,8 +49,6 @@ import easyAnimation from "../assets/animations/easy.json";
 import reliableAnimation from "../assets/animations/reliable.json";
 import ShoppingAnimation from "../assets/animations/Shopping.json";
 import scanningAnimation from "../assets/animations/scanning.json";
-
-
 
 // ============ CONFIGURATION ============
 const CONFIG = {
@@ -129,25 +127,29 @@ const HOW_IT_WORKS = [
   {
     step: "01",
     title: "Create Account",
-    description: "Sign up in seconds with your email or phone number. Quick and hassle-free.",
+    description:
+      "Sign up in seconds with your email or phone number. Quick and hassle-free.",
     animation: easyAnimation,
   },
   {
     step: "02",
     title: "Browse & Scan",
-    description: "Explore our product catalog or scan QR codes to find what you need instantly.",
+    description:
+      "Explore our product catalog or scan QR codes to find what you need instantly.",
     animation: scanAnimation,
   },
   {
     step: "03",
     title: "Place Order",
-    description: "Add items to cart, choose payment method, and confirm your order with one tap.",
+    description:
+      "Add items to cart, choose payment method, and confirm your order with one tap.",
     animation: cartAnimation,
   },
   {
     step: "04",
     title: "Get Delivered",
-    description: "Sit back and relax. Your order will be delivered right to your doorstep.",
+    description:
+      "Sit back and relax. Your order will be delivered right to your doorstep.",
     animation: carDeliveryAnimation,
   },
 ];
@@ -238,6 +240,52 @@ const PARTNERS = [
   },
 ];
 
+// ============ ✅ COLLAPSIBLE SECTION WRAPPER ============
+const CollapsibleSection = ({
+  id,
+  badge,
+  title,
+  highlight,
+  description,
+  sectionClass,
+  defaultOpen = false,
+  children,
+}) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+  const innerRef = useRef(null);
+
+  return (
+    <section id={id} className={`${sectionClass || ""} cs-section`}>
+      <div className="section-container">
+        <button
+          className={`cs-toggle ${isOpen ? "cs-active" : ""}`}
+          onClick={() => setIsOpen((prev) => !prev)}
+          aria-expanded={isOpen}
+        >
+          <div className="cs-toggle-info">
+            <span className="section-badge cs-badge">{badge}</span>
+            <h2 className="cs-toggle-title">
+              {title} {highlight && <span>{highlight}</span>}
+            </h2>
+          </div>
+          <div className={`cs-toggle-arrow ${isOpen ? "cs-arrow-open" : ""}`}>
+            <FaChevronDown />
+          </div>
+        </button>
+
+        <div className={`cs-collapse ${isOpen ? "cs-expanded" : ""}`}>
+          <div className="cs-collapse-inner" ref={innerRef}>
+            {description && (
+              <p className="cs-description">{description}</p>
+            )}
+            {children}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
 // ============ NAVBAR COMPONENT ============
 const Navbar = ({ onScanClick, navigate }) => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -247,8 +295,6 @@ const Navbar = ({ onScanClick, navigate }) => {
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
-
-      // Update active section based on scroll position
       const sections = NAV_LINKS.map((link) => link.href.slice(1));
       for (const section of sections.reverse()) {
         const element = document.getElementById(section);
@@ -261,7 +307,6 @@ const Navbar = ({ onScanClick, navigate }) => {
         }
       }
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -278,7 +323,6 @@ const Navbar = ({ onScanClick, navigate }) => {
     <>
       <nav className={`navbar ${isScrolled ? "navbar-scrolled" : ""}`}>
         <div className="navbar-container">
-          {/* Logo */}
           <div className="navbar-logo" onClick={() => handleNavClick("#home")}>
             <img
               src="https://ik.imagekit.io/ljwnlcbqyu/CHIAMO-ORDER-LOGO2.png?tr=w-200,f-auto,q-80"
@@ -286,18 +330,20 @@ const Navbar = ({ onScanClick, navigate }) => {
               className="logo-image"
               loading="lazy"
             />
+            {/* ✅ Stylish logo text */}
             <div className="logo-text">
               Chiamo<span>Order</span>
             </div>
           </div>
 
-          {/* Desktop Navigation */}
           <ul className="navbar-links">
             {NAV_LINKS.map((link) => (
               <li key={link.name}>
                 <a
                   href={link.href}
-                  className={activeSection === link.href.slice(1) ? "active" : ""}
+                  className={
+                    activeSection === link.href.slice(1) ? "active" : ""
+                  }
                   onClick={(e) => {
                     e.preventDefault();
                     handleNavClick(link.href);
@@ -309,9 +355,7 @@ const Navbar = ({ onScanClick, navigate }) => {
             ))}
           </ul>
 
-          {/* Right Actions */}
           <div className="navbar-actions">
-            {/* Scan Button */}
             <button className="scan-btn" onClick={onScanClick}>
               <Lottie
                 animationData={scanningAnimation}
@@ -320,8 +364,6 @@ const Navbar = ({ onScanClick, navigate }) => {
               />
               <span>Scan</span>
             </button>
-
-            {/* Gallery Button */}
             <button
               className="gallery-btn"
               onClick={() => navigate("/product-gallery")}
@@ -329,8 +371,6 @@ const Navbar = ({ onScanClick, navigate }) => {
               <FiImage size={18} />
               <span>Gallery</span>
             </button>
-
-            {/* Auth Buttons */}
             <div className="auth-buttons">
               <button
                 className="btn btn-outline"
@@ -346,8 +386,6 @@ const Navbar = ({ onScanClick, navigate }) => {
                 <FiArrowUpRight size={16} />
               </button>
             </div>
-
-            {/* Hamburger */}
             <button
               className="hamburger-btn"
               onClick={() => setMenuOpen(true)}
@@ -359,7 +397,7 @@ const Navbar = ({ onScanClick, navigate }) => {
         </div>
       </nav>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Menu */}
       <div className={`mobile-overlay ${menuOpen ? "active" : ""}`}>
         <div className="mobile-menu">
           <div className="mobile-menu-header">
@@ -449,16 +487,28 @@ const Navbar = ({ onScanClick, navigate }) => {
           <div className="mobile-menu-footer">
             <p>Follow us</p>
             <div className="social-links">
-              <a href="https://facebook.com" target="_blank" rel="noreferrer">
+              <a
+                href="https://facebook.com"
+                target="_blank"
+                rel="noreferrer"
+              >
                 <FaFacebookF />
               </a>
-              <a href="https://instagram.com" target="_blank" rel="noreferrer">
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noreferrer"
+              >
                 <FaInstagram />
               </a>
               <a href="https://twitter.com" target="_blank" rel="noreferrer">
                 <FaTwitter />
               </a>
-              <a href="https://wa.me/1234567890" target="_blank" rel="noreferrer">
+              <a
+                href="https://wa.me/1234567890"
+                target="_blank"
+                rel="noreferrer"
+              >
                 <FaWhatsapp />
               </a>
             </div>
@@ -469,7 +519,7 @@ const Navbar = ({ onScanClick, navigate }) => {
   );
 };
 
-// ============ HERO SECTION ============
+// ============ HERO SECTION (always visible) ============
 const HeroSection = ({ navigate, onScanClick }) => (
   <section id="home" className="hero-section">
     <div className="hero-background">
@@ -495,7 +545,6 @@ const HeroSection = ({ navigate, onScanClick }) => (
           />
         </h1>
 
-        {/* Scan Animation - Added between title and description */}
         <div className="hero-scan-wrapper">
           <Lottie
             animationData={scanAnimation}
@@ -518,7 +567,10 @@ const HeroSection = ({ navigate, onScanClick }) => (
             Get Started Free
             <FaArrowRight />
           </button>
-          <button className="btn btn-secondary btn-lg" onClick={onScanClick}>
+          <button
+            className="btn btn-secondary btn-lg"
+            onClick={onScanClick}
+          >
             <FaQrcode />
             Scan to Order
           </button>
@@ -532,7 +584,9 @@ const HeroSection = ({ navigate, onScanClick }) => (
                 name={letter}
                 size="36"
                 round
-                color={["#1b4b8c", "#f5a623", "#10b981", "#8b5cf6", "#ef4444"][i]}
+                color={
+                  ["#1b4b8c", "#f5a623", "#10b981", "#8b5cf6", "#ef4444"][i]
+                }
                 className="trust-avatar"
               />
             ))}
@@ -578,7 +632,7 @@ const HeroSection = ({ navigate, onScanClick }) => (
   </section>
 );
 
-// ============ STATS SECTION ============
+// ============ STATS SECTION (always visible) ============
 const StatsSection = () => (
   <section className="stats-section">
     <div className="stats-container">
@@ -597,132 +651,106 @@ const StatsSection = () => (
   </section>
 );
 
-// ============ FEATURES SECTION ============
+// ============ ✅ FEATURES SECTION (collapsible) ============
 const FeaturesSection = () => (
-  <section id="features" className="features-section">
-    <div className="section-container">
-      <div className="section-header">
-        <span className="section-badge">Features</span>
-        <h2 className="section-title">
-          Everything you need to <span>order smarter</span>
-        </h2>
-        <p className="section-description">
-          Powerful features designed to make your ordering experience seamless,
-          fast, and reliable.
-        </p>
-      </div>
-
-      <div className="features-grid">
-        {FEATURES.map((feature, index) => (
-          <div key={index} className="feature-card">
-            <div
-              className="feature-icon"
-              style={{ backgroundColor: `${feature.color}15` }}
-            >
-              <feature.icon style={{ color: feature.color }} />
-            </div>
-            <h3 className="feature-title">{feature.title}</h3>
-            <p className="feature-description">{feature.description}</p>
-            <a href="#" className="feature-link">
-              Learn more <FiChevronRight />
-            </a>
+  <CollapsibleSection
+    id="features"
+    badge="Features"
+    title="Everything you need to"
+    highlight="order smarter"
+    description="Powerful features designed to make your ordering experience seamless, fast, and reliable."
+    sectionClass="features-section"
+    defaultOpen={true}
+  >
+    <div className="features-grid">
+      {FEATURES.map((feature, index) => (
+        <div key={index} className="feature-card">
+          <div
+            className="feature-icon"
+            style={{ backgroundColor: `${feature.color}15` }}
+          >
+            <feature.icon style={{ color: feature.color }} />
           </div>
-        ))}
-      </div>
+          <h3 className="feature-title">{feature.title}</h3>
+          <p className="feature-description">{feature.description}</p>
+          <a href="#" className="feature-link">
+            Learn more <FiChevronRight />
+          </a>
+        </div>
+      ))}
     </div>
-  </section>
+  </CollapsibleSection>
 );
 
-// ============ HOW IT WORKS SECTION ============
+// ============ ✅ HOW IT WORKS SECTION (collapsible) ============
 const HowItWorksSection = () => (
-  <section id="how-it-works" className="how-it-works-section">
-    <div className="section-container">
-      <div className="section-header">
-        <span className="section-badge">How It Works</span>
-        <h2 className="section-title">
-          Start ordering in <span>4 simple steps</span>
-        </h2>
-        <p className="section-description">
-          Getting started with ChiamoOrder is quick and easy. Follow these
-          simple steps to begin your seamless ordering experience.
-        </p>
-      </div>
-
-      <div className="steps-container">
-        {HOW_IT_WORKS.map((item, index) => (
-          <div key={index} className="step-item">
-            <div className="step-number">{item.step}</div>
-            <div className="step-animation">
-              <Lottie animationData={item.animation} loop />
-            </div>
-            <h3 className="step-title">{item.title}</h3>
-            <p className="step-description">{item.description}</p>
-            {index < HOW_IT_WORKS.length - 1 && (
-              <div className="step-connector" />
-            )}
+  <CollapsibleSection
+    id="how-it-works"
+    badge="How It Works"
+    title="Start ordering in"
+    highlight="4 simple steps"
+    description="Getting started with ChiamoOrder is quick and easy. Follow these simple steps to begin your seamless ordering experience."
+    sectionClass="how-it-works-section"
+  >
+    <div className="steps-container">
+      {HOW_IT_WORKS.map((item, index) => (
+        <div key={index} className="step-item">
+          <div className="step-number">{item.step}</div>
+          <div className="step-animation">
+            <Lottie animationData={item.animation} loop />
           </div>
-        ))}
-      </div>
+          <h3 className="step-title">{item.title}</h3>
+          <p className="step-description">{item.description}</p>
+          {index < HOW_IT_WORKS.length - 1 && (
+            <div className="step-connector" />
+          )}
+        </div>
+      ))}
     </div>
-  </section>
+  </CollapsibleSection>
 );
 
-// ============ TESTIMONIALS SECTION ============
-const TestimonialsSection = () => {
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  return (
-    <section id="testimonials" className="testimonials-section">
-      <div className="section-container">
-        <div className="section-header">
-          <span className="section-badge">Testimonials</span>
-          <h2 className="section-title">
-            Loved by <span>businesses everywhere</span>
-          </h2>
-          <p className="section-description">
-            See what our customers have to say about their experience with
-            ChiamoOrder.
-          </p>
-        </div>
-
-        <div className="testimonials-grid">
-          {TESTIMONIALS.map((testimonial, index) => (
-            <div
-              key={index}
-              className={`testimonial-card ${
-                index === activeIndex ? "active" : ""
-              }`}
-            >
-              <div className="testimonial-quote">
-                <FaQuoteLeft />
-              </div>
-              <p className="testimonial-text">{testimonial.text}</p>
-              <div className="testimonial-rating">
-                {[...Array(testimonial.rating)].map((_, i) => (
-                  <FaStar key={i} />
-                ))}
-              </div>
-              <div className="testimonial-author">
-                <Avatar
-                  name={testimonial.avatar}
-                  size="50"
-                  round
-                  color={testimonial.color}
-                />
-                <div className="author-info">
-                  <h4>{testimonial.name}</h4>
-                  <span>{testimonial.role}</span>
-                </div>
-              </div>
+// ============ ✅ TESTIMONIALS SECTION (collapsible) ============
+const TestimonialsSection = () => (
+  <CollapsibleSection
+    id="testimonials"
+    badge="Testimonials"
+    title="Loved by"
+    highlight="businesses everywhere"
+    description="See what our customers have to say about their experience with ChiamoOrder."
+    sectionClass="testimonials-section"
+  >
+    <div className="testimonials-grid">
+      {TESTIMONIALS.map((testimonial, index) => (
+        <div key={index} className="testimonial-card">
+          <div className="testimonial-quote">
+            <FaQuoteLeft />
+          </div>
+          <p className="testimonial-text">{testimonial.text}</p>
+          <div className="testimonial-rating">
+            {[...Array(testimonial.rating)].map((_, i) => (
+              <FaStar key={i} />
+            ))}
+          </div>
+          <div className="testimonial-author">
+            <Avatar
+              name={testimonial.avatar}
+              size="50"
+              round
+              color={testimonial.color}
+            />
+            <div className="author-info">
+              <h4>{testimonial.name}</h4>
+              <span>{testimonial.role}</span>
             </div>
-          ))}
+          </div>
         </div>
-      </div>
-    </section>
-  );
-};
+      ))}
+    </div>
+  </CollapsibleSection>
+);
 
-// ============ PARTNERS SECTION ============
+// ============ PARTNERS SECTION (always visible) ============
 const PartnersSection = () => (
   <section className="partners-section">
     <div className="section-container">
@@ -730,7 +758,11 @@ const PartnersSection = () => (
       <div className="partners-logos">
         {PARTNERS.map((partner, index) => (
           <div key={index} className="partner-logo-wrapper">
-            <img src={partner.src} alt={partner.alt} className="partner-logo" />
+            <img
+              src={partner.src}
+              alt={partner.alt}
+              className="partner-logo"
+            />
           </div>
         ))}
       </div>
@@ -738,49 +770,50 @@ const PartnersSection = () => (
   </section>
 );
 
-// ============ FAQ SECTION ============
+// ============ ✅ FAQ SECTION (collapsible + smooth inner accordion) ============
 const FAQSection = () => {
-  const [openIndex, setOpenIndex] = useState(0);
+  const [openIndex, setOpenIndex] = useState(-1);
 
   return (
-    <section id="faq" className="faq-section">
-      <div className="section-container">
-        <div className="section-header">
-          <span className="section-badge">FAQ</span>
-          <h2 className="section-title">
-            Frequently Asked <span>Questions</span>
-          </h2>
-          <p className="section-description">
-            Got questions? We've got answers. If you can't find what you're
-            looking for, feel free to contact us.
-          </p>
-        </div>
-
-        <div className="faq-container">
-          {FAQ_DATA.map((faq, index) => (
-            <div
-              key={index}
-              className={`faq-item ${openIndex === index ? "open" : ""}`}
+    <CollapsibleSection
+      id="faq"
+      badge="FAQ"
+      title="Frequently Asked"
+      highlight="Questions"
+      description="Got questions? We've got answers. If you can't find what you're looking for, feel free to contact us."
+      sectionClass="faq-section"
+    >
+      <div className="faq-container">
+        {FAQ_DATA.map((faq, index) => (
+          <div
+            key={index}
+            className={`faq-item ${openIndex === index ? "open" : ""}`}
+          >
+            <button
+              className="faq-question"
+              onClick={() =>
+                setOpenIndex(openIndex === index ? -1 : index)
+              }
             >
-              <button
-                className="faq-question"
-                onClick={() => setOpenIndex(openIndex === index ? -1 : index)}
-              >
-                <span>{faq.question}</span>
-                {openIndex === index ? <FaChevronUp /> : <FaChevronDown />}
-              </button>
-              <div className="faq-answer">
+              <span>{faq.question}</span>
+              <FaChevronDown
+                className={`faq-chevron ${openIndex === index ? "faq-chevron-open" : ""}`}
+              />
+            </button>
+            {/* ✅ Smooth grid-based animation */}
+            <div className="faq-answer">
+              <div className="faq-answer-inner">
                 <p>{faq.answer}</p>
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
-    </section>
+    </CollapsibleSection>
   );
 };
 
-// ============ CTA SECTION ============
+// ============ CTA SECTION (always visible) ============
 const CTASection = ({ navigate }) => (
   <section className="cta-section">
     <div className="cta-container">
@@ -821,60 +854,59 @@ const CTASection = ({ navigate }) => (
   </section>
 );
 
-// ============ CONTACT SECTION ============
+// ============ ✅ CONTACT SECTION (collapsible) ============
 const ContactSection = () => (
-  <section id="contact" className="contact-section">
-    <div className="section-container">
-      <div className="section-header">
-        <span className="section-badge">Contact</span>
-        <h2 className="section-title">
-          Get in <span>touch</span>
-        </h2>
-        <p className="section-description">
-          Have questions or need help? Our team is here to assist you.
-        </p>
+  <CollapsibleSection
+    id="contact"
+    badge="Contact"
+    title="Get in"
+    highlight="touch"
+    description="Have questions or need help? Our team is here to assist you."
+    sectionClass="contact-section"
+  >
+    <div className="contact-grid">
+      <div className="contact-card">
+        <div className="contact-icon">
+          <FaEnvelope />
+        </div>
+        <h3>Email Us</h3>
+        <p>chiamoorder@gmail.com</p>
+        <a href="mailto:support@chiamoorder.com">Send Email</a>
       </div>
-
-      <div className="contact-grid">
-        <div className="contact-card">
-          <div className="contact-icon">
-            <FaEnvelope />
-          </div>
-          <h3>Email Us</h3>
-          <p>chiamoorder@gmail.com</p>
-          <a href="mailto:support@chiamoorder.com">Send Email</a>
+      <div className="contact-card">
+        <div className="contact-icon">
+          <FaPhone />
         </div>
-        <div className="contact-card">
-          <div className="contact-icon">
-            <FaPhone />
-          </div>
-          <h3>Call Us</h3>
-          <p>+234 7032410362</p>
-          <a href="tel:+2347032410362">Make Call</a>
+        <h3>Call Us</h3>
+        <p>+234 7032410362</p>
+        <a href="tel:+2347032410362">Make Call</a>
+      </div>
+      <div className="contact-card">
+        <div className="contact-icon">
+          <FaWhatsapp />
         </div>
-        <div className="contact-card">
-          <div className="contact-icon">
-            <FaWhatsapp />
-          </div>
-          <h3>WhatsApp</h3>
-          <p>Chat with us instantly</p>
-          <a href="https://wa.me/2347032410362" target="_blank" rel="noreferrer">
-            Start Chat
-          </a>
+        <h3>WhatsApp</h3>
+        <p>Chat with us instantly</p>
+        <a
+          href="https://wa.me/2347032410362"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Start Chat
+        </a>
+      </div>
+      <div className="contact-card">
+        <div className="contact-icon">
+          <FaMapMarkerAlt />
         </div>
-        <div className="contact-card">
-          <div className="contact-icon">
-            <FaMapMarkerAlt />
-          </div>
-          <h3>Visit Us</h3>
-          <p>Portharcourt, Nigeria</p>
-          <a href="#" target="_blank" rel="noreferrer">
-            Get Directions
-          </a>
-        </div>
+        <h3>Visit Us</h3>
+        <p>Portharcourt, Nigeria</p>
+        <a href="#" target="_blank" rel="noreferrer">
+          Get Directions
+        </a>
       </div>
     </div>
-  </section>
+  </CollapsibleSection>
 );
 
 // ============ FOOTER COMPONENT ============
@@ -957,7 +989,9 @@ const Footer = ({ navigate }) => (
             <h4>Company</h4>
             <ul>
               <li>
-                <button onClick={() => navigate("/about-us")}>About Us</button>
+                <button onClick={() => navigate("/about-us")}>
+                  About Us
+                </button>
               </li>
               <li>
                 <a href="#">Careers</a>
@@ -966,7 +1000,9 @@ const Footer = ({ navigate }) => (
                 <a href="#">Press</a>
               </li>
               <li>
-                <button onClick={() => navigate("/contact-us")}>Contact</button>
+                <button onClick={() => navigate("/contact-us")}>
+                  Contact
+                </button>
               </li>
             </ul>
           </div>
@@ -1075,7 +1111,6 @@ export default function PreHomePage() {
   const [scanOpen, setScanOpen] = useState(false);
   const navigate = useNavigate();
 
-  // Smooth scroll behavior
   useEffect(() => {
     document.documentElement.style.scrollBehavior = "smooth";
     return () => {
@@ -1085,10 +1120,7 @@ export default function PreHomePage() {
 
   return (
     <div className="prehome-wrapper">
-      <Navbar
-        onScanClick={() => setScanOpen(true)}
-        navigate={navigate}
-      />
+      <Navbar onScanClick={() => setScanOpen(true)} navigate={navigate} />
 
       <main className="main-content">
         <HeroSection
@@ -1107,7 +1139,10 @@ export default function PreHomePage() {
 
       <Footer navigate={navigate} />
 
-      <QRScannerModal isOpen={scanOpen} onClose={() => setScanOpen(false)} />
+      <QRScannerModal
+        isOpen={scanOpen}
+        onClose={() => setScanOpen(false)}
+      />
     </div>
   );
 }

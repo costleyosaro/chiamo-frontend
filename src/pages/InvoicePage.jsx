@@ -88,7 +88,6 @@ export default function InvoicePage() {
   // Fetch order if not passed via state
   useEffect(() => {
     if (order) return;
-
     const fetchOrder = async () => {
       setLoading(true);
       try {
@@ -112,31 +111,21 @@ export default function InvoicePage() {
     0
   );
   const deliveryFee = Number(order?.delivery_fee || 0);
-  const grandTotal = order?.total
-    ? Number(order.total)
-    : subtotal + deliveryFee;
+  const grandTotal = order?.total ? Number(order.total) : subtotal + deliveryFee;
 
-  // Invoice number
-  const invoiceNumber =
-    order?.order_id || order?.invoice_number || `INV-${orderId}`;
+  const invoiceNumber = order?.order_id || order?.invoice_number || `INV-${orderId}`;
+  const invoiceDate = order?.created_at || order?.createdAt || new Date().toISOString();
+  const deliveryMethod = order?.delivery_method === "pickup" ? "Pickup" : "Delivery";
 
-  const invoiceDate =
-    order?.created_at || order?.createdAt || new Date().toISOString();
-
-  // Delivery method
-  const deliveryMethod =
-    order?.delivery_method === "pickup" ? "Pickup" : "Delivery";
-
-  // ============ ✅ DOWNLOAD AS REAL PDF FILE ============
+  // ✅ Download as real PDF
   const handleDownload = async () => {
-    if (!invoiceRef.current) return;
+    if (!invoiceRef.current || downloading) return;
 
     setDownloading(true);
-    toast.loading("Generating PDF...", { id: "pdf-download" });
+    const toastId = toast.loading("Generating PDF...");
 
     try {
       const element = invoiceRef.current;
-
       const options = {
         margin: [8, 10, 8, 10],
         filename: `ChiamoOrder-Invoice-${invoiceNumber}.pdf`,
@@ -146,34 +135,28 @@ export default function InvoicePage() {
           useCORS: true,
           allowTaint: true,
           logging: false,
-          letterRendering: true,
         },
         jsPDF: {
           unit: "mm",
           format: "a4",
           orientation: "portrait",
         },
-        pagebreak: { mode: ["avoid-all", "css", "legacy"] },
       };
 
       await html2pdf().set(options).from(element).save();
-
-      toast.success("Invoice downloaded!", {
-        id: "pdf-download",
-        icon: "📄",
-      });
+      toast.success("Invoice downloaded!", { id: toastId, icon: "📄" });
     } catch (err) {
       console.error("PDF generation failed:", err);
-      toast.error("Failed to download PDF. Try again.", {
-        id: "pdf-download",
-      });
+      toast.error("Failed to download. Try again.", { id: toastId });
     } finally {
       setDownloading(false);
     }
   };
 
-  // ============ SEND TO EMAIL ============
+  // ✅ Send to email
   const handleSendEmail = async () => {
+    if (sendingEmail || emailSent) return;
+
     if (!customerEmail) {
       toast.error("No email address found on your account");
       return;
@@ -186,23 +169,19 @@ export default function InvoicePage() {
       });
       setEmailSent(true);
       toast.success(`Invoice sent to ${customerEmail}`, { icon: "📧" });
-
       setTimeout(() => setEmailSent(false), 5000);
     } catch (err) {
       console.error("Failed to send invoice:", err);
-
       const errorMsg =
         err?.response?.data?.detail ||
         err?.response?.data?.error ||
         "Failed to send invoice. Please try again.";
-
       toast.error(errorMsg);
     } finally {
       setSendingEmail(false);
     }
   };
 
-  // Loading state
   if (loading) {
     return (
       <div className="invoice-page">
@@ -216,146 +195,142 @@ export default function InvoicePage() {
 
   if (!order) return null;
 
+  // ✅ Reusable button renderers (same buttons, two locations)
+  const renderDownloadButton = (className = "") => (
+    <button
+      className={`inv-btn inv-btn-download ${className} ${downloading ? "inv-btn-loading" : ""}`}
+      onClick={handleDownload}
+      disabled={downloading}
+    >
+      {downloading ? (
+        <>
+          <span className="inv-btn-spinner" />
+          Generating...
+        </>
+      ) : (
+        <>
+          <FiDownload />
+          Download PDF
+        </>
+      )}
+    </button>
+  );
+
+  const renderEmailButton = (className = "") => (
+    <button
+      className={`inv-btn inv-btn-email ${className} ${emailSent ? "inv-btn-sent" : ""}`}
+      onClick={handleSendEmail}
+      disabled={sendingEmail || emailSent}
+    >
+      {sendingEmail ? (
+        <>
+          <span className="inv-btn-spinner" />
+          Sending...
+        </>
+      ) : emailSent ? (
+        <>
+          <FiCheck />
+          Sent!
+        </>
+      ) : (
+        <>
+          <FiMail />
+          Send to Email
+        </>
+      )}
+    </button>
+  );
+
   return (
     <div className="invoice-page">
-      {/* ===== Top bar (desktop) ===== */}
-      <div className="invoice-topbar">
-        <button className="invoice-back-btn" onClick={() => navigate(-1)}>
+      {/* ===== TOP BAR ===== */}
+      <header className="inv-topbar">
+        <button className="inv-back-btn" onClick={() => navigate(-1)}>
           <FiChevronLeft />
-          <span>Back to Orders</span>
+          <span>Back</span>
         </button>
-        <div className="invoice-topbar-actions">
-          <button
-            className={`invoice-dl-btn ${downloading ? "loading" : ""}`}
-            onClick={handleDownload}
-            disabled={downloading}
-          >
-            {downloading ? (
-              <>
-                <span className="invoice-btn-spinner" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <FiDownload />
-                <span>Download PDF</span>
-              </>
-            )}
-          </button>
-          <button
-            className={`invoice-email-btn ${emailSent ? "sent" : ""}`}
-            onClick={handleSendEmail}
-            disabled={sendingEmail || emailSent}
-          >
-            {sendingEmail ? (
-              <>
-                <span className="invoice-btn-spinner" />
-                Sending...
-              </>
-            ) : emailSent ? (
-              <>
-                <FiCheck />
-                Sent!
-              </>
-            ) : (
-              <>
-                <FiMail />
-                <span>Send to Email</span>
-              </>
-            )}
-          </button>
+        <h2 className="inv-topbar-title">Invoice</h2>
+        {/* Desktop-only action buttons */}
+        <div className="inv-topbar-actions">
+          {renderDownloadButton()}
+          {renderEmailButton()}
         </div>
-      </div>
+      </header>
 
-      {/* ========== INVOICE BODY ========== */}
-      <div className="invoice-container">
-        <div className="invoice-paper" ref={invoiceRef}>
+      {/* ========== INVOICE BODY (used for PDF generation) ========== */}
+      <div className="inv-container">
+        <div className="inv-paper" ref={invoiceRef}>
           {/* Logo */}
-          <div className="invoice-logo-section">
+          <div className="inv-logo-section">
             <img
               src="https://ik.imagekit.io/ljwnlcbqyu/CHIAMO-ORDER-LOGO2.png?tr=w-200,f-auto,q-80"
               alt="ChiamoOrder"
-              className="invoice-logo"
+              className="inv-logo"
               crossOrigin="anonymous"
             />
-            <h1 className="invoice-company-name">ChiamoOrder</h1>
-            <p className="invoice-company-tagline">
-              Shop Smarter, Order Faster
-            </p>
+            <h1 className="inv-company-name">ChiamoOrder</h1>
+            <p className="inv-company-tagline">Shop Smarter, Order Faster</p>
           </div>
 
-          {/* Divider */}
-          <div className="invoice-divider" />
+          <div className="inv-divider" />
 
-          {/* Invoice Title */}
-          <div className="invoice-title-row">
-            <h2 className="invoice-label">INVOICE</h2>
+          <div className="inv-title-row">
+            <h2 className="inv-title">INVOICE</h2>
           </div>
 
-          {/* Header Info */}
-          <div className="invoice-header-grid">
-            {/* Left: Customer info */}
-            <div className="invoice-header-left">
-              <div className="invoice-info-group">
-                <span className="invoice-info-label">Bill To:</span>
-                <span className="invoice-info-value invoice-customer-name">
-                  {customerName}
-                </span>
+          {/* Header Grid */}
+          <div className="inv-header-grid">
+            <div className="inv-header-left">
+              <div className="inv-info-group">
+                <span className="inv-info-label">Bill To:</span>
+                <span className="inv-info-value inv-customer-name">{customerName}</span>
               </div>
               {customerEmail && (
-                <div className="invoice-info-group">
-                  <span className="invoice-info-label">Email:</span>
-                  <span className="invoice-info-value">{customerEmail}</span>
+                <div className="inv-info-group">
+                  <span className="inv-info-label">Email:</span>
+                  <span className="inv-info-value">{customerEmail}</span>
                 </div>
               )}
               {customerPhone && (
-                <div className="invoice-info-group">
-                  <span className="invoice-info-label">Phone:</span>
-                  <span className="invoice-info-value">{customerPhone}</span>
+                <div className="inv-info-group">
+                  <span className="inv-info-label">Phone:</span>
+                  <span className="inv-info-value">{customerPhone}</span>
                 </div>
               )}
             </div>
 
-            {/* Right: Order details */}
-            <div className="invoice-header-right">
-              <div className="invoice-info-group">
-                <span className="invoice-info-label">Invoice No:</span>
-                <span className="invoice-info-value invoice-order-id">
-                  {invoiceNumber}
-                </span>
+            <div className="inv-header-right">
+              <div className="inv-info-group">
+                <span className="inv-info-label">Invoice No:</span>
+                <span className="inv-info-value inv-order-id">{invoiceNumber}</span>
               </div>
-              <div className="invoice-info-group">
-                <span className="invoice-info-label">Date:</span>
-                <span className="invoice-info-value">
-                  {formatInvoiceDate(invoiceDate)}
-                </span>
+              <div className="inv-info-group">
+                <span className="inv-info-label">Date:</span>
+                <span className="inv-info-value">{formatInvoiceDate(invoiceDate)}</span>
               </div>
-              <div className="invoice-info-group">
-                <span className="invoice-info-label">Time:</span>
-                <span className="invoice-info-value">
-                  {formatInvoiceTime(invoiceDate)}
-                </span>
+              <div className="inv-info-group">
+                <span className="inv-info-label">Time:</span>
+                <span className="inv-info-value">{formatInvoiceTime(invoiceDate)}</span>
               </div>
-              <div className="invoice-info-group">
-                <span className="invoice-info-label">Method:</span>
-                <span className="invoice-info-value">{deliveryMethod}</span>
+              <div className="inv-info-group">
+                <span className="inv-info-label">Method:</span>
+                <span className="inv-info-value">{deliveryMethod}</span>
               </div>
             </div>
           </div>
 
-          {/* Divider */}
-          <div className="invoice-divider" />
+          <div className="inv-divider" />
 
           {/* Items Table */}
-          <table className="invoice-table">
+          <table className="inv-table">
             <thead>
               <tr>
-                <th className="invoice-th sn">#</th>
-                <th className="invoice-th name">Product</th>
-                <th className="invoice-th category">Category</th>
-                <th className="invoice-th qty">Qty</th>
-                <th className="invoice-th price">Unit Price</th>
-                <th className="invoice-th total">Total</th>
+                <th className="inv-th inv-th-sn">#</th>
+                <th className="inv-th inv-th-name">Product</th>
+                <th className="inv-th inv-th-cat">Category</th>
+                <th className="inv-th inv-th-qty">Qty</th>
+                <th className="inv-th inv-th-price">Unit Price</th>
+                <th className="inv-th inv-th-total">Total</th>
               </tr>
             </thead>
             <tbody>
@@ -363,126 +338,72 @@ export default function InvoicePage() {
                 const price = getItemPrice(item);
                 const qty = getItemQty(item);
                 const lineTotal = price * qty;
-
                 return (
-                  <tr key={index} className="invoice-tr">
-                    <td className="invoice-td sn">{index + 1}</td>
-                    <td className="invoice-td name">{getItemName(item)}</td>
-                    <td className="invoice-td category">
-                      {getItemCategory(item)}
-                    </td>
-                    <td className="invoice-td qty">{qty}</td>
-                    <td className="invoice-td price">
-                      {formatCurrency(price)}
-                    </td>
-                    <td className="invoice-td total">
-                      {formatCurrency(lineTotal)}
-                    </td>
+                  <tr key={index} className="inv-tr">
+                    <td className="inv-td inv-td-sn">{index + 1}</td>
+                    <td className="inv-td inv-td-name">{getItemName(item)}</td>
+                    <td className="inv-td inv-td-cat">{getItemCategory(item)}</td>
+                    <td className="inv-td inv-td-qty">{qty}</td>
+                    <td className="inv-td inv-td-price">{formatCurrency(price)}</td>
+                    <td className="inv-td inv-td-total">{formatCurrency(lineTotal)}</td>
                   </tr>
                 );
               })}
-
               {items.length < 3 &&
                 [...Array(3 - items.length)].map((_, i) => (
-                  <tr key={`empty-${i}`} className="invoice-tr empty-row">
-                    <td className="invoice-td">&nbsp;</td>
-                    <td className="invoice-td"></td>
-                    <td className="invoice-td"></td>
-                    <td className="invoice-td"></td>
-                    <td className="invoice-td"></td>
-                    <td className="invoice-td"></td>
+                  <tr key={`empty-${i}`} className="inv-tr inv-tr-empty">
+                    <td className="inv-td">&nbsp;</td>
+                    <td className="inv-td" />
+                    <td className="inv-td" />
+                    <td className="inv-td" />
+                    <td className="inv-td" />
+                    <td className="inv-td" />
                   </tr>
                 ))}
             </tbody>
           </table>
 
           {/* Totals */}
-          <div className="invoice-totals">
-            <div className="invoice-totals-spacer" />
-            <div className="invoice-totals-box">
-              <div className="invoice-total-row">
+          <div className="inv-totals">
+            <div className="inv-totals-box">
+              <div className="inv-total-row">
                 <span>Subtotal</span>
                 <span>{formatCurrency(subtotal)}</span>
               </div>
-              <div className="invoice-total-row">
+              <div className="inv-total-row">
                 <span>Delivery Fee</span>
-                <span>
-                  {deliveryFee === 0 ? "FREE" : formatCurrency(deliveryFee)}
-                </span>
+                <span>{deliveryFee === 0 ? "FREE" : formatCurrency(deliveryFee)}</span>
               </div>
-              <div className="invoice-total-divider" />
-              <div className="invoice-total-row grand">
+              <div className="inv-total-line" />
+              <div className="inv-total-row inv-total-grand">
                 <span>Grand Total</span>
                 <span>{formatCurrency(grandTotal)}</span>
               </div>
             </div>
           </div>
 
-          {/* ✅ RAISED stamp instead of PAID */}
-          <div className="invoice-payment-status">
-            <span className="invoice-stamp">RAISED</span>
+          {/* RAISED Stamp */}
+          <div className="inv-stamp-wrapper">
+            <span className="inv-stamp">RAISED</span>
           </div>
 
           {/* Footer */}
-          <div className="invoice-footer-section">
-            <div className="invoice-divider" />
-            <div className="invoice-footer-content">
-              <p className="invoice-thanks">Thank you for your order!</p>
-              <div className="invoice-footer-details">
-                <p>ChiamoOrder — Port Harcourt, Rivers State, Nigeria</p>
-                <p>
-                  Email: chiamoorder@gmail.com | Phone: +234 703 241 0362
-                </p>
-                <p className="invoice-footer-note">
-                  This is a computer-generated invoice. No signature required.
-                </p>
-              </div>
-            </div>
+          <div className="inv-footer">
+            <div className="inv-divider" />
+            <p className="inv-thanks">Thank you for your order!</p>
+            <p className="inv-footer-line">ChiamoOrder — Port Harcourt, Rivers State, Nigeria</p>
+            <p className="inv-footer-line">Email: chiamoorder@gmail.com | Phone: +234 703 241 0362</p>
+            <p className="inv-footer-note">
+              This is a computer-generated invoice. No signature required.
+            </p>
           </div>
         </div>
       </div>
 
-      {/* ===== ✅ Bottom action buttons (mobile) — ALWAYS visible on small screens ===== */}
-      <div className="invoice-bottom-actions">
-        <button
-          className={`invoice-bottom-btn download ${downloading ? "loading" : ""}`}
-          onClick={handleDownload}
-          disabled={downloading}
-        >
-          {downloading ? (
-            <>
-              <span className="invoice-btn-spinner" />
-              Generating...
-            </>
-          ) : (
-            <>
-              <FiDownload />
-              Download PDF
-            </>
-          )}
-        </button>
-        <button
-          className={`invoice-bottom-btn email ${emailSent ? "sent" : ""}`}
-          onClick={handleSendEmail}
-          disabled={sendingEmail || emailSent}
-        >
-          {sendingEmail ? (
-            <>
-              <span className="invoice-btn-spinner" />
-              Sending...
-            </>
-          ) : emailSent ? (
-            <>
-              <FiCheck />
-              Sent!
-            </>
-          ) : (
-            <>
-              <FiMail />
-              Send to Email
-            </>
-          )}
-        </button>
+      {/* ===== ✅ FIXED: MOBILE BOTTOM ACTION BAR ===== */}
+      <div className="inv-bottom-bar">
+        {renderDownloadButton("inv-bottom-btn")}
+        {renderEmailButton("inv-bottom-btn")}
       </div>
     </div>
   );

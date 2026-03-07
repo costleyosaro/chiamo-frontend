@@ -86,17 +86,54 @@
   background: #f3f4f6;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
-  color: #374151;
-  font-size: 20px;
   cursor: pointer;
   transition: all 0.2s ease;
+  padding: 0;
 }
 
 .inv-more-btn:hover,
 .inv-more-btn.active {
   background: #111827;
   border-color: #111827;
-  color: #ffffff;
+}
+
+.inv-more-btn:hover .inv-hamburger-line,
+.inv-more-btn.active .inv-hamburger-line {
+  background-color: #ffffff;
+}
+
+/* ============ HAMBURGER ICON ============ */
+.inv-hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 20px;
+  height: 20px;
+  gap: 4px;
+}
+
+.inv-hamburger-line {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background-color: #374151;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+/* Animate to X when active */
+.inv-more-btn.active .inv-hamburger-line:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.inv-more-btn.active .inv-hamburger-line:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.inv-more-btn.active .inv-hamburger-line:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
 }
 
 /* Dropdown overlay */
@@ -320,7 +357,17 @@
   .inv-more-btn {
     width: 36px;
     height: 36px;
-    font-size: 18px;
+  }
+
+  .inv-hamburger {
+    width: 18px;
+    height: 18px;
+    gap: 3px;
+  }
+
+  .inv-hamburger-line {
+    width: 16px;
+    height: 2px;
   }
 
   .inv-dropdown {
@@ -789,14 +836,21 @@
 [data-theme="dark"] .inv-more-btn {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.12);
-  color: var(--text-color, #e0e0e0);
+}
+
+[data-theme="dark"] .inv-hamburger-line {
+  background-color: var(--text-color, #e0e0e0);
 }
 
 [data-theme="dark"] .inv-more-btn:hover,
 [data-theme="dark"] .inv-more-btn.active {
   background: var(--accent-color, #f5a623);
-  color: #000;
   border-color: var(--accent-color, #f5a623);
+}
+
+[data-theme="dark"] .inv-more-btn:hover .inv-hamburger-line,
+[data-theme="dark"] .inv-more-btn.active .inv-hamburger-line {
+  background-color: #000;
 }
 
 [data-theme="dark"] .inv-dropdown {

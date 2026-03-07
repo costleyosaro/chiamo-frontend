@@ -5,7 +5,13 @@ import API from "../services/api";
 import toast from "react-hot-toast";
 import html2pdf from "html2pdf.js";
 import "./InvoicePage.css";
-import { FiChevronLeft, FiDownload, FiMail, FiCheck } from "react-icons/fi";
+import {
+  FiChevronLeft,
+  FiDownload,
+  FiMail,
+  FiCheck,
+  FiMoreVertical,
+} from "react-icons/fi";
 
 // ============ HELPERS ============
 const formatCurrency = (val) =>
@@ -65,12 +71,14 @@ export default function InvoicePage() {
   const navigate = useNavigate();
   const location = useLocation();
   const invoiceRef = useRef(null);
+  const dropdownRef = useRef(null);
 
   const [order, setOrder] = useState(location.state?.order || null);
   const [loading, setLoading] = useState(!order);
   const [downloading, setDownloading] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   // Get customer info
   const storedUser = JSON.parse(localStorage.getItem("auth_user") || "{}");
@@ -84,6 +92,23 @@ export default function InvoicePage() {
     "Valued Customer";
   const customerEmail = storedUser.email || storedUser.user_email || "";
   const customerPhone = storedUser.phone || storedUser.phone_number || "";
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+    };
+    if (showDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("touchstart", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, [showDropdown]);
 
   // Fetch order if not passed via state
   useEffect(() => {
@@ -111,16 +136,21 @@ export default function InvoicePage() {
     0
   );
   const deliveryFee = Number(order?.delivery_fee || 0);
-  const grandTotal = order?.total ? Number(order.total) : subtotal + deliveryFee;
+  const grandTotal = order?.total
+    ? Number(order.total)
+    : subtotal + deliveryFee;
 
-  const invoiceNumber = order?.order_id || order?.invoice_number || `INV-${orderId}`;
-  const invoiceDate = order?.created_at || order?.createdAt || new Date().toISOString();
-  const deliveryMethod = order?.delivery_method === "pickup" ? "Pickup" : "Delivery";
+  const invoiceNumber =
+    order?.order_id || order?.invoice_number || `INV-${orderId}`;
+  const invoiceDate =
+    order?.created_at || order?.createdAt || new Date().toISOString();
+  const deliveryMethod =
+    order?.delivery_method === "pickup" ? "Pickup" : "Delivery";
 
-  // ✅ Download as real PDF
+  // ✅ Download as PDF
   const handleDownload = async () => {
     if (!invoiceRef.current || downloading) return;
-
+    setShowDropdown(false);
     setDownloading(true);
     const toastId = toast.loading("Generating PDF...");
 
@@ -142,7 +172,6 @@ export default function InvoicePage() {
           orientation: "portrait",
         },
       };
-
       await html2pdf().set(options).from(element).save();
       toast.success("Invoice downloaded!", { id: toastId, icon: "📄" });
     } catch (err) {
@@ -156,6 +185,7 @@ export default function InvoicePage() {
   // ✅ Send to email
   const handleSendEmail = async () => {
     if (sendingEmail || emailSent) return;
+    setShowDropdown(false);
 
     if (!customerEmail) {
       toast.error("No email address found on your account");
@@ -197,19 +227,17 @@ export default function InvoicePage() {
 
   return (
     <div className="invoice-page">
-      {/* ===== ✅ UNIFIED TOP BAR - SAME ON ALL SCREEN SIZES ===== */}
+      {/* ===== TOP BAR ===== */}
       <header className="inv-topbar">
         <button className="inv-back-btn" onClick={() => navigate(-1)}>
           <FiChevronLeft />
-          <span>Back</span>
+          <span className="inv-back-text">Back</span>
         </button>
 
         <h2 className="inv-topbar-title">Invoice</h2>
 
-        {/* ✅ BOTH BUTTONS LIVE HERE, ON EVERY SCREEN SIZE */}
-        <div className="inv-topbar-actions">
-
-          {/* Download Button */}
+        {/* ✅ Desktop: inline buttons (visible ≥820px) */}
+        <div className="inv-topbar-inline">
           <button
             className={`inv-btn inv-btn-download ${downloading ? "inv-btn-loading" : ""}`}
             onClick={handleDownload}
@@ -218,17 +246,16 @@ export default function InvoicePage() {
             {downloading ? (
               <>
                 <span className="inv-btn-spinner" />
-                <span className="inv-btn-text">Generating...</span>
+                Generating...
               </>
             ) : (
               <>
                 <FiDownload />
-                <span className="inv-btn-text">Download</span>
+                Download PDF
               </>
             )}
           </button>
 
-          {/* Send Email Button */}
           <button
             className={`inv-btn inv-btn-email ${emailSent ? "inv-btn-sent" : ""}`}
             onClick={handleSendEmail}
@@ -237,20 +264,69 @@ export default function InvoicePage() {
             {sendingEmail ? (
               <>
                 <span className="inv-btn-spinner" />
-                <span className="inv-btn-text">Sending...</span>
+                Sending...
               </>
             ) : emailSent ? (
               <>
                 <FiCheck />
-                <span className="inv-btn-text">Sent!</span>
+                Sent!
               </>
             ) : (
               <>
                 <FiMail />
-                <span className="inv-btn-text">Email</span>
+                Send to Email
               </>
             )}
           </button>
+        </div>
+
+        {/* ✅ Mobile: 3-dot menu button (visible <820px) */}
+        <div className="inv-topbar-mobile" ref={dropdownRef}>
+          <button
+            className={`inv-more-btn ${showDropdown ? "active" : ""}`}
+            onClick={() => setShowDropdown((prev) => !prev)}
+            aria-label="More actions"
+          >
+            <FiMoreVertical />
+          </button>
+
+          {/* Dropdown */}
+          {showDropdown && (
+            <>
+              <div
+                className="inv-dropdown-overlay"
+                onClick={() => setShowDropdown(false)}
+              />
+              <div className="inv-dropdown">
+                <button
+                  className="inv-dropdown-item"
+                  onClick={handleDownload}
+                  disabled={downloading}
+                >
+                  <FiDownload />
+                  <span>
+                    {downloading ? "Generating..." : "Download PDF"}
+                  </span>
+                  {downloading && <span className="inv-btn-spinner" />}
+                </button>
+                <button
+                  className={`inv-dropdown-item ${emailSent ? "inv-dropdown-sent" : ""}`}
+                  onClick={handleSendEmail}
+                  disabled={sendingEmail || emailSent}
+                >
+                  {emailSent ? <FiCheck /> : <FiMail />}
+                  <span>
+                    {sendingEmail
+                      ? "Sending..."
+                      : emailSent
+                      ? "Sent!"
+                      : "Send to Email"}
+                  </span>
+                  {sendingEmail && <span className="inv-btn-spinner" />}
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </header>
 
@@ -280,7 +356,9 @@ export default function InvoicePage() {
             <div className="inv-header-left">
               <div className="inv-info-group">
                 <span className="inv-info-label">Bill To:</span>
-                <span className="inv-info-value inv-customer-name">{customerName}</span>
+                <span className="inv-info-value inv-customer-name">
+                  {customerName}
+                </span>
               </div>
               {customerEmail && (
                 <div className="inv-info-group">
@@ -299,15 +377,21 @@ export default function InvoicePage() {
             <div className="inv-header-right">
               <div className="inv-info-group">
                 <span className="inv-info-label">Invoice No:</span>
-                <span className="inv-info-value inv-order-id">{invoiceNumber}</span>
+                <span className="inv-info-value inv-order-id">
+                  {invoiceNumber}
+                </span>
               </div>
               <div className="inv-info-group">
                 <span className="inv-info-label">Date:</span>
-                <span className="inv-info-value">{formatInvoiceDate(invoiceDate)}</span>
+                <span className="inv-info-value">
+                  {formatInvoiceDate(invoiceDate)}
+                </span>
               </div>
               <div className="inv-info-group">
                 <span className="inv-info-label">Time:</span>
-                <span className="inv-info-value">{formatInvoiceTime(invoiceDate)}</span>
+                <span className="inv-info-value">
+                  {formatInvoiceTime(invoiceDate)}
+                </span>
               </div>
               <div className="inv-info-group">
                 <span className="inv-info-label">Method:</span>
@@ -338,11 +422,19 @@ export default function InvoicePage() {
                 return (
                   <tr key={index} className="inv-tr">
                     <td className="inv-td inv-td-sn">{index + 1}</td>
-                    <td className="inv-td inv-td-name">{getItemName(item)}</td>
-                    <td className="inv-td inv-td-cat">{getItemCategory(item)}</td>
+                    <td className="inv-td inv-td-name">
+                      {getItemName(item)}
+                    </td>
+                    <td className="inv-td inv-td-cat">
+                      {getItemCategory(item)}
+                    </td>
                     <td className="inv-td inv-td-qty">{qty}</td>
-                    <td className="inv-td inv-td-price">{formatCurrency(price)}</td>
-                    <td className="inv-td inv-td-total">{formatCurrency(lineTotal)}</td>
+                    <td className="inv-td inv-td-price">
+                      {formatCurrency(price)}
+                    </td>
+                    <td className="inv-td inv-td-total">
+                      {formatCurrency(lineTotal)}
+                    </td>
                   </tr>
                 );
               })}
@@ -369,7 +461,11 @@ export default function InvoicePage() {
               </div>
               <div className="inv-total-row">
                 <span>Delivery Fee</span>
-                <span>{deliveryFee === 0 ? "FREE" : formatCurrency(deliveryFee)}</span>
+                <span>
+                  {deliveryFee === 0
+                    ? "FREE"
+                    : formatCurrency(deliveryFee)}
+                </span>
               </div>
               <div className="inv-total-line" />
               <div className="inv-total-row inv-total-grand">
@@ -388,16 +484,18 @@ export default function InvoicePage() {
           <div className="inv-footer">
             <div className="inv-divider" />
             <p className="inv-thanks">Thank you for your order!</p>
-            <p className="inv-footer-line">ChiamoOrder — Port Harcourt, Rivers State, Nigeria</p>
-            <p className="inv-footer-line">Email: chiamoorder@gmail.com | Phone: +234 703 241 0362</p>
+            <p className="inv-footer-line">
+              ChiamoOrder — Port Harcourt, Rivers State, Nigeria
+            </p>
+            <p className="inv-footer-line">
+              Email: chiamoorder@gmail.com | Phone: +234 703 241 0362
+            </p>
             <p className="inv-footer-note">
               This is a computer-generated invoice. No signature required.
             </p>
           </div>
         </div>
       </div>
-
-      {/* ✅ ❌ OLD BOTTOM BAR COMPLETELY REMOVED ❌ */}
 
       <div className="inv-bottom-spacer"></div>
     </div>

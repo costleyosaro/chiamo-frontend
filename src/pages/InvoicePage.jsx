@@ -195,69 +195,66 @@ export default function InvoicePage() {
 
   if (!order) return null;
 
-  // ✅ Reusable button renderers (same buttons, two locations)
-  const renderDownloadButton = (className = "") => (
-    <button
-      className={`inv-btn inv-btn-download ${className} ${downloading ? "inv-btn-loading" : ""}`}
-      onClick={handleDownload}
-      disabled={downloading}
-    >
-      {downloading ? (
-        <>
-          <span className="inv-btn-spinner" />
-          Generating...
-        </>
-      ) : (
-        <>
-          <FiDownload />
-          Download PDF
-        </>
-      )}
-    </button>
-  );
-
-  const renderEmailButton = (className = "") => (
-    <button
-      className={`inv-btn inv-btn-email ${className} ${emailSent ? "inv-btn-sent" : ""}`}
-      onClick={handleSendEmail}
-      disabled={sendingEmail || emailSent}
-    >
-      {sendingEmail ? (
-        <>
-          <span className="inv-btn-spinner" />
-          Sending...
-        </>
-      ) : emailSent ? (
-        <>
-          <FiCheck />
-          Sent!
-        </>
-      ) : (
-        <>
-          <FiMail />
-          Send to Email
-        </>
-      )}
-    </button>
-  );
-
   return (
     <div className="invoice-page">
-      {/* ===== TOP BAR ===== */}
+      {/* ===== ✅ UNIFIED TOP BAR - SAME ON ALL SCREEN SIZES ===== */}
       <header className="inv-topbar">
         <button className="inv-back-btn" onClick={() => navigate(-1)}>
           <FiChevronLeft />
           <span>Back</span>
         </button>
+
         <h2 className="inv-topbar-title">Invoice</h2>
-        {/* Desktop-only action buttons */}
+
+        {/* ✅ BOTH BUTTONS LIVE HERE, ON EVERY SCREEN SIZE */}
         <div className="inv-topbar-actions">
-          {renderDownloadButton()}
-          {renderEmailButton()}
+
+          {/* Download Button */}
+          <button
+            className={`inv-btn inv-btn-download ${downloading ? "inv-btn-loading" : ""}`}
+            onClick={handleDownload}
+            disabled={downloading}
+          >
+            {downloading ? (
+              <>
+                <span className="inv-btn-spinner" />
+                <span className="inv-btn-text">Generating...</span>
+              </>
+            ) : (
+              <>
+                <FiDownload />
+                <span className="inv-btn-text">Download</span>
+              </>
+            )}
+          </button>
+
+          {/* Send Email Button */}
+          <button
+            className={`inv-btn inv-btn-email ${emailSent ? "inv-btn-sent" : ""}`}
+            onClick={handleSendEmail}
+            disabled={sendingEmail || emailSent}
+          >
+            {sendingEmail ? (
+              <>
+                <span className="inv-btn-spinner" />
+                <span className="inv-btn-text">Sending...</span>
+              </>
+            ) : emailSent ? (
+              <>
+                <FiCheck />
+                <span className="inv-btn-text">Sent!</span>
+              </>
+            ) : (
+              <>
+                <FiMail />
+                <span className="inv-btn-text">Email</span>
+              </>
+            )}
+          </button>
         </div>
       </header>
 
-      {/* ========== INVOICE BODY (used for PDF generation) ========== */}
+      {/* ========== INVOICE BODY ========== */}
       <div className="inv-container">
         <div className="inv-paper" ref={invoiceRef}>
           {/* Logo */}
@@ -400,11 +397,9 @@ export default function InvoicePage() {
         </div>
       </div>
 
-      {/* ===== ✅ FIXED: MOBILE BOTTOM ACTION BAR ===== */}
-      <div className="inv-bottom-bar">
-        {renderDownloadButton("inv-bottom-btn")}
-        {renderEmailButton("inv-bottom-btn")}
-      </div>
+      {/* ✅ ❌ OLD BOTTOM BAR COMPLETELY REMOVED ❌ */}
+
+      <div className="inv-bottom-spacer"></div>
     </div>
   );
 }

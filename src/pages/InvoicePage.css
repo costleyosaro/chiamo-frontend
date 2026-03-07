@@ -441,6 +441,178 @@
   animation: invSpin 0.8s linear infinite;
 }
 
+/* ============ TOP BAR - SAME ON ALL SCREEN SIZES ============ */
+.inv-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  gap: 12px;
+}
+
+.inv-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px 10px;
+  border-radius: 8px;
+  transition: background 0.2s;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+
+.inv-back-btn:hover {
+  background: #f3f4f6;
+}
+
+.inv-back-btn svg {
+  font-size: 18px;
+}
+
+.inv-topbar-title {
+  font-family: "Sora", sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  flex: 1;
+  text-align: center;
+}
+
+.inv-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ============ SHARED BUTTON STYLES ============ */
+.inv-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  white-space: nowrap;
+  padding: 9px 14px;
+}
+
+.inv-btn:disabled {
+  opacity: 0.65;
+  cursor: not_allowed;
+  transform: none !important;
+}
+
+.inv-btn-download {
+  background: #111827;
+  color: #ffffff;
+}
+
+.inv-btn-download:hover:not(:disabled) {
+  background: #1f2937;
+}
+
+.inv-btn-email {
+  background: #1b4b8c;
+  color: #ffffff;
+}
+
+.inv-btn-email:hover:not(:disabled) {
+  background: #143a6e;
+}
+
+.inv-btn-sent {
+  background: #10b981 !important;
+}
+
+.inv-btn-loading {
+  opacity: 0.8;
+}
+
+.inv-btn-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: invSpin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes invSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============ RESPONSIVE BUTTONS ============ */
+
+/* Desktop: Show icon + text */
+@media (min-width: 769px) {
+  .inv-btn-text {
+    display: inline;
+  }
+}
+
+/* Mobile: Hide text, icon only */
+@media (max-width: 768px) {
+  .inv-btn-text {
+    display: none;
+  }
+
+  .inv-btn {
+    padding: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    font-size: 16px;
+  }
+
+  .inv-btn svg {
+    margin: 0;
+  }
+
+  .inv-bottom-spacer {
+    height: 24px;
+  }
+}
+
+@media (max-width: 400px) {
+  .inv-topbar {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .inv-back-btn span {
+    display: none;
+  }
+
+  .inv-topbar-title {
+    font-size: 15px;
+  }
+
+  .inv-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+}
+
 /* ============ RESPONSIVE ============ */
 
 /* ===== Desktop (769px+): show topbar buttons, hide bottom bar ===== */

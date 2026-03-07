@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import API from "../services/api";
 import toast from "react-hot-toast";
+import html2pdf from "html2pdf.js";
 import "./InvoicePage.css";
 import { FiChevronLeft, FiDownload, FiMail, FiCheck } from "react-icons/fi";
 
@@ -67,6 +68,7 @@ export default function InvoicePage() {
 
   const [order, setOrder] = useState(location.state?.order || null);
   const [loading, setLoading] = useState(!order);
+  const [downloading, setDownloading] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
 
@@ -80,10 +82,8 @@ export default function InvoicePage() {
     storedUser.name ||
     storedUser.username ||
     "Valued Customer";
-  const customerEmail =
-    storedUser.email || storedUser.user_email || "";
-  const customerPhone =
-    storedUser.phone || storedUser.phone_number || "";
+  const customerEmail = storedUser.email || storedUser.user_email || "";
+  const customerPhone = storedUser.phone || storedUser.phone_number || "";
 
   // Fetch order if not passed via state
   useEffect(() => {
@@ -120,15 +120,56 @@ export default function InvoicePage() {
   const invoiceNumber =
     order?.order_id || order?.invoice_number || `INV-${orderId}`;
 
-  const invoiceDate = order?.created_at || order?.createdAt || new Date().toISOString();
+  const invoiceDate =
+    order?.created_at || order?.createdAt || new Date().toISOString();
 
   // Delivery method
   const deliveryMethod =
     order?.delivery_method === "pickup" ? "Pickup" : "Delivery";
 
-  // ============ DOWNLOAD (Print as PDF) ============
-  const handleDownload = () => {
-    window.print();
+  // ============ ✅ DOWNLOAD AS REAL PDF FILE ============
+  const handleDownload = async () => {
+    if (!invoiceRef.current) return;
+
+    setDownloading(true);
+    toast.loading("Generating PDF...", { id: "pdf-download" });
+
+    try {
+      const element = invoiceRef.current;
+
+      const options = {
+        margin: [8, 10, 8, 10],
+        filename: `ChiamoOrder-Invoice-${invoiceNumber}.pdf`,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          logging: false,
+          letterRendering: true,
+        },
+        jsPDF: {
+          unit: "mm",
+          format: "a4",
+          orientation: "portrait",
+        },
+        pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+      };
+
+      await html2pdf().set(options).from(element).save();
+
+      toast.success("Invoice downloaded!", {
+        id: "pdf-download",
+        icon: "📄",
+      });
+    } catch (err) {
+      console.error("PDF generation failed:", err);
+      toast.error("Failed to download PDF. Try again.", {
+        id: "pdf-download",
+      });
+    } finally {
+      setDownloading(false);
+    }
   };
 
   // ============ SEND TO EMAIL ============
@@ -149,7 +190,13 @@ export default function InvoicePage() {
       setTimeout(() => setEmailSent(false), 5000);
     } catch (err) {
       console.error("Failed to send invoice:", err);
-      toast.error("Failed to send invoice. Please try again.");
+
+      const errorMsg =
+        err?.response?.data?.detail ||
+        err?.response?.data?.error ||
+        "Failed to send invoice. Please try again.";
+
+      toast.error(errorMsg);
     } finally {
       setSendingEmail(false);
     }
@@ -171,16 +218,29 @@ export default function InvoicePage() {
 
   return (
     <div className="invoice-page">
-      {/* Top bar — hidden when printing */}
-      <div className="invoice-topbar no-print">
+      {/* ===== Top bar (desktop) ===== */}
+      <div className="invoice-topbar">
         <button className="invoice-back-btn" onClick={() => navigate(-1)}>
           <FiChevronLeft />
           <span>Back to Orders</span>
         </button>
         <div className="invoice-topbar-actions">
-          <button className="invoice-dl-btn" onClick={handleDownload}>
-            <FiDownload />
-            <span>Download PDF</span>
+          <button
+            className={`invoice-dl-btn ${downloading ? "loading" : ""}`}
+            onClick={handleDownload}
+            disabled={downloading}
+          >
+            {downloading ? (
+              <>
+                <span className="invoice-btn-spinner" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <FiDownload />
+                <span>Download PDF</span>
+              </>
+            )}
           </button>
           <button
             className={`invoice-email-btn ${emailSent ? "sent" : ""}`}
@@ -208,14 +268,15 @@ export default function InvoicePage() {
       </div>
 
       {/* ========== INVOICE BODY ========== */}
-      <div className="invoice-container" ref={invoiceRef}>
-        <div className="invoice-paper">
+      <div className="invoice-container">
+        <div className="invoice-paper" ref={invoiceRef}>
           {/* Logo */}
           <div className="invoice-logo-section">
             <img
               src="https://ik.imagekit.io/ljwnlcbqyu/CHIAMO-ORDER-LOGO2.png?tr=w-200,f-auto,q-80"
               alt="ChiamoOrder"
               className="invoice-logo"
+              crossOrigin="anonymous"
             />
             <h1 className="invoice-company-name">ChiamoOrder</h1>
             <p className="invoice-company-tagline">
@@ -231,7 +292,7 @@ export default function InvoicePage() {
             <h2 className="invoice-label">INVOICE</h2>
           </div>
 
-          {/* Header Info: Customer + Order details */}
+          {/* Header Info */}
           <div className="invoice-header-grid">
             {/* Left: Customer info */}
             <div className="invoice-header-left">
@@ -321,7 +382,6 @@ export default function InvoicePage() {
                 );
               })}
 
-              {/* Empty rows if fewer than 3 items (for aesthetic) */}
               {items.length < 3 &&
                 [...Array(3 - items.length)].map((_, i) => (
                   <tr key={`empty-${i}`} className="invoice-tr empty-row">
@@ -358,21 +418,21 @@ export default function InvoicePage() {
             </div>
           </div>
 
-          {/* Payment Status */}
+          {/* ✅ RAISED stamp instead of PAID */}
           <div className="invoice-payment-status">
-            <span className="invoice-stamp">PAID</span>
+            <span className="invoice-stamp">RAISED</span>
           </div>
 
           {/* Footer */}
           <div className="invoice-footer-section">
             <div className="invoice-divider" />
             <div className="invoice-footer-content">
-              <p className="invoice-thanks">
-                Thank you for your order!
-              </p>
+              <p className="invoice-thanks">Thank you for your order!</p>
               <div className="invoice-footer-details">
                 <p>ChiamoOrder — Port Harcourt, Rivers State, Nigeria</p>
-                <p>Email: chiamoorder@gmail.com | Phone: +234 703 241 0362</p>
+                <p>
+                  Email: chiamoorder@gmail.com | Phone: +234 703 241 0362
+                </p>
                 <p className="invoice-footer-note">
                   This is a computer-generated invoice. No signature required.
                 </p>
@@ -382,11 +442,24 @@ export default function InvoicePage() {
         </div>
       </div>
 
-      {/* Bottom action buttons (mobile) — hidden when printing */}
-      <div className="invoice-bottom-actions no-print">
-        <button className="invoice-bottom-btn download" onClick={handleDownload}>
-          <FiDownload />
-          Download PDF
+      {/* ===== ✅ Bottom action buttons (mobile) — ALWAYS visible on small screens ===== */}
+      <div className="invoice-bottom-actions">
+        <button
+          className={`invoice-bottom-btn download ${downloading ? "loading" : ""}`}
+          onClick={handleDownload}
+          disabled={downloading}
+        >
+          {downloading ? (
+            <>
+              <span className="invoice-btn-spinner" />
+              Generating...
+            </>
+          ) : (
+            <>
+              <FiDownload />
+              Download PDF
+            </>
+          )}
         </button>
         <button
           className={`invoice-bottom-btn email ${emailSent ? "sent" : ""}`}

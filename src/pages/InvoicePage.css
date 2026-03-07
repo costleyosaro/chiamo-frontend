@@ -1,7 +1,9 @@
 /* ============================================
    INVOICE PAGE - Clean Professional Invoice
-   White background, no colors, real-life style
+   White background, real-life style
    ============================================ */
+
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&display=swap");
 
 /* ============ PAGE WRAPPER ============ */
 .invoice-page {
@@ -9,12 +11,12 @@
   background: #f0f2f5;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
-  padding-bottom: 100px;
+  padding-bottom: 90px;
 }
 
-/* ============ TOP BAR ============ */
+/* ============ TOP BAR (desktop only) ============ */
 .invoice-topbar {
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: space-between;
   padding: 14px 20px;
@@ -38,6 +40,7 @@
   padding: 8px 12px;
   border-radius: 8px;
   transition: all 0.2s ease;
+  font-family: inherit;
 }
 
 .invoice-back-btn:hover {
@@ -67,6 +70,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   border: none;
+  font-family: inherit;
 }
 
 .invoice-dl-btn {
@@ -74,10 +78,16 @@
   color: #ffffff;
 }
 
-.invoice-dl-btn:hover {
+.invoice-dl-btn:hover:not(:disabled) {
   background: #1f2937;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.invoice-dl-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .invoice-email-btn {
@@ -108,10 +118,13 @@
   border-top-color: white;
   border-radius: 50%;
   animation: invoiceSpin 0.7s linear infinite;
+  flex-shrink: 0;
 }
 
 @keyframes invoiceSpin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ============ INVOICE CONTAINER ============ */
@@ -376,7 +389,7 @@
   font-weight: 800;
 }
 
-/* ============ PAYMENT STAMP ============ */
+/* ============ ✅ RAISED STAMP ============ */
 .invoice-payment-status {
   display: flex;
   justify-content: center;
@@ -386,15 +399,15 @@
 .invoice-stamp {
   display: inline-block;
   padding: 8px 32px;
-  border: 3px solid #10b981;
+  border: 3px solid #1b4b8c;
   border-radius: 8px;
-  color: #10b981;
+  color: #1b4b8c;
   font-size: 22px;
   font-weight: 800;
   letter-spacing: 6px;
   text-transform: uppercase;
   transform: rotate(-3deg);
-  opacity: 0.7;
+  opacity: 0.6;
 }
 
 /* ============ FOOTER ============ */
@@ -427,7 +440,7 @@
   color: #d1d5db !important;
 }
 
-/* ============ BOTTOM ACTION BUTTONS (Mobile) ============ */
+/* ============ ✅ BOTTOM ACTION BUTTONS (mobile — always visible) ============ */
 .invoice-bottom-actions {
   position: fixed;
   bottom: 0;
@@ -436,10 +449,11 @@
   display: flex;
   gap: 12px;
   padding: 16px 20px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   background: #ffffff;
   border-top: 1px solid #e5e7eb;
   box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
-  z-index: 99;
+  z-index: 999;
 }
 
 .invoice-bottom-btn {
@@ -455,6 +469,7 @@
   cursor: pointer;
   border: none;
   transition: all 0.2s ease;
+  font-family: inherit;
 }
 
 .invoice-bottom-btn.download {
@@ -462,8 +477,13 @@
   color: #ffffff;
 }
 
-.invoice-bottom-btn.download:hover {
+.invoice-bottom-btn.download:hover:not(:disabled) {
   background: #1f2937;
+}
+
+.invoice-bottom-btn.download:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .invoice-bottom-btn.email {
@@ -508,14 +528,29 @@
   animation: invoiceSpin 0.8s linear infinite;
 }
 
-/* ============ RESPONSIVE ============ */
+/* ============ ✅ RESPONSIVE — FIXED ============ */
+
+/* Desktop: show topbar, hide bottom bar */
 @media (min-width: 769px) {
+  .invoice-topbar {
+    display: flex;
+  }
+
   .invoice-bottom-actions {
     display: none;
   }
+
+  .invoice-page {
+    padding-bottom: 20px;
+  }
 }
 
+/* Tablet & Mobile: hide topbar, show bottom bar */
 @media (max-width: 768px) {
+  .invoice-topbar {
+    display: flex;
+  }
+
   .invoice-topbar-actions {
     display: none;
   }
@@ -578,7 +613,12 @@
   }
 
   .invoice-page {
-    padding-bottom: 80px;
+    padding-bottom: 90px;
+  }
+
+  /* ✅ Ensure bottom buttons show */
+  .invoice-bottom-actions {
+    display: flex !important;
   }
 }
 
@@ -614,18 +654,21 @@
   .invoice-order-id {
     font-size: 14px;
   }
+
+  .invoice-bottom-btn {
+    padding: 12px 8px;
+    font-size: 13px;
+    gap: 6px;
+  }
 }
 
 /* ============ PRINT STYLES ============ */
 @media print {
-  /* Hide non-print elements */
-  .no-print,
   .invoice-topbar,
   .invoice-bottom-actions {
     display: none !important;
   }
 
-  /* Reset page */
   body,
   html {
     background: white !important;
@@ -651,7 +694,6 @@
     padding: 20px 30px !important;
   }
 
-  /* Show all columns on print */
   .invoice-th.category,
   .invoice-td.category,
   .invoice-th.price,
@@ -659,7 +701,6 @@
     display: table-cell !important;
   }
 
-  /* Page break settings */
   .invoice-paper {
     page-break-inside: avoid;
   }
@@ -673,12 +714,11 @@
     page-break-after: auto;
   }
 
-  /* Ensure colors print */
   .invoice-stamp {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
-    color: #10b981 !important;
-    border-color: #10b981 !important;
+    color: #1b4b8c !important;
+    border-color: #1b4b8c !important;
   }
 
   @page {

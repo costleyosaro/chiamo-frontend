@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import API from "../services/api";
 import { useTheme } from "../context/ThemeContext";
 import { useCart } from "../pages/CartContext";
-import { useSmartLists } from "../pages/SmartListContext"; // ✅ Added import
+import { useSmartLists } from "../pages/SmartListContext";
 import toast from "react-hot-toast";
 import "./Profile.css";
 
@@ -23,18 +23,12 @@ import {
   FiShoppingBag,
   FiList,
   FiPackage,
-  FiDollarSign,
   FiAward,
   FiEdit3,
   FiShield,
-  FiLock,
   FiInfo,
-  FiSettings,
-  FiGift,
   FiStar,
-  FiHeart,
   FiAlertCircle,
-  FiCheck,
 } from "react-icons/fi";
 import { HiOutlineSparkles } from "react-icons/hi";
 
@@ -63,7 +57,7 @@ const calculateLoyaltyPoints = (profile, orderSummary) => {
   // Login frequency bonus (estimate based on account age)
   const accountCreated = profile.created_at ? new Date(profile.created_at) : new Date();
   const daysSinceCreation = Math.floor((new Date() - accountCreated) / (1000 * 60 * 60 * 24));
-  const estimatedLogins = Math.min(daysSinceCreation * 0.3, 100); // Assume 30% login rate, max 100 bonus
+  const estimatedLogins = Math.min(daysSinceCreation * 0.3, 100);
   points += Math.floor(estimatedLogins);
   
   // Bonus for having profile complete
@@ -117,7 +111,7 @@ const AvatarSection = ({ profile, onEdit }) => {
   );
 };
 
-// Stats Cards - Updated with Naira symbol
+// Stats Cards
 const StatsSection = ({ orderSummary }) => (
   <div className="pf-stats">
     <div className="pf-stat-card">
@@ -141,7 +135,7 @@ const StatsSection = ({ orderSummary }) => (
   </div>
 );
 
-// Loyalty Card - Removed Redeem Button
+// Loyalty Card
 const LoyaltyCard = ({ points = 0 }) => (
   <div className="pf-loyalty-card">
     <div className="pf-loyalty-content">
@@ -158,7 +152,7 @@ const LoyaltyCard = ({ points = 0 }) => (
   </div>
 );
 
-// Quick Actions - Updated with fixed styling
+// Quick Actions
 const QuickActions = ({ smartListsCount = 0, onNavigate }) => {
   
   const handleSubscriptionsClick = () => {
@@ -216,6 +210,7 @@ const QuickActions = ({ smartListsCount = 0, onNavigate }) => {
     </div>
   );
 };
+
 // Menu Section
 const MenuSection = ({ title, children }) => (
   <div className="pf-menu-section">
@@ -321,7 +316,7 @@ export default function ProfilePage() {
   const { theme, toggleTheme } = useTheme();
   const { clearCart, user } = useCart();
 
-  // ✅ FIXED: Import and use SmartLists context like BottomNav does
+  // Smart Lists context
   let totalSmartListCount = 0;
   try {
     const smartListContext = useSmartLists();
@@ -441,7 +436,7 @@ export default function ProfilePage() {
 
         {/* Quick Actions */}
         <QuickActions
-          smartListsCount={totalSmartListCount} // ✅ Use the context value
+          smartListsCount={totalSmartListCount}
           onNavigate={handleNavigate}
         />
 
@@ -461,11 +456,6 @@ export default function ProfilePage() {
             icon={FiCreditCard}
             label="Payment Methods"
             onClick={() => navigate("/payments")}
-          />
-          <MenuItem
-            icon={FiLock}
-            label="Security"
-            onClick={() => navigate("/security")}
           />
         </MenuSection>
 
@@ -531,4 +521,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-                

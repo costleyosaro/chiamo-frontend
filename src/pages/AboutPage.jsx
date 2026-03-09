@@ -1,3 +1,4 @@
+// src/pages/AboutPage.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -30,8 +31,8 @@ import { HiOutlineOfficeBuilding, HiOutlineSparkles } from "react-icons/hi";
 import { BiSupport } from "react-icons/bi";
 import "./AboutPage.css";
 
-// Import your about image
-// import aboutImage from "../assets/about-profile.jpg";
+// ============ IMAGE URL ============
+const aboutImage = "https://ik.imagekit.io/ljwnlcbqyu/about-profile.jpg?updatedAt=1771688205638";
 
 // ============ CONFIGURATION ============
 const COMPANY_INFO = {
@@ -51,9 +52,6 @@ const COMPANY_INFO = {
     speed, transparency, and trust."`,
 };
 
-// Replace the import line with:
-// import aboutProfile from "../assets/about-profile.jpg"
-const aboutProfile = "https://via.placeholder.com/400x300/1b4b8c/ffffff?text=About+Us";
 // ============ STATS DATA ============
 const STATS = [
   { number: "10K+", label: "Happy Customers", icon: FiUsers },
@@ -316,7 +314,10 @@ export default function AboutPage() {
         <div className="ap-about-container">
           <div className="ap-about-image">
             <div className="ap-image-wrapper">
-              <img src={aboutImage} alt="About ChiamoOrder" />
+              <img 
+                src={aboutImage} 
+                alt="About ChiamoOrder" 
+              />
               <div className="ap-image-overlay">
                 <FaShoppingCart />
               </div>

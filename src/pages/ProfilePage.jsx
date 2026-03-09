@@ -1,523 +1,741 @@
-// src/pages/ProfilePage.jsx
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+// src/pages/InvoicePage.jsx
+import React, { useState, useEffect, useRef } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import API from "../services/api";
-import { useTheme } from "../context/ThemeContext";
-import { useCart } from "../pages/CartContext";
-import { useSmartLists } from "../pages/SmartListContext";
 import toast from "react-hot-toast";
-import "./Profile.css";
+import html2pdf from "html2pdf.js";
+import "./InvoicePage.css";
+import { FiChevronLeft, FiDownload, FiMail, FiCheck } from "react-icons/fi";
 
-// Icons
-import {
-  FiUser,
-  FiMapPin,
-  FiBell,
-  FiCreditCard,
-  FiHelpCircle,
-  FiLogOut,
-  FiChevronLeft,
-  FiChevronRight,
-  FiMoon,
-  FiSun,
-  FiShoppingBag,
-  FiList,
-  FiPackage,
-  FiAward,
-  FiEdit3,
-  FiShield,
-  FiInfo,
-  FiStar,
-  FiAlertCircle,
-} from "react-icons/fi";
-import { HiOutlineSparkles } from "react-icons/hi";
-
-// ============ HELPER FUNCTIONS ============
+// ============ HELPERS ============
 const formatCurrency = (val) =>
   `₦${Number(val || 0).toLocaleString("en-NG", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   })}`;
 
-// ============ LOYALTY POINTS ALGORITHM ============
-const calculateLoyaltyPoints = (profile, orderSummary) => {
-  if (!profile || !orderSummary) return 0;
-
-  let points = 0;
-  
-  // Base points for registration
-  points += 50;
-  
-  // Points for orders (10 points per order)
-  points += (orderSummary.total_orders || 0) * 10;
-  
-  // Points for spending (1 point per ₦100 spent)
-  points += Math.floor((orderSummary.total_spent || 0) / 100);
-  
-  // Login frequency bonus (estimate based on account age)
-  const accountCreated = profile.created_at ? new Date(profile.created_at) : new Date();
-  const daysSinceCreation = Math.floor((new Date() - accountCreated) / (1000 * 60 * 60 * 24));
-  const estimatedLogins = Math.min(daysSinceCreation * 0.3, 100);
-  points += Math.floor(estimatedLogins);
-  
-  // Bonus for having profile complete
-  if (profile.name && profile.email && profile.phone) {
-    points += 25;
-  }
-  
-  // Bonus for business verification
-  if (profile.businessName) {
-    points += 30;
-  }
-  
-  return Math.floor(points);
+const formatInvoiceDate = (dateStr) => {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("en-NG", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 };
 
-// ============ SUB-COMPONENTS ============
+const formatInvoiceTime = (dateStr) => {
+  const d = new Date(dateStr);
+  return d.toLocaleTimeString("en-NG", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
+};
 
-// Header Component
-const ProfileHeader = ({ onBack }) => (
-  <header className="pf-header">
-    <button className="pf-back-btn" onClick={onBack} aria-label="Go back">
-      <FiChevronLeft />
-    </button>
-    <h1 className="pf-header-title">My Profile</h1>
-    <div className="pf-header-spacer"></div>
-  </header>
-);
-
-// Avatar Section
-const AvatarSection = ({ profile, onEdit }) => {
-  const initial = profile?.name?.[0]?.toUpperCase() || 
-                  profile?.businessName?.[0]?.toUpperCase() || "U";
-
-  return (
-    <div className="pf-avatar-section">
-      <div className="pf-avatar-wrapper">
-        <div className="pf-avatar">
-          <span className="pf-avatar-initial">{initial}</span>
-        </div>
-        <button className="pf-avatar-edit" onClick={onEdit}>
-          <FiEdit3 />
-        </button>
-      </div>
-      <h2 className="pf-user-name">{profile?.businessName || profile?.name || "User"}</h2>
-      <p className="pf-user-email">{profile?.email || "No email"}</p>
-      <div className="pf-user-badge">
-        <FiStar />
-        <span>Premium Member</span>
-      </div>
-    </div>
+const getItemCategory = (item) => {
+  const candidates = [
+    item?.product?.category?.name,
+    item?.product?.category,
+    item?.category?.name,
+    item?.category,
+    item?.product_category,
+  ];
+  const raw = candidates.find(
+    (v) => v !== undefined && v !== null && String(v).trim() !== ""
   );
+  if (!raw) return "—";
+  const s = String(raw).trim().toLowerCase();
+  if (["uncategorized", "unknown", "n/a", "none", "null"].includes(s))
+    return "—";
+  return String(raw).trim().replace(/^\w/, (c) => c.toUpperCase());
 };
 
-// Stats Cards
-const StatsSection = ({ orderSummary }) => (
-  <div className="pf-stats">
-    <div className="pf-stat-card">
-      <div className="pf-stat-icon orders">
-        <FiPackage />
-      </div>
-      <div className="pf-stat-content">
-        <span className="pf-stat-value">{orderSummary?.total_orders || 0}</span>
-        <span className="pf-stat-label">Total Orders</span>
-      </div>
-    </div>
-    <div className="pf-stat-card">
-      <div className="pf-stat-icon savings">
-        <span className="naira-symbol">₦</span>
-      </div>
-      <div className="pf-stat-content">
-        <span className="pf-stat-value">{formatCurrency(orderSummary?.total_spent || 0)}</span>
-        <span className="pf-stat-label">Total Spent</span>
-      </div>
-    </div>
-  </div>
-);
+const getItemName = (item) =>
+  item?.product?.name || item?.name || item?.product_name || "Unnamed Product";
 
-// Loyalty Card
-const LoyaltyCard = ({ points = 0 }) => (
-  <div className="pf-loyalty-card">
-    <div className="pf-loyalty-content">
-      <div className="pf-loyalty-icon">
-        <FiAward />
-      </div>
-      <div className="pf-loyalty-info">
-        <span className="pf-loyalty-label">Loyalty Points</span>
-        <span className="pf-loyalty-value">{points} pts</span>
-        <span className="pf-loyalty-subtitle">Keep shopping to earn more!</span>
-      </div>
-    </div>
-    <div className="pf-loyalty-pattern"></div>
-  </div>
-);
+const getItemPrice = (item) =>
+  Number(item?.product?.price || item?.price || item?.unit_price || 0);
 
-// Quick Actions
-const QuickActions = ({ smartListsCount = 0, onNavigate }) => {
-  
-  const handleSubscriptionsClick = () => {
-    toast.success("🚀 New feature coming soon!", {
-      duration: 3000,
-      style: {
-        background: 'linear-gradient(135deg, #1b4b8c, #143a6e)',
-        color: 'white',
-        borderRadius: '12px',
-        padding: '16px',
-        fontSize: '14px',
-        fontWeight: '500',
-      },
-    });
+const getItemQty = (item) => Number(item?.quantity || item?.qty || 1);
+
+/**
+ * Calculate delivery fee based on subtotal and delivery method
+ *
+ * Pricing Structure:
+ * - Warehouse Pickup: Always FREE
+ * - Below ₦10,000: ₦2,000 delivery fee
+ * - ₦10,000 - ₦24,999: ₦1,500 delivery fee
+ * - ₦25,000 - ₦49,999: ₦1,000 delivery fee
+ * - ₦50,000 and above: FREE delivery
+ */
+const calculateDeliveryFee = (subtotal, deliveryMethod) => {
+  const isPickup =
+    deliveryMethod === "pickup" || deliveryMethod === "warehouse_pickup";
+  if (isPickup) {
+    return 0;
+  }
+
+  if (subtotal >= 50000) {
+    return 0;
+  } else if (subtotal >= 25000) {
+    return 1000;
+  } else if (subtotal >= 10000) {
+    return 1500;
+  } else {
+    return 2000;
+  }
+};
+
+/**
+ * Smart Location Resolver
+ * Priority:
+ * 1. User's registered location (from registration) - HIGHEST PRIORITY
+ * 2. User's saved addresses (from addresses section)
+ * 3. Order's delivery address
+ * 4. "Location not specified" - FALLBACK
+ */
+const getCustomerLocation = (user, order, addresses = []) => {
+  // ===== PRIORITY 1: User's registered location (set during registration) =====
+  // Check various possible field names for the registered location
+  const registeredLocation =
+    user?.location ||
+    user?.registered_location ||
+    user?.default_location ||
+    user?.registration_address ||
+    user?.primary_location;
+
+  if (registeredLocation && String(registeredLocation).trim()) {
+    return {
+      value: String(registeredLocation).trim(),
+      source: "registered",
+    };
+  }
+
+  // Also check if location is built from registration fields
+  const registrationParts = [
+    user?.street_address || user?.street,
+    user?.area || user?.neighborhood,
+    user?.city,
+    user?.state,
+    user?.lga, // Local Government Area (Nigeria specific)
+  ].filter((part) => part && String(part).trim());
+
+  if (registrationParts.length > 0) {
+    return {
+      value: registrationParts.join(", "),
+      source: "registered",
+    };
+  }
+
+  // ===== PRIORITY 2: User's saved addresses =====
+  // First, try to find a default/primary address
+  const defaultAddress = addresses.find(
+    (addr) =>
+      addr?.is_default === true ||
+      addr?.is_primary === true ||
+      addr?.default === true ||
+      addr?.primary === true
+  );
+
+  if (defaultAddress) {
+    const addressString = formatAddress(defaultAddress);
+    if (addressString) {
+      return {
+        value: addressString,
+        source: "addresses",
+      };
+    }
+  }
+
+  // If no default, use the first address
+  if (addresses.length > 0) {
+    const firstAddress = addresses[0];
+    const addressString = formatAddress(firstAddress);
+    if (addressString) {
+      return {
+        value: addressString,
+        source: "addresses",
+      };
+    }
+  }
+
+  // Also check user object for address fields
+  const userAddress =
+    user?.address ||
+    user?.delivery_address ||
+    user?.shipping_address ||
+    user?.saved_address;
+
+  if (userAddress && String(userAddress).trim()) {
+    return {
+      value: String(userAddress).trim(),
+      source: "addresses",
+    };
+  }
+
+  // ===== PRIORITY 3: Order's delivery address =====
+  const orderAddress =
+    order?.delivery_address ||
+    order?.shipping_address ||
+    order?.address ||
+    order?.location ||
+    order?.customer_address;
+
+  if (orderAddress && String(orderAddress).trim()) {
+    return {
+      value: String(orderAddress).trim(),
+      source: "order",
+    };
+  }
+
+  // ===== FALLBACK: No location found =====
+  return {
+    value: null,
+    source: "none",
   };
-
-  return (
-    <div className="pf-quick-actions">
-      <div 
-        className="pf-quick-card pf-subscription-card" 
-        onClick={handleSubscriptionsClick}
-        style={{ 
-          background: '#ffffff',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)'
-        }}
-      >
-        <div className="pf-quick-icon subscriptions">
-          <FiShoppingBag />
-        </div>
-        <div className="pf-quick-content">
-          <span className="pf-quick-label">Subscriptions</span>
-          <span className="pf-quick-value">Coming Soon</span>
-        </div>
-        <FiChevronRight className="pf-quick-arrow" />
-      </div>
-      <div 
-        className="pf-quick-card pf-smartlist-card" 
-        onClick={() => onNavigate("/cart-page")}
-        style={{ 
-          background: '#ffffff',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)'
-        }}
-      >
-        <div className="pf-quick-icon smartlists">
-          <FiList />
-        </div>
-        <div className="pf-quick-content">
-          <span className="pf-quick-label">Smart Lists</span>
-          <span className="pf-quick-value">{smartListsCount} Lists</span>
-        </div>
-        <FiChevronRight className="pf-quick-arrow" />
-      </div>
-    </div>
-  );
 };
 
-// Menu Section
-const MenuSection = ({ title, children }) => (
-  <div className="pf-menu-section">
-    {title && <h3 className="pf-menu-title">{title}</h3>}
-    <div className="pf-menu-items">{children}</div>
-  </div>
-);
+/**
+ * Format an address object into a readable string
+ */
+const formatAddress = (address) => {
+  if (!address) return null;
 
-// Menu Item
-const MenuItem = ({ icon: Icon, label, value, onClick, danger, toggle, isActive }) => (
-  <button
-    className={`pf-menu-item ${danger ? "danger" : ""}`}
-    onClick={onClick}
-  >
-    <div className="pf-menu-item-left">
-      <div className={`pf-menu-icon ${danger ? "danger" : ""}`}>
-        <Icon />
-      </div>
-      <span className="pf-menu-label">{label}</span>
-    </div>
-    <div className="pf-menu-item-right">
-      {value && <span className="pf-menu-value">{value}</span>}
-      {toggle ? (
-        <div className={`pf-toggle ${isActive ? "active" : ""}`}>
-          <div className="pf-toggle-thumb"></div>
-        </div>
-      ) : (
-        <FiChevronRight className="pf-menu-arrow" />
-      )}
-    </div>
-  </button>
-);
+  // If address is already a string
+  if (typeof address === "string") {
+    return address.trim() || null;
+  }
 
-// Logout Confirmation Modal
-const LogoutModal = ({ isOpen, onClose, onConfirm, isLoading }) => {
-  if (!isOpen) return null;
+  // If address is an object, build the string
+  const parts = [
+    address?.street_address || address?.street || address?.address_line_1,
+    address?.address_line_2,
+    address?.area || address?.neighborhood || address?.district,
+    address?.city || address?.town,
+    address?.lga, // Local Government Area
+    address?.state,
+    address?.country,
+  ].filter((part) => part && String(part).trim());
 
-  return (
-    <div className="pf-modal-overlay" onClick={onClose}>
-      <div className="pf-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="pf-modal-icon">
-          <FiLogOut />
-        </div>
-        <h3 className="pf-modal-title">Sign Out?</h3>
-        <p className="pf-modal-text">
-          Are you sure you want to sign out of your account?
-        </p>
-        <div className="pf-modal-actions">
-          <button className="pf-modal-btn cancel" onClick={onClose}>
-            Cancel
-          </button>
-          <button
-            className="pf-modal-btn confirm"
-            onClick={onConfirm}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <span className="pf-btn-loader"></span>
-            ) : (
-              <>
-                <FiLogOut />
-                <span>Sign Out</span>
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  return parts.length > 0 ? parts.join(", ") : null;
 };
-
-// App Version Footer
-const AppFooter = () => (
-  <div className="pf-footer">
-    <div className="pf-footer-logo">
-      <HiOutlineSparkles />
-      <span>ChiamoOrder</span>
-    </div>
-    <span className="pf-footer-version">Version 1.0.0</span>
-  </div>
-);
-
-// Loading Skeleton
-const ProfileSkeleton = () => (
-  <div className="pf-skeleton">
-    <div className="pf-skeleton-avatar"></div>
-    <div className="pf-skeleton-name"></div>
-    <div className="pf-skeleton-email"></div>
-    <div className="pf-skeleton-stats">
-      <div className="pf-skeleton-stat"></div>
-      <div className="pf-skeleton-stat"></div>
-    </div>
-    <div className="pf-skeleton-card"></div>
-    <div className="pf-skeleton-menu"></div>
-    <div className="pf-skeleton-menu"></div>
-    <div className="pf-skeleton-menu"></div>
-  </div>
-);
 
 // ============ MAIN COMPONENT ============
-export default function ProfilePage() {
+export default function InvoicePage() {
+  const { orderId } = useParams();
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
-  const { clearCart, user } = useCart();
+  const location = useLocation();
+  const invoiceRef = useRef(null);
+  const dropdownRef = useRef(null);
 
-  // Smart Lists context
-  let totalSmartListCount = 0;
-  try {
-    const smartListContext = useSmartLists();
-    totalSmartListCount = smartListContext?.totalSmartListCount || 0;
-  } catch (error) {
-    console.warn('SmartLists context not available in ProfilePage:', error);
-    totalSmartListCount = 0;
-  }
+  const [order, setOrder] = useState(location.state?.order || null);
+  const [addresses, setAddresses] = useState([]);
+  const [loading, setLoading] = useState(!order);
+  const [downloading, setDownloading] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
 
-  // State
-  const [profile, setProfile] = useState(null);
-  const [orderSummary, setOrderSummary] = useState({
-    total_orders: 0,
-    total_spent: 0,
-  });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  // Get customer info from localStorage
+  const storedUser = JSON.parse(localStorage.getItem("auth_user") || "{}");
 
-  // Fetch profile data
+  const customerName =
+    storedUser.business_name ||
+    storedUser.company_name ||
+    storedUser.shop_name ||
+    [storedUser.first_name, storedUser.last_name].filter(Boolean).join(" ") ||
+    storedUser.name ||
+    storedUser.username ||
+    "Valued Customer";
+
+  const customerEmail = storedUser.email || storedUser.user_email || "";
+  const customerPhone = storedUser.phone || storedUser.phone_number || "";
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+    };
+    if (showDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("touchstart", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, [showDropdown]);
+
+  // Fetch order and addresses
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
-        const [profileRes, summaryRes] = await Promise.all([
-          API.get("/customers/profile/"),
-          API.get("/orders/summary/"),
-        ]);
-        
-        setProfile(profileRes.data);
-        setOrderSummary(summaryRes.data);
+        // Fetch order if not passed via state
+        let orderData = order;
+        if (!orderData) {
+          const orderRes = await API.get(`orders/user-orders/${orderId}/`);
+          orderData = orderRes.data;
+          setOrder(orderData);
+        }
 
+        // Fetch user's saved addresses
+        try {
+          const addressRes = await API.get("/customers/addresses/");
+          const addressData = addressRes.data;
+          // Handle both array and paginated response
+          setAddresses(
+            Array.isArray(addressData)
+              ? addressData
+              : addressData?.results || []
+          );
+        } catch (addrErr) {
+          console.warn("Could not fetch addresses:", addrErr);
+          setAddresses([]);
+        }
       } catch (err) {
-        console.error("Failed to load profile:", err);
-        setError("Failed to load profile");
+        console.error("Failed to fetch order:", err);
+        toast.error("Could not load order details");
+        navigate(-1);
       } finally {
         setLoading(false);
       }
     };
+
     fetchData();
-  }, []);
+  }, [orderId, order, navigate]);
 
-  // Calculate loyalty points
-  const loyaltyPoints = calculateLoyaltyPoints(profile, orderSummary);
+  // Get delivery method and check if pickup
+  const deliveryMethod = order?.delivery_method || "delivery";
+  const isPickup =
+    deliveryMethod === "pickup" || deliveryMethod === "warehouse_pickup";
 
-  // Handle Logout
-  const handleLogout = async () => {
-    setIsLoggingOut(true);
+  // Get customer location using smart resolver
+  const locationResult = getCustomerLocation(storedUser, order, addresses);
+  const customerLocation = locationResult.value;
+  const locationSource = locationResult.source;
+
+  // Calculate totals
+  const items = order?.items || [];
+  const subtotal = items.reduce(
+    (sum, item) => sum + getItemPrice(item) * getItemQty(item),
+    0
+  );
+
+  // Calculate delivery fee using the pricing structure
+  const deliveryFee = calculateDeliveryFee(subtotal, deliveryMethod);
+
+  // Calculate grand total
+  const grandTotal = subtotal + deliveryFee;
+
+  // Invoice metadata
+  const invoiceNumber =
+    order?.order_id || order?.invoice_number || `INV-${orderId}`;
+  const invoiceDate =
+    order?.created_at || order?.createdAt || new Date().toISOString();
+  const deliveryMethodDisplay = isPickup ? "Warehouse Pickup" : "Delivery";
+
+  // ✅ Download as PDF
+  const handleDownload = async () => {
+    if (!invoiceRef.current || downloading) return;
+    setShowDropdown(false);
+    setDownloading(true);
+    const toastId = toast.loading("Generating PDF...");
+
     try {
-      localStorage.removeItem("access");
-      localStorage.removeItem("refresh");
-      localStorage.removeItem("auth_user");
-      if (user?.id) localStorage.removeItem(`cart_${user.id}`);
-      await clearCart();
-      delete API.defaults.headers.common["Authorization"];
-      toast.success("Signed out successfully");
-      navigate("/", { replace: true });
+      const element = invoiceRef.current;
+      const options = {
+        margin: [8, 10, 8, 10],
+        filename: `ChiamoOrder-Invoice-${invoiceNumber}.pdf`,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          logging: false,
+        },
+        jsPDF: {
+          unit: "mm",
+          format: "a4",
+          orientation: "portrait",
+        },
+      };
+      await html2pdf().set(options).from(element).save();
+      toast.success("Invoice downloaded!", { id: toastId, icon: "📄" });
     } catch (err) {
-      console.error("Logout failed:", err);
-      toast.error("Logout failed. Please try again.");
-      navigate("/", { replace: true });
+      console.error("PDF generation failed:", err);
+      toast.error("Failed to download. Try again.", { id: toastId });
     } finally {
-      setIsLoggingOut(false);
+      setDownloading(false);
     }
   };
 
-  // Handle navigation
-  const handleNavigate = (path) => {
-    navigate(path);
+  // ✅ Send to email
+  const handleSendEmail = async () => {
+    if (sendingEmail || emailSent) return;
+    setShowDropdown(false);
+
+    if (!customerEmail) {
+      toast.error("No email address found on your account");
+      return;
+    }
+
+    setSendingEmail(true);
+    try {
+      await API.post(`orders/user-orders/${orderId}/send-invoice/`, {
+        email: customerEmail,
+      });
+      setEmailSent(true);
+      toast.success(`Invoice sent to ${customerEmail}`, { icon: "📧" });
+      setTimeout(() => setEmailSent(false), 5000);
+    } catch (err) {
+      console.error("Failed to send invoice:", err);
+      const errorMsg =
+        err?.response?.data?.detail ||
+        err?.response?.data?.error ||
+        "Failed to send invoice. Please try again.";
+      toast.error(errorMsg);
+    } finally {
+      setSendingEmail(false);
+    }
   };
 
-  // Loading state
   if (loading) {
     return (
-      <div className="pf-page">
-        <ProfileHeader onBack={() => navigate(-1)} />
-        <div className="pf-content">
-          <ProfileSkeleton />
+      <div className="invoice-page">
+        <div className="invoice-loading">
+          <div className="invoice-loading-spinner" />
+          <p>Loading invoice...</p>
         </div>
       </div>
     );
   }
 
-  // Error state
-  if (error) {
-    return (
-      <div className="pf-page">
-        <ProfileHeader onBack={() => navigate(-1)} />
-        <div className="pf-error">
-          <FiAlertCircle />
-          <h3>Something went wrong</h3>
-          <p>{error}</p>
-          <button onClick={() => window.location.reload()}>Try Again</button>
-        </div>
-      </div>
-    );
-  }
+  if (!order) return null;
 
   return (
-    <div className="pf-page">
-      {/* Header */}
-      <ProfileHeader onBack={() => navigate(-1)} />
+    <div className="invoice-page">
+      {/* ===== TOP BAR ===== */}
+      <header className="inv-topbar">
+        <button className="inv-back-btn" onClick={() => navigate(-1)}>
+          <FiChevronLeft />
+          <span className="inv-back-text">Back</span>
+        </button>
 
-      {/* Content */}
-      <div className="pf-content">
-        {/* Avatar Section */}
-        <AvatarSection
-          profile={profile}
-          onEdit={() => navigate("/edit-profile")}
-        />
+        <h2 className="inv-topbar-title">Invoice</h2>
 
-        {/* Stats */}
-        <StatsSection orderSummary={orderSummary} />
+        {/* ✅ Desktop: inline buttons (visible ≥820px) */}
+        <div className="inv-topbar-inline">
+          <button
+            className={`inv-btn inv-btn-download ${downloading ? "inv-btn-loading" : ""}`}
+            onClick={handleDownload}
+            disabled={downloading}
+          >
+            {downloading ? (
+              <>
+                <span className="inv-btn-spinner" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <FiDownload />
+                Download PDF
+              </>
+            )}
+          </button>
 
-        {/* Loyalty Card */}
-        <LoyaltyCard points={loyaltyPoints} />
+          <button
+            className={`inv-btn inv-btn-email ${emailSent ? "inv-btn-sent" : ""}`}
+            onClick={handleSendEmail}
+            disabled={sendingEmail || emailSent}
+          >
+            {sendingEmail ? (
+              <>
+                <span className="inv-btn-spinner" />
+                Sending...
+              </>
+            ) : emailSent ? (
+              <>
+                <FiCheck />
+                Sent!
+              </>
+            ) : (
+              <>
+                <FiMail />
+                Send to Email
+              </>
+            )}
+          </button>
+        </div>
 
-        {/* Quick Actions */}
-        <QuickActions
-          smartListsCount={totalSmartListCount}
-          onNavigate={handleNavigate}
-        />
+        {/* ✅ Mobile: hamburger menu button (visible <820px) */}
+        <div className="inv-topbar-mobile" ref={dropdownRef}>
+          <button
+            className={`inv-more-btn ${showDropdown ? "active" : ""}`}
+            onClick={() => setShowDropdown((prev) => !prev)}
+            aria-label="More actions"
+          >
+            <span className="inv-hamburger">
+              <span className="inv-hamburger-line"></span>
+              <span className="inv-hamburger-line"></span>
+              <span className="inv-hamburger-line"></span>
+            </span>
+          </button>
 
-        {/* Account Settings */}
-        <MenuSection title="Account">
-          <MenuItem
-            icon={FiUser}
-            label="Edit Profile"
-            onClick={() => navigate("/edit-profile")}
-          />
-          <MenuItem
-            icon={FiMapPin}
-            label="Addresses"
-            onClick={() => navigate("/addresses")}
-          />
-          <MenuItem
-            icon={FiCreditCard}
-            label="Payment Methods"
-            onClick={() => navigate("/payments")}
-          />
-        </MenuSection>
+          {/* ✅ Dropdown Menu */}
+          {showDropdown && (
+            <div className="inv-dropdown">
+              <button
+                className="inv-dropdown-item"
+                onClick={handleDownload}
+                disabled={downloading}
+              >
+                <FiDownload />
+                <span>{downloading ? "Generating..." : "Download PDF"}</span>
+              </button>
+              <button
+                className="inv-dropdown-item"
+                onClick={handleSendEmail}
+                disabled={sendingEmail || emailSent}
+              >
+                {emailSent ? <FiCheck /> : <FiMail />}
+                <span>
+                  {sendingEmail
+                    ? "Sending..."
+                    : emailSent
+                      ? "Sent!"
+                      : "Send to Email"}
+                </span>
+              </button>
+            </div>
+          )}
+        </div>
+      </header>
 
-        {/* Preferences */}
-        <MenuSection title="Preferences">
-          <MenuItem
-            icon={FiBell}
-            label="Notifications"
-            onClick={() => navigate("/notifications")}
-          />
-          <MenuItem
-            icon={theme === "dark" ? FiSun : FiMoon}
-            label={theme === "dark" ? "Light Mode" : "Dark Mode"}
-            toggle
-            isActive={theme === "dark"}
-            onClick={toggleTheme}
-          />
-        </MenuSection>
+      {/* ========== INVOICE BODY ========== */}
+      <div className="inv-container">
+        <div className="inv-paper" ref={invoiceRef}>
+          {/* Logo */}
+          <div className="inv-logo-section">
+            <img
+              src="https://ik.imagekit.io/ljwnlcbqyu/CHIAMO-ORDER-LOGO2.png?tr=w-200,f-auto,q-80"
+              alt="ChiamoOrder"
+              className="inv-logo"
+              crossOrigin="anonymous"
+            />
+            <h1 className="inv-company-name">ChiamoOrder</h1>
+            <p className="inv-company-tagline">Shop Smarter, Order Faster</p>
+          </div>
 
-        {/* Support */}
-        <MenuSection title="Support">
-          <MenuItem
-            icon={FiHelpCircle}
-            label="Help & Support"
-            onClick={() => navigate("/support")}
-          />
-          <MenuItem
-            icon={FiInfo}
-            label="About"
-            onClick={() => navigate("/about-us")}
-          />
-          <MenuItem
-            icon={FiShield}
-            label="Privacy Policy"
-            onClick={() => navigate("/privacy-policy")}
-          />
-        </MenuSection>
+          <div className="inv-divider" />
 
-        {/* Sign Out */}
-        <MenuSection>
-          <MenuItem
-            icon={FiLogOut}
-            label="Sign Out"
-            danger
-            onClick={() => setShowLogoutModal(true)}
-          />
-        </MenuSection>
+          <div className="inv-title-row">
+            <h2 className="inv-title">INVOICE</h2>
+          </div>
 
-        {/* Footer */}
-        <AppFooter />
+          {/* ===== BALANCED TWO-COLUMN HEADER GRID ===== */}
+          <div className="inv-header-grid">
+            {/* LEFT COLUMN - Customer Info */}
+            <div className="inv-header-col inv-header-left">
+              <div className="inv-info-group">
+                <span className="inv-info-label">Bill To:</span>
+                <span className="inv-info-value inv-customer-name">
+                  {customerName}
+                </span>
+              </div>
+
+              <div className="inv-info-group">
+                <span className="inv-info-label">Email:</span>
+                <span className="inv-info-value">
+                  {customerEmail || (
+                    <span className="inv-nil">Not specified</span>
+                  )}
+                </span>
+              </div>
+
+              <div className="inv-info-group">
+                <span className="inv-info-label">Phone:</span>
+                <span className="inv-info-value">
+                  {customerPhone || (
+                    <span className="inv-nil">Not specified</span>
+                  )}
+                </span>
+              </div>
+
+              <div className="inv-info-group">
+                <span className="inv-info-label">
+                  {isPickup ? "Pickup Location:" : "Delivery Address:"}
+                </span>
+                <span className="inv-info-value inv-location">
+                  {isPickup ? (
+                    "ChiamoOrder Warehouse, Port Harcourt"
+                  ) : customerLocation ? (
+                    <>
+                      {customerLocation}
+                      {/* Optional: Show source indicator for debugging */}
+                      {/* <small className="inv-location-source">({locationSource})</small> */}
+                    </>
+                  ) : (
+                    <span className="inv-nil">Location not specified</span>
+                  )}
+                </span>
+              </div>
+            </div>
+
+            {/* RIGHT COLUMN - Invoice Details */}
+            <div className="inv-header-col inv-header-right">
+              <div className="inv-info-group">
+                <span className="inv-info-label">Invoice No:</span>
+                <span className="inv-info-value inv-order-id">
+                  {invoiceNumber}
+                </span>
+              </div>
+
+              <div className="inv-info-group">
+                <span className="inv-info-label">Date:</span>
+                <span className="inv-info-value">
+                  {formatInvoiceDate(invoiceDate)}
+                </span>
+              </div>
+
+              <div className="inv-info-group">
+                <span className="inv-info-label">Time:</span>
+                <span className="inv-info-value">
+                  {formatInvoiceTime(invoiceDate)}
+                </span>
+              </div>
+
+              <div className="inv-info-group">
+                <span className="inv-info-label">Fulfillment:</span>
+                <span
+                  className={`inv-info-value inv-method ${isPickup ? "inv-method-pickup" : "inv-method-delivery"}`}
+                >
+                  {deliveryMethodDisplay}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="inv-divider" />
+
+          {/* Items Table */}
+          <table className="inv-table">
+            <thead>
+              <tr>
+                <th className="inv-th inv-th-sn">#</th>
+                <th className="inv-th inv-th-name">Product</th>
+                <th className="inv-th inv-th-cat">Category</th>
+                <th className="inv-th inv-th-qty">Qty</th>
+                <th className="inv-th inv-th-price">Unit Price</th>
+                <th className="inv-th inv-th-total">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((item, index) => {
+                const price = getItemPrice(item);
+                const qty = getItemQty(item);
+                const lineTotal = price * qty;
+                return (
+                  <tr key={index} className="inv-tr">
+                    <td className="inv-td inv-td-sn">{index + 1}</td>
+                    <td className="inv-td inv-td-name">{getItemName(item)}</td>
+                    <td className="inv-td inv-td-cat">
+                      {getItemCategory(item)}
+                    </td>
+                    <td className="inv-td inv-td-qty">{qty}</td>
+                    <td className="inv-td inv-td-price">
+                      {formatCurrency(price)}
+                    </td>
+                    <td className="inv-td inv-td-total">
+                      {formatCurrency(lineTotal)}
+                    </td>
+                  </tr>
+                );
+              })}
+              {items.length < 3 &&
+                [...Array(3 - items.length)].map((_, i) => (
+                  <tr key={`empty-${i}`} className="inv-tr inv-tr-empty">
+                    <td className="inv-td">&nbsp;</td>
+                    <td className="inv-td" />
+                    <td className="inv-td" />
+                    <td className="inv-td" />
+                    <td className="inv-td" />
+                    <td className="inv-td" />
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+
+          {/* Totals */}
+          <div className="inv-totals">
+            <div className="inv-totals-box">
+              <div className="inv-total-row">
+                <span>Subtotal</span>
+                <span>{formatCurrency(subtotal)}</span>
+              </div>
+              <div className="inv-total-row">
+                <span>
+                  Delivery Fee
+                  {isPickup && (
+                    <small className="inv-fee-note"> (Pickup)</small>
+                  )}
+                </span>
+                <span className={deliveryFee === 0 ? "inv-free-delivery" : ""}>
+                  {deliveryFee === 0 ? "FREE" : formatCurrency(deliveryFee)}
+                </span>
+              </div>
+              <div className="inv-total-line" />
+              <div className="inv-total-row inv-total-grand">
+                <span>Grand Total</span>
+                <span>{formatCurrency(grandTotal)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Delivery Fee Info Note (only for delivery, not pickup) */}
+          {!isPickup && (
+            <div className="inv-delivery-note">
+              <small>
+                {subtotal < 10000 &&
+                  "Orders below ₦10,000 incur a ₦2,000 delivery fee."}
+                {subtotal >= 10000 &&
+                  subtotal < 25000 &&
+                  "Orders ₦10,000 – ₦24,999 incur a ₦1,500 delivery fee."}
+                {subtotal >= 25000 &&
+                  subtotal < 50000 &&
+                  "Orders ₦25,000 – ₦49,999 incur a ₦1,000 delivery fee."}
+                {subtotal >= 50000 &&
+                  "🎉 Free delivery on orders ₦50,000 and above!"}
+              </small>
+            </div>
+          )}
+
+          {/* RAISED Stamp */}
+          <div className="inv-stamp-wrapper">
+            <span className="inv-stamp">RAISED</span>
+          </div>
+
+          {/* Footer */}
+          <div className="inv-footer">
+            <div className="inv-divider" />
+            <p className="inv-thanks">Thank you for your order!</p>
+            <p className="inv-footer-line">
+              ChiamoOrder — Port Harcourt, Rivers State, Nigeria
+            </p>
+            <p className="inv-footer-line">
+              Email: chiamoorder@gmail.com | Phone: +234 703 241 0362
+            </p>
+            <p className="inv-footer-note">
+              This is a computer-generated invoice. No signature required.
+            </p>
+          </div>
+        </div>
       </div>
 
-      {/* Logout Modal */}
-      <LogoutModal
-        isOpen={showLogoutModal}
-        onClose={() => setShowLogoutModal(false)}
-        onConfirm={handleLogout}
-        isLoading={isLoggingOut}
-      />
-
-      {/* Bottom Spacer */}
-      <div className="pf-bottom-spacer"></div>
+      <div className="inv-bottom-spacer"></div>
     </div>
   );
 }

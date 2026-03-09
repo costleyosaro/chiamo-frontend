@@ -33,10 +33,25 @@ import { HiOutlineClipboardCheck, HiOutlineSparkles } from "react-icons/hi";
 const ORDER_STEPS = [
   { key: "confirmed", label: "Confirmed", icon: FiCheckCircle },
   { key: "processing", label: "Processing", icon: FiBox },
-  { key: "transit", label: "In Transit", icon: FiTruck },
-  { key: "delivery", label: "Out for Delivery", icon: FiMapPin },
+  { key: "shipped", label: "Shipped", icon: FiTruck },
+  { key: "out_for_delivery", label: "Out for Delivery", icon: FiMapPin },
   { key: "delivered", label: "Delivered", icon: HiOutlineClipboardCheck },
 ];
+
+// Map database status to progress number
+const STATUS_TO_PROGRESS = {
+  'confirmed': 1,
+  'order confirmed': 1,
+  'pending': 1,
+  'processing': 2,
+  'shipped': 3,
+  'in transit': 3,
+  'in_transit': 3,
+  'out for delivery': 4,
+  'out_for_delivery': 4,
+  'delivered': 5,
+  'completed': 5,
+};
 
 // ============ HELPER FUNCTIONS ============
 const formatCurrency = (val) =>
@@ -74,6 +89,43 @@ const getStatusColor = (progress) => {
   if (progress >= 3) return "transit";
   if (progress >= 2) return "processing";
   return "confirmed";
+};
+
+/**
+ * Get progress number from order status
+ * This syncs the database status with the frontend progress tracker
+ */
+const getProgressFromStatus = (order) => {
+  // If order has explicit progress field, use it
+  if (order.progress && typeof order.progress === 'number') {
+    return order.progress;
+  }
+  
+  // Otherwise, derive from status field
+  const status = (order.status || 'confirmed').toLowerCase().trim();
+  
+  // Check for exact match first
+  if (STATUS_TO_PROGRESS[status] !== undefined) {
+    return STATUS_TO_PROGRESS[status];
+  }
+  
+  // Check for partial matches
+  if (status.includes('deliver') && status.includes('out')) return 4;
+  if (status.includes('delivered') || status.includes('complete')) return 5;
+  if (status.includes('transit') || status.includes('shipped')) return 3;
+  if (status.includes('process')) return 2;
+  if (status.includes('confirm') || status.includes('pending')) return 1;
+  
+  // Default to confirmed
+  return 1;
+};
+
+/**
+ * Get display status label from progress
+ */
+const getStatusLabel = (progress) => {
+  const step = ORDER_STEPS[progress - 1];
+  return step ? step.label : "Confirmed";
 };
 
 // ============ SUB-COMPONENTS ============
@@ -188,9 +240,11 @@ const OrderCard = ({
     ) || order.total || 0;
 
   const itemCount = order.items?.length || 0;
-  const progress = order.progress || 1;
+  
+  // ✅ Get progress from database status
+  const progress = getProgressFromStatus(order);
   const statusClass = getStatusColor(progress);
-  const currentStatus = ORDER_STEPS[progress - 1]?.label || "Confirmed";
+  const currentStatus = getStatusLabel(progress);
   
   const sourceLabel =
     order.source === "cart"
@@ -200,7 +254,10 @@ const OrderCard = ({
       : "Direct";
 
   return (
-    <div className={`ord-card ${isNew ? "new-order" : ""}`}>
+    <div 
+      className={`ord-card ${isNew ? "new-order" : ""}`}
+      data-order-id={order.order_id || order.id}
+    >
       {/* New Order Badge */}
       {isNew && (
         <div className="ord-new-badge">
@@ -262,7 +319,6 @@ const OrderCard = ({
           </>
         )}
       </div>
-
 
       {/* Order Summary — clickable to invoice */}
       <div
@@ -395,28 +451,25 @@ export default function OrdersPage() {
     }
   }, [newOrderIdFromNav]);
 
-  // Add this to your OrdersPage.jsx useEffect
-useEffect(() => {
   // Check for highlight parameter in URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const highlightOrderId = urlParams.get('highlight');
-  
-  if (highlightOrderId) {
-    // Scroll to and highlight the specific order
-    setTimeout(() => {
-      const orderElement = document.querySelector(`[data-order-id="${highlightOrderId}"]`);
-      if (orderElement) {
-        orderElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        orderElement.classList.add('order-highlighted');
-        
-        // Remove highlight after 3 seconds
-        setTimeout(() => {
-          orderElement.classList.remove('order-highlighted');
-        }, 3000);
-      }
-    }, 500);
-  }
-}, []);
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const highlightOrderId = urlParams.get('highlight');
+    
+    if (highlightOrderId) {
+      setTimeout(() => {
+        const orderElement = document.querySelector(`[data-order-id="${highlightOrderId}"]`);
+        if (orderElement) {
+          orderElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          orderElement.classList.add('order-highlighted');
+          
+          setTimeout(() => {
+            orderElement.classList.remove('order-highlighted');
+          }, 3000);
+        }
+      }, 500);
+    }
+  }, [orders]);
 
   // Fetch orders
   useEffect(() => {
@@ -429,18 +482,23 @@ useEffect(() => {
           data = data.results;
         }
 
+        // Sort by date (newest first)
         data.sort(
           (a, b) =>
             new Date(b.created_at || b.createdAt || 0) -
             new Date(a.created_at || a.createdAt || 0)
         );
 
-        const open = data.filter(
-          (o) => (o.status || "").toLowerCase() !== "delivered"
-        );
-        const closed = data.filter(
-          (o) => (o.status || "").toLowerCase() === "delivered"
-        );
+        // ✅ Use status from database to determine if order is open or closed
+        const open = data.filter((o) => {
+          const status = (o.status || "").toLowerCase().trim();
+          return status !== "delivered" && status !== "completed";
+        });
+        
+        const closed = data.filter((o) => {
+          const status = (o.status || "").toLowerCase().trim();
+          return status === "delivered" || status === "completed";
+        });
 
         setOrders(open);
         setClosedOrders(closed);
@@ -459,28 +517,26 @@ useEffect(() => {
     const order = orders.find((o) => o.id === orderId);
     if (!order) return;
 
-    const currentProgress = order.progress || 1;
-    const currentStatus = ORDER_STEPS[currentProgress - 1]?.label || "Confirmed";
+    const progress = getProgressFromStatus(order);
 
     toast.dismiss();
 
-    if (currentProgress < 4) {
+    if (progress < 4) {
       const messages = {
         1: "Order just confirmed! Please wait until it's out for delivery.",
         2: "Order is being processed. Please wait.",
         3: "Order is in transit. Almost there!",
       };
-      toast(messages[currentProgress] || "Please wait for delivery.", {
+      toast(messages[progress] || "Please wait for delivery.", {
         icon: "⏳",
       });
       return;
     }
 
-    if (currentProgress === 4) {
+    if (progress === 4) {
       try {
         const updated = await API.patch(`orders/user-orders/${orderId}/`, {
           status: "delivered",
-          progress: ORDER_STEPS.length,
         });
 
         toast.success("Order confirmed! Thank you for your purchase.", {
@@ -496,7 +552,7 @@ useEffect(() => {
       return;
     }
 
-    if (currentProgress >= 5) {
+    if (progress >= 5) {
       toast("Order already delivered!", { icon: "✅" });
     }
   };
@@ -537,8 +593,7 @@ useEffect(() => {
       ...order,
       id: undefined,
       order_id: `RE-${Math.floor(Math.random() * 1000000)}`,
-      status: "Order Confirmed",
-      progress: 1,
+      status: "confirmed",
       created_at: new Date().toISOString(),
     };
 

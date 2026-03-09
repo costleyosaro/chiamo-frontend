@@ -5,12 +5,7 @@ import API from "../services/api";
 import toast from "react-hot-toast";
 import html2pdf from "html2pdf.js";
 import "./InvoicePage.css";
-import {
-  FiChevronLeft,
-  FiDownload,
-  FiMail,
-  FiCheck,
-} from "react-icons/fi";
+import { FiChevronLeft, FiDownload, FiMail, FiCheck } from "react-icons/fi";
 
 // ============ HELPERS ============
 const formatCurrency = (val) =>
@@ -64,6 +59,78 @@ const getItemPrice = (item) =>
 
 const getItemQty = (item) => Number(item?.quantity || item?.qty || 1);
 
+/**
+ * Calculate delivery fee based on subtotal and delivery method
+ *
+ * Pricing Structure:
+ * - Warehouse Pickup: Always FREE
+ * - Below ₦10,000: ₦2,000 delivery fee
+ * - ₦10,000 - ₦24,999: ₦1,500 delivery fee
+ * - ₦25,000 - ₦49,999: ₦1,000 delivery fee
+ * - ₦50,000 and above: FREE delivery
+ */
+const calculateDeliveryFee = (subtotal, deliveryMethod) => {
+  // Warehouse pickup is always free
+  const isPickup =
+    deliveryMethod === "pickup" || deliveryMethod === "warehouse_pickup";
+  if (isPickup) {
+    return 0;
+  }
+
+  // Calculate based on subtotal for delivery orders
+  if (subtotal >= 50000) {
+    return 0; // Free delivery for orders ₦50,000 and above
+  } else if (subtotal >= 25000) {
+    return 1000; // ₦1,000 for orders ₦25,000 - ₦49,999
+  } else if (subtotal >= 10000) {
+    return 1500; // ₦1,500 for orders ₦10,000 - ₦24,999
+  } else {
+    return 2000; // ₦2,000 for orders below ₦10,000
+  }
+};
+
+/**
+ * Get customer location from various possible fields
+ */
+const getCustomerLocation = (user, order) => {
+  // Try to get location from order first
+  const orderLocation =
+    order?.delivery_address ||
+    order?.shipping_address ||
+    order?.address ||
+    order?.location;
+
+  if (orderLocation && String(orderLocation).trim()) {
+    return String(orderLocation).trim();
+  }
+
+  // Try to get from user profile
+  const userLocation =
+    user?.address ||
+    user?.location ||
+    user?.delivery_address ||
+    user?.shipping_address;
+
+  if (userLocation && String(userLocation).trim()) {
+    return String(userLocation).trim();
+  }
+
+  // Try to build address from components
+  const addressParts = [
+    user?.street_address || user?.street,
+    user?.city,
+    user?.state,
+    user?.country,
+  ].filter((part) => part && String(part).trim());
+
+  if (addressParts.length > 0) {
+    return addressParts.join(", ");
+  }
+
+  // Return nil if no location found
+  return null;
+};
+
 // ============ MAIN COMPONENT ============
 export default function InvoicePage() {
   const { orderId } = useParams();
@@ -79,8 +146,9 @@ export default function InvoicePage() {
   const [emailSent, setEmailSent] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // Get customer info
+  // Get customer info from localStorage
   const storedUser = JSON.parse(localStorage.getItem("auth_user") || "{}");
+
   const customerName =
     storedUser.business_name ||
     storedUser.company_name ||
@@ -89,6 +157,7 @@ export default function InvoicePage() {
     storedUser.name ||
     storedUser.username ||
     "Valued Customer";
+
   const customerEmail = storedUser.email || storedUser.user_email || "";
   const customerPhone = storedUser.phone || storedUser.phone_number || "";
 
@@ -128,23 +197,33 @@ export default function InvoicePage() {
     fetchOrder();
   }, [orderId, order, navigate]);
 
+  // Get delivery method and check if pickup
+  const deliveryMethod = order?.delivery_method || "delivery";
+  const isPickup =
+    deliveryMethod === "pickup" || deliveryMethod === "warehouse_pickup";
+
+  // Get customer location
+  const customerLocation = getCustomerLocation(storedUser, order);
+
   // Calculate totals
   const items = order?.items || [];
   const subtotal = items.reduce(
     (sum, item) => sum + getItemPrice(item) * getItemQty(item),
     0
   );
-  const deliveryFee = Number(order?.delivery_fee || 0);
-  const grandTotal = order?.total
-    ? Number(order.total)
-    : subtotal + deliveryFee;
 
+  // Calculate delivery fee using the pricing structure
+  const deliveryFee = calculateDeliveryFee(subtotal, deliveryMethod);
+
+  // Calculate grand total
+  const grandTotal = subtotal + deliveryFee;
+
+  // Invoice metadata
   const invoiceNumber =
     order?.order_id || order?.invoice_number || `INV-${orderId}`;
   const invoiceDate =
     order?.created_at || order?.createdAt || new Date().toISOString();
-  const deliveryMethod =
-    order?.delivery_method === "pickup" ? "Pickup" : "Delivery";
+  const deliveryMethodDisplay = isPickup ? "Warehouse Pickup" : "Delivery";
 
   // ✅ Download as PDF
   const handleDownload = async () => {
@@ -314,8 +393,8 @@ export default function InvoicePage() {
                   {sendingEmail
                     ? "Sending..."
                     : emailSent
-                    ? "Sent!"
-                    : "Send to Email"}
+                      ? "Sent!"
+                      : "Send to Email"}
                 </span>
               </button>
             </div>
@@ -344,51 +423,77 @@ export default function InvoicePage() {
             <h2 className="inv-title">INVOICE</h2>
           </div>
 
-          {/* Header Grid */}
+          {/* ===== BALANCED TWO-COLUMN HEADER GRID ===== */}
           <div className="inv-header-grid">
-            <div className="inv-header-left">
+            {/* LEFT COLUMN - Customer Info */}
+            <div className="inv-header-col inv-header-left">
               <div className="inv-info-group">
                 <span className="inv-info-label">Bill To:</span>
                 <span className="inv-info-value inv-customer-name">
                   {customerName}
                 </span>
               </div>
-              {customerEmail && (
-                <div className="inv-info-group">
-                  <span className="inv-info-label">Email:</span>
-                  <span className="inv-info-value">{customerEmail}</span>
-                </div>
-              )}
-              {customerPhone && (
-                <div className="inv-info-group">
-                  <span className="inv-info-label">Phone:</span>
-                  <span className="inv-info-value">{customerPhone}</span>
-                </div>
-              )}
+
+              <div className="inv-info-group">
+                <span className="inv-info-label">Email:</span>
+                <span className="inv-info-value">
+                  {customerEmail || <span className="inv-nil">Nil</span>}
+                </span>
+              </div>
+
+              <div className="inv-info-group">
+                <span className="inv-info-label">Phone:</span>
+                <span className="inv-info-value">
+                  {customerPhone || <span className="inv-nil">Nil</span>}
+                </span>
+              </div>
+
+              <div className="inv-info-group">
+                <span className="inv-info-label">
+                  {isPickup ? "Pickup Location:" : "Delivery Address:"}
+                </span>
+                <span className="inv-info-value inv-location">
+                  {isPickup ? (
+                    "ChiamoOrder Warehouse, Port Harcourt"
+                  ) : customerLocation ? (
+                    customerLocation
+                  ) : (
+                    <span className="inv-nil">Nil</span>
+                  )}
+                </span>
+              </div>
             </div>
 
-            <div className="inv-header-right">
+            {/* RIGHT COLUMN - Invoice Details */}
+            <div className="inv-header-col inv-header-right">
               <div className="inv-info-group">
                 <span className="inv-info-label">Invoice No:</span>
                 <span className="inv-info-value inv-order-id">
                   {invoiceNumber}
                 </span>
               </div>
+
               <div className="inv-info-group">
                 <span className="inv-info-label">Date:</span>
                 <span className="inv-info-value">
                   {formatInvoiceDate(invoiceDate)}
                 </span>
               </div>
+
               <div className="inv-info-group">
                 <span className="inv-info-label">Time:</span>
                 <span className="inv-info-value">
                   {formatInvoiceTime(invoiceDate)}
                 </span>
               </div>
+
               <div className="inv-info-group">
-                <span className="inv-info-label">Method:</span>
-                <span className="inv-info-value">{deliveryMethod}</span>
+                <span className="inv-info-label">Fulfillment:</span>
+                <span
+                  className={`inv-info-value inv-method ${isPickup ? "inv-method-pickup" : "inv-method-delivery"}`}
+                >
+                  {deliveryMethodDisplay}
+                </span>
               </div>
             </div>
           </div>
@@ -415,9 +520,7 @@ export default function InvoicePage() {
                 return (
                   <tr key={index} className="inv-tr">
                     <td className="inv-td inv-td-sn">{index + 1}</td>
-                    <td className="inv-td inv-td-name">
-                      {getItemName(item)}
-                    </td>
+                    <td className="inv-td inv-td-name">{getItemName(item)}</td>
                     <td className="inv-td inv-td-cat">
                       {getItemCategory(item)}
                     </td>
@@ -453,11 +556,16 @@ export default function InvoicePage() {
                 <span>{formatCurrency(subtotal)}</span>
               </div>
               <div className="inv-total-row">
-                <span>Delivery Fee</span>
                 <span>
-                  {deliveryFee === 0
-                    ? "FREE"
-                    : formatCurrency(deliveryFee)}
+                  Delivery Fee
+                  {isPickup && (
+                    <small className="inv-fee-note"> (Pickup)</small>
+                  )}
+                </span>
+                <span
+                  className={deliveryFee === 0 ? "inv-free-delivery" : ""}
+                >
+                  {deliveryFee === 0 ? "FREE" : formatCurrency(deliveryFee)}
                 </span>
               </div>
               <div className="inv-total-line" />
@@ -467,6 +575,24 @@ export default function InvoicePage() {
               </div>
             </div>
           </div>
+
+          {/* Delivery Fee Info Note (only for delivery, not pickup) */}
+          {!isPickup && (
+            <div className="inv-delivery-note">
+              <small>
+                {subtotal < 10000 &&
+                  "Orders below ₦10,000 incur a ₦2,000 delivery fee."}
+                {subtotal >= 10000 &&
+                  subtotal < 25000 &&
+                  "Orders ₦10,000 – ₦24,999 incur a ₦1,500 delivery fee."}
+                {subtotal >= 25000 &&
+                  subtotal < 50000 &&
+                  "Orders ₦25,000 – ₦49,999 incur a ₦1,000 delivery fee."}
+                {subtotal >= 50000 &&
+                  "🎉 Free delivery on orders ₦50,000 and above!"}
+              </small>
+            </div>
+          )}
 
           {/* RAISED Stamp */}
           <div className="inv-stamp-wrapper">

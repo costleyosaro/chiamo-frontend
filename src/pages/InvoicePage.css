@@ -136,13 +136,6 @@
   transform: translateY(-6px) rotate(-45deg);
 }
 
-/* Dropdown overlay */
-.inv-dropdown-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 149;
-}
-
 /* Dropdown menu */
 .inv-dropdown {
   position: absolute;
@@ -224,14 +217,6 @@
 
 .inv-dropdown-item:last-child svg {
   color: #1b4b8c;
-}
-
-.inv-dropdown-sent {
-  color: #10b981 !important;
-}
-
-.inv-dropdown-sent svg {
-  color: #10b981 !important;
 }
 
 /* Divider between dropdown items */
@@ -446,33 +431,40 @@
   margin: 0;
 }
 
-/* ============ HEADER GRID ============ */
+/* ============ BALANCED TWO-COLUMN HEADER GRID ============ */
 .inv-header-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 30px;
   margin-top: 14px;
 }
 
-.inv-header-left,
-.inv-header-right {
+.inv-header-col {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
+}
+
+.inv-header-left {
+  text-align: left;
 }
 
 .inv-header-right {
   text-align: right;
 }
 
-.inv-info-group {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
+.inv-header-left .inv-info-group {
+  align-items: flex-start;
 }
 
 .inv-header-right .inv-info-group {
   align-items: flex-end;
+}
+
+.inv-info-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .inv-info-label {
@@ -487,6 +479,7 @@
   font-size: 13px;
   color: #374151;
   font-weight: 500;
+  line-height: 1.4;
 }
 
 .inv-customer-name {
@@ -500,6 +493,42 @@
   font-weight: 800;
   color: #111827;
   font-family: "Sora", "Inter", monospace;
+}
+
+/* Location styling */
+.inv-location {
+  max-width: 280px;
+  word-wrap: break-word;
+}
+
+.inv-header-left .inv-location {
+  text-align: left;
+}
+
+/* Nil placeholder styling */
+.inv-nil {
+  color: #d1d5db;
+  font-style: italic;
+  font-weight: 400;
+}
+
+/* Delivery method badges */
+.inv-method {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.inv-method-pickup {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.inv-method-delivery {
+  background: #dbeafe;
+  color: #1e40af;
 }
 
 /* ============ TABLE ============ */
@@ -520,16 +549,35 @@
   border-bottom: 2px solid #111827;
 }
 
-.inv-th-sn { width: 36px; text-align: center; }
-.inv-th-name { min-width: 120px; }
-.inv-th-cat { min-width: 80px; }
-.inv-th-qty { width: 50px; text-align: center; }
+.inv-th-sn {
+  width: 36px;
+  text-align: center;
+}
+.inv-th-name {
+  min-width: 120px;
+}
+.inv-th-cat {
+  min-width: 80px;
+}
+.inv-th-qty {
+  width: 50px;
+  text-align: center;
+}
 .inv-th-price,
-.inv-th-total { text-align: right; width: 100px; }
+.inv-th-total {
+  text-align: right;
+  width: 100px;
+}
 
-.inv-tr { border-bottom: 1px solid #f3f4f6; }
-.inv-tr:last-child { border-bottom: 1px solid #e5e7eb; }
-.inv-tr-empty { height: 32px; }
+.inv-tr {
+  border-bottom: 1px solid #f3f4f6;
+}
+.inv-tr:last-child {
+  border-bottom: 1px solid #e5e7eb;
+}
+.inv-tr-empty {
+  height: 32px;
+}
 
 .inv-td {
   font-size: 13px;
@@ -538,13 +586,32 @@
   vertical-align: middle;
 }
 
-.inv-td-sn { text-align: center; color: #9ca3af; font-weight: 500; }
-.inv-td-name { font-weight: 600; color: #111827; }
-.inv-td-cat { color: #6b7280; font-size: 12px; }
-.inv-td-qty { text-align: center; font-weight: 600; }
+.inv-td-sn {
+  text-align: center;
+  color: #9ca3af;
+  font-weight: 500;
+}
+.inv-td-name {
+  font-weight: 600;
+  color: #111827;
+}
+.inv-td-cat {
+  color: #6b7280;
+  font-size: 12px;
+}
+.inv-td-qty {
+  text-align: center;
+  font-weight: 600;
+}
 .inv-td-price,
-.inv-td-total { text-align: right; font-family: "Inter", monospace; }
-.inv-td-total { font-weight: 600; color: #111827; }
+.inv-td-total {
+  text-align: right;
+  font-family: "Inter", monospace;
+}
+.inv-td-total {
+  font-weight: 600;
+  color: #111827;
+}
 
 /* ============ TOTALS ============ */
 .inv-totals {
@@ -554,7 +621,7 @@
 }
 
 .inv-totals-box {
-  min-width: 240px;
+  min-width: 260px;
 }
 
 .inv-total-row {
@@ -586,6 +653,31 @@
 
 .inv-total-grand span:last-child {
   font-weight: 800;
+}
+
+/* ============ DELIVERY FEE STYLES ============ */
+.inv-free-delivery {
+  color: #10b981;
+  font-weight: 700;
+}
+
+.inv-fee-note {
+  font-size: 10px;
+  color: #9ca3af;
+  font-weight: 400;
+  margin-left: 4px;
+}
+
+.inv-delivery-note {
+  text-align: right;
+  margin-top: 10px;
+  padding-right: 4px;
+}
+
+.inv-delivery-note small {
+  font-size: 10px;
+  color: #6b7280;
+  font-style: italic;
 }
 
 /* ============ STAMP ============ */
@@ -682,17 +774,24 @@
     letter-spacing: 4px;
   }
 
+  /* Stack columns on mobile */
   .inv-header-grid {
     grid-template-columns: 1fr;
-    gap: 14px;
+    gap: 20px;
   }
 
   .inv-header-right {
     text-align: left;
+    padding-top: 10px;
+    border-top: 1px dashed #e5e7eb;
   }
 
   .inv-header-right .inv-info-group {
     align-items: flex-start;
+  }
+
+  .inv-location {
+    max-width: 100%;
   }
 
   .inv-th-cat,
@@ -718,6 +817,15 @@
     font-size: 16px;
     padding: 5px 20px;
     letter-spacing: 4px;
+  }
+
+  .inv-delivery-note {
+    text-align: center;
+    padding-right: 0;
+  }
+
+  .inv-delivery-note small {
+    font-size: 9px;
   }
 }
 
@@ -786,6 +894,20 @@
     padding: 20px 30px !important;
   }
 
+  .inv-header-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .inv-header-right {
+    text-align: right !important;
+    border-top: none !important;
+    padding-top: 0 !important;
+  }
+
+  .inv-header-right .inv-info-group {
+    align-items: flex-end !important;
+  }
+
   .inv-th-cat,
   .inv-td-cat,
   .inv-th-price,
@@ -798,6 +920,26 @@
     print-color-adjust: exact;
     color: #1b4b8c !important;
     border-color: #1b4b8c !important;
+  }
+
+  .inv-free-delivery {
+    color: #10b981 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .inv-method-pickup {
+    background: #fef3c7 !important;
+    color: #92400e !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .inv-method-delivery {
+    background: #dbeafe !important;
+    color: #1e40af !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   .inv-bottom-spacer {

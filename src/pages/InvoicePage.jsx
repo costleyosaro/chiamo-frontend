@@ -70,65 +70,155 @@ const getItemQty = (item) => Number(item?.quantity || item?.qty || 1);
  * - ₦50,000 and above: FREE delivery
  */
 const calculateDeliveryFee = (subtotal, deliveryMethod) => {
-  // Warehouse pickup is always free
   const isPickup =
     deliveryMethod === "pickup" || deliveryMethod === "warehouse_pickup";
   if (isPickup) {
     return 0;
   }
 
-  // Calculate based on subtotal for delivery orders
   if (subtotal >= 50000) {
-    return 0; // Free delivery for orders ₦50,000 and above
+    return 0;
   } else if (subtotal >= 25000) {
-    return 1000; // ₦1,000 for orders ₦25,000 - ₦49,999
+    return 1000;
   } else if (subtotal >= 10000) {
-    return 1500; // ₦1,500 for orders ₦10,000 - ₦24,999
+    return 1500;
   } else {
-    return 2000; // ₦2,000 for orders below ₦10,000
+    return 2000;
   }
 };
 
 /**
- * Get customer location from various possible fields
+ * Smart Location Resolver
+ * Priority:
+ * 1. User's registered location (from registration) - HIGHEST PRIORITY
+ * 2. User's saved addresses (from addresses section)
+ * 3. Order's delivery address
+ * 4. "Location not specified" - FALLBACK
  */
-const getCustomerLocation = (user, order) => {
-  // Try to get location from order first
-  const orderLocation =
+const getCustomerLocation = (user, order, addresses = []) => {
+  // ===== PRIORITY 1: User's registered location (set during registration) =====
+  // Check various possible field names for the registered location
+  const registeredLocation =
+    user?.location ||
+    user?.registered_location ||
+    user?.default_location ||
+    user?.registration_address ||
+    user?.primary_location;
+
+  if (registeredLocation && String(registeredLocation).trim()) {
+    return {
+      value: String(registeredLocation).trim(),
+      source: "registered",
+    };
+  }
+
+  // Also check if location is built from registration fields
+  const registrationParts = [
+    user?.street_address || user?.street,
+    user?.area || user?.neighborhood,
+    user?.city,
+    user?.state,
+    user?.lga, // Local Government Area (Nigeria specific)
+  ].filter((part) => part && String(part).trim());
+
+  if (registrationParts.length > 0) {
+    return {
+      value: registrationParts.join(", "),
+      source: "registered",
+    };
+  }
+
+  // ===== PRIORITY 2: User's saved addresses =====
+  // First, try to find a default/primary address
+  const defaultAddress = addresses.find(
+    (addr) =>
+      addr?.is_default === true ||
+      addr?.is_primary === true ||
+      addr?.default === true ||
+      addr?.primary === true
+  );
+
+  if (defaultAddress) {
+    const addressString = formatAddress(defaultAddress);
+    if (addressString) {
+      return {
+        value: addressString,
+        source: "addresses",
+      };
+    }
+  }
+
+  // If no default, use the first address
+  if (addresses.length > 0) {
+    const firstAddress = addresses[0];
+    const addressString = formatAddress(firstAddress);
+    if (addressString) {
+      return {
+        value: addressString,
+        source: "addresses",
+      };
+    }
+  }
+
+  // Also check user object for address fields
+  const userAddress =
+    user?.address ||
+    user?.delivery_address ||
+    user?.shipping_address ||
+    user?.saved_address;
+
+  if (userAddress && String(userAddress).trim()) {
+    return {
+      value: String(userAddress).trim(),
+      source: "addresses",
+    };
+  }
+
+  // ===== PRIORITY 3: Order's delivery address =====
+  const orderAddress =
     order?.delivery_address ||
     order?.shipping_address ||
     order?.address ||
-    order?.location;
+    order?.location ||
+    order?.customer_address;
 
-  if (orderLocation && String(orderLocation).trim()) {
-    return String(orderLocation).trim();
+  if (orderAddress && String(orderAddress).trim()) {
+    return {
+      value: String(orderAddress).trim(),
+      source: "order",
+    };
   }
 
-  // Try to get from user profile
-  const userLocation =
-    user?.address ||
-    user?.location ||
-    user?.delivery_address ||
-    user?.shipping_address;
+  // ===== FALLBACK: No location found =====
+  return {
+    value: null,
+    source: "none",
+  };
+};
 
-  if (userLocation && String(userLocation).trim()) {
-    return String(userLocation).trim();
+/**
+ * Format an address object into a readable string
+ */
+const formatAddress = (address) => {
+  if (!address) return null;
+
+  // If address is already a string
+  if (typeof address === "string") {
+    return address.trim() || null;
   }
 
-  // Try to build address from components
-  const addressParts = [
-    user?.street_address || user?.street,
-    user?.city,
-    user?.state,
-    user?.country,
+  // If address is an object, build the string
+  const parts = [
+    address?.street_address || address?.street || address?.address_line_1,
+    address?.address_line_2,
+    address?.area || address?.neighborhood || address?.district,
+    address?.city || address?.town,
+    address?.lga, // Local Government Area
+    address?.state,
+    address?.country,
   ].filter((part) => part && String(part).trim());
 
-  if (addressParts.length > 0) {
-    return addressParts.join(", ");
-  }
-
-  // Return nil if no location found
-  return null;
+  return parts.length > 0 ? parts.join(", ") : null;
 };
 
 // ============ MAIN COMPONENT ============
@@ -140,6 +230,7 @@ export default function InvoicePage() {
   const dropdownRef = useRef(null);
 
   const [order, setOrder] = useState(location.state?.order || null);
+  const [addresses, setAddresses] = useState([]);
   const [loading, setLoading] = useState(!order);
   const [downloading, setDownloading] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
@@ -178,14 +269,33 @@ export default function InvoicePage() {
     };
   }, [showDropdown]);
 
-  // Fetch order if not passed via state
+  // Fetch order and addresses
   useEffect(() => {
-    if (order) return;
-    const fetchOrder = async () => {
+    const fetchData = async () => {
       setLoading(true);
       try {
-        const res = await API.get(`orders/user-orders/${orderId}/`);
-        setOrder(res.data);
+        // Fetch order if not passed via state
+        let orderData = order;
+        if (!orderData) {
+          const orderRes = await API.get(`orders/user-orders/${orderId}/`);
+          orderData = orderRes.data;
+          setOrder(orderData);
+        }
+
+        // Fetch user's saved addresses
+        try {
+          const addressRes = await API.get("/customers/addresses/");
+          const addressData = addressRes.data;
+          // Handle both array and paginated response
+          setAddresses(
+            Array.isArray(addressData)
+              ? addressData
+              : addressData?.results || []
+          );
+        } catch (addrErr) {
+          console.warn("Could not fetch addresses:", addrErr);
+          setAddresses([]);
+        }
       } catch (err) {
         console.error("Failed to fetch order:", err);
         toast.error("Could not load order details");
@@ -194,7 +304,8 @@ export default function InvoicePage() {
         setLoading(false);
       }
     };
-    fetchOrder();
+
+    fetchData();
   }, [orderId, order, navigate]);
 
   // Get delivery method and check if pickup
@@ -202,8 +313,10 @@ export default function InvoicePage() {
   const isPickup =
     deliveryMethod === "pickup" || deliveryMethod === "warehouse_pickup";
 
-  // Get customer location
-  const customerLocation = getCustomerLocation(storedUser, order);
+  // Get customer location using smart resolver
+  const locationResult = getCustomerLocation(storedUser, order, addresses);
+  const customerLocation = locationResult.value;
+  const locationSource = locationResult.source;
 
   // Calculate totals
   const items = order?.items || [];
@@ -437,14 +550,18 @@ export default function InvoicePage() {
               <div className="inv-info-group">
                 <span className="inv-info-label">Email:</span>
                 <span className="inv-info-value">
-                  {customerEmail || <span className="inv-nil">Nil</span>}
+                  {customerEmail || (
+                    <span className="inv-nil">Not specified</span>
+                  )}
                 </span>
               </div>
 
               <div className="inv-info-group">
                 <span className="inv-info-label">Phone:</span>
                 <span className="inv-info-value">
-                  {customerPhone || <span className="inv-nil">Nil</span>}
+                  {customerPhone || (
+                    <span className="inv-nil">Not specified</span>
+                  )}
                 </span>
               </div>
 
@@ -456,9 +573,13 @@ export default function InvoicePage() {
                   {isPickup ? (
                     "ChiamoOrder Warehouse, Port Harcourt"
                   ) : customerLocation ? (
-                    customerLocation
+                    <>
+                      {customerLocation}
+                      {/* Optional: Show source indicator for debugging */}
+                      {/* <small className="inv-location-source">({locationSource})</small> */}
+                    </>
                   ) : (
-                    <span className="inv-nil">Nil</span>
+                    <span className="inv-nil">Location not specified</span>
                   )}
                 </span>
               </div>
@@ -562,9 +683,7 @@ export default function InvoicePage() {
                     <small className="inv-fee-note"> (Pickup)</small>
                   )}
                 </span>
-                <span
-                  className={deliveryFee === 0 ? "inv-free-delivery" : ""}
-                >
+                <span className={deliveryFee === 0 ? "inv-free-delivery" : ""}>
                   {deliveryFee === 0 ? "FREE" : formatCurrency(deliveryFee)}
                 </span>
               </div>

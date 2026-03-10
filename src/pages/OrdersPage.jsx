@@ -248,6 +248,27 @@ const OrderCard = ({
   const statusClass = getStatusColor(progress);
   const currentStatus = getStatusLabel(progress);
   
+  // ✅ Check if confirm button should be enabled (only when "Out for Delivery" - progress 4)
+  const canConfirmDelivery = progress === 4;
+  
+  // ✅ Get helpful message for disabled button
+  const getConfirmButtonMessage = () => {
+    switch (progress) {
+      case 1:
+        return "Wait for order to be out for delivery";
+      case 2:
+        return "Order is being processed";
+      case 3:
+        return "Order is in transit";
+      case 4:
+        return "Confirm that you received your order";
+      case 5:
+        return "Order already delivered";
+      default:
+        return "Not available yet";
+    }
+  };
+  
   const sourceLabel =
     order.source === "cart"
       ? "Cart"
@@ -260,19 +281,23 @@ const OrderCard = ({
       className={`ord-card ${isNew ? "new-order" : ""} ${isUpdated ? "updated-order" : ""}`}
       data-order-id={order.order_id || order.id}
     >
-      {/* New Order Badge */}
+      {/* ✅ FIXED: New Order Badge - Now in its own row, no overlap */}
       {isNew && (
-        <div className="ord-new-badge">
-          <HiOutlineSparkles />
-          New Order
+        <div className="ord-new-badge-container">
+          <div className="ord-new-badge">
+            <HiOutlineSparkles />
+            New Order
+          </div>
         </div>
       )}
       
-      {/* Updated Badge */}
+      {/* ✅ Updated Badge - Also in its own space */}
       {isUpdated && !isNew && (
-        <div className="ord-updated-badge">
-          <FiRefreshCw />
-          Updated
+        <div className="ord-new-badge-container">
+          <div className="ord-updated-badge">
+            <FiRefreshCw />
+            Status Updated
+          </div>
         </div>
       )}
 
@@ -382,14 +407,37 @@ const OrderCard = ({
               <FiExternalLink />
               Track Order
             </button>
-            <button
-              className="ord-action-btn primary"
-              onClick={() => onConfirm(order.id)}
-              disabled={progress < 4}
-            >
-              <FiCheckCircle />
-              Confirm Delivery
-            </button>
+            {/* ✅ FIXED: Confirm button with proper disabled state and tooltip */}
+            <div className="ord-confirm-btn-wrapper" title={getConfirmButtonMessage()}>
+              <button
+                className={`ord-action-btn primary ${!canConfirmDelivery ? 'disabled' : ''} ${canConfirmDelivery ? 'ready-to-confirm' : ''}`}
+                onClick={() => canConfirmDelivery && onConfirm(order.id)}
+                disabled={!canConfirmDelivery}
+              >
+                {progress >= 5 ? (
+                  <>
+                    <FiCheck />
+                    Delivered
+                  </>
+                ) : canConfirmDelivery ? (
+                  <>
+                    <FiCheckCircle />
+                    Confirm Delivery
+                  </>
+                ) : (
+                  <>
+                    <FiClock />
+                    Awaiting Delivery
+                  </>
+                )}
+              </button>
+              {/* ✅ Show hint when not ready */}
+              {!canConfirmDelivery && progress < 5 && (
+                <span className="ord-confirm-hint">
+                  {progress === 3 ? "Almost there! 🚚" : ""}
+                </span>
+              )}
+            </div>
           </>
         ) : (
           <>
@@ -407,6 +455,7 @@ const OrderCard = ({
     </div>
   );
 };
+
 
 // Delete Confirmation Modal
 const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, orderId }) => {

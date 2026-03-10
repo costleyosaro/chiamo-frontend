@@ -36,6 +36,12 @@ import AllProducts from "./pages/AllProducts";
 import OrderHistoryPage from "./pages/OrderHistoryPage";
 import ProductGalleryPage from "./pages/ProductGalleryPage";
 
+import TermsOfServicePage from "./pages/TermsOfServicePage";
+import CookiePolicyPage from "./pages/CookiePolicyPage";
+import SecurityPage from "./pages/SecurityPage";
+import CareersPage from "./pages/CareersPage";
+import HelpCenterPage from "./pages/HelpCenterPage";
+
 // ✅ Newly added supporting pages
 import EditProfile from "./pages/EditProfile";
 import Addresses from "./pages/Addresses";
@@ -120,6 +126,11 @@ function MainApp() {
         <Route path="/about-us" element={<AboutPage />} />
         <Route path="/contact-us" element={<ContactPage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+        <Route path="/cookie-policy" element={<CookiePolicyPage />} />
+        <Route path="/security" element={<SecurityPage />} />
+        <Route path="/careers" element={<CareersPage />} />
+        <Route path="/help-center" element={<HelpCenterPage />} />
 
         {/* 🔒 Protected Routes */}
         <Route

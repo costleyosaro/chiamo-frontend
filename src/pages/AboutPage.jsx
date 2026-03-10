@@ -19,6 +19,7 @@ import {
   FiPackage,
   FiClock,
   FiStar,
+  FiChevronRight,
 } from "react-icons/fi";
 import {
   FaShoppingCart,
@@ -31,13 +32,22 @@ import { HiOutlineOfficeBuilding, HiOutlineSparkles } from "react-icons/hi";
 import { BiSupport } from "react-icons/bi";
 import "./AboutPage.css";
 
-// ============ IMAGE URL ============
-const aboutImage = "https://ik.imagekit.io/ljwnlcbqyu/about-profile.jpg?updatedAt=1771688205638";
+// ============ IMAGE URLS ============
+const SLIDER_IMAGES = [
+  {
+    url: "https://ik.imagekit.io/ljwnlcbqyu/AMAKA_PIC.jpeg",
+    alt: "ChiamoOrder Team Member 1",
+  },
+  {
+    url: "https://ik.imagekit.io/ljwnlcbqyu/ELLA_3.jpeg",
+    alt: "ChiamoOrder Team Member 2",
+  },
+];
 
 // ============ CONFIGURATION ============
 const COMPANY_INFO = {
   name: "ChiamoOrder",
-  founded: "2024",
+  founded: "2025",
   tagline: "Digital Ordering. Simplified.",
   description: `At ChiamoOrder, we revolutionize how businesses place and manage their 
     product orders. No more paperwork or long waiting times — our smart digital ordering 
@@ -122,41 +132,139 @@ const WHY_CHOOSE_US = [
   },
 ];
 
-// ============ TEAM DATA ============
+// ============ TEAM DATA WITH IMAGES ============
 const TEAM = [
   {
-    name: "Chiamo Founder",
+    name: "Chiamo",
     role: "CEO & Founder",
-    image: null,
+    image: "https://ik.imagekit.io/ljwnlcbqyu/CHIAMO_PIC.jpeg",
     initial: "CF",
   },
   {
-    name: "Operations Lead",
+    name: "Mr. Ali",
     role: "Head of Operations",
-    image: null,
+    image: "https://ik.imagekit.io/ljwnlcbqyu/MR%20ALI.jpeg",
     initial: "OL",
   },
   {
-    name: "Tech Lead",
-    role: "CTO",
-    image: null,
+    name: "Costley",
+    role: "Software & Web Developer",
+    image: "https://ik.imagekit.io/ljwnlcbqyu/HR%20PIC.jpeg",
     initial: "TL",
   },
   {
-    name: "Customer Success",
-    role: "Customer Success Manager",
-    image: null,
-    initial: "CS",
+    name: "Support Team",
+    role: "Customer Care Manager",
+    image: "https://ik.imagekit.io/ljwnlcbqyu/HR%20PIC.jpeg",
+    initial: "CC",
   },
 ];
 
 // ============ MILESTONES DATA ============
 const MILESTONES = [
-  { year: "2024", title: "Company Founded", description: "ChiamoOrder was born with a vision to transform digital ordering." },
-  { year: "2024", title: "Platform Launch", description: "Launched our digital ordering platform to the public." },
-  { year: "2024", title: "1000+ Users", description: "Reached our first milestone of 1000 active users." },
-  { year: "2025", title: "Expansion", description: "Expanding operations across Nigeria and beyond." },
+  { year: "2025", title: "Company Founded", description: "ChiamoOrder was born with a vision to transform digital ordering." },
+  { year: "2026", title: "Platform Launch", description: "Launched our digital ordering platform to the public." },
+  { year: "2026", title: "1000+ Users", description: "Reached our first milestone of 1000 active users." },
+  { year: "2026", title: "Expansion", description: "Expanding operations across Nigeria and beyond." },
 ];
+
+// ============ IMAGE SLIDER COMPONENT ============
+const ImageSlider = ({ images }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+
+  // Auto-slide effect
+  useEffect(() => {
+    if (!isAutoPlaying) return;
+
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    }, 4000); // Change image every 4 seconds
+
+    return () => clearInterval(interval);
+  }, [isAutoPlaying, images.length]);
+
+  const goToSlide = (index) => {
+    setCurrentIndex(index);
+    setIsAutoPlaying(false);
+    // Resume auto-play after 10 seconds of inactivity
+    setTimeout(() => setIsAutoPlaying(true), 10000);
+  };
+
+  const goToPrevious = () => {
+    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+    setIsAutoPlaying(false);
+    setTimeout(() => setIsAutoPlaying(true), 10000);
+  };
+
+  const goToNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % images.length);
+    setIsAutoPlaying(false);
+    setTimeout(() => setIsAutoPlaying(true), 10000);
+  };
+
+  return (
+    <div className="ap-slider">
+      <div className="ap-slider-container">
+        {images.map((image, index) => (
+          <div
+            key={index}
+            className={`ap-slider-slide ${index === currentIndex ? "active" : ""}`}
+          >
+            <img src={image.url} alt={image.alt} />
+          </div>
+        ))}
+
+        {/* Navigation Arrows */}
+        <button
+          className="ap-slider-arrow ap-slider-arrow-left"
+          onClick={goToPrevious}
+          aria-label="Previous image"
+        >
+          <FiChevronLeft />
+        </button>
+        <button
+          className="ap-slider-arrow ap-slider-arrow-right"
+          onClick={goToNext}
+          aria-label="Next image"
+        >
+          <FiChevronRight />
+        </button>
+
+        {/* Dots Indicator */}
+        <div className="ap-slider-dots">
+          {images.map((_, index) => (
+            <button
+              key={index}
+              className={`ap-slider-dot ${index === currentIndex ? "active" : ""}`}
+              onClick={() => goToSlide(index)}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
+
+        {/* Progress Bar */}
+        <div className="ap-slider-progress">
+          <div
+            className="ap-slider-progress-bar"
+            style={{
+              animation: isAutoPlaying ? "slideProgress 4s linear infinite" : "none",
+            }}
+            key={currentIndex}
+          />
+        </div>
+      </div>
+
+      {/* Overlay Icon */}
+      <div className="ap-image-overlay">
+        <FaShoppingCart />
+      </div>
+
+      {/* Decoration */}
+      <div className="ap-image-decoration"></div>
+    </div>
+  );
+};
 
 // ============ BACK TO TOP COMPONENT ============
 const BackToTop = () => {
@@ -230,16 +338,33 @@ const FeatureCard = ({ feature }) => {
   );
 };
 
-// ============ TEAM MEMBER COMPONENT ============
+// ============ TEAM MEMBER COMPONENT (UPDATED) ============
 const TeamMember = ({ member }) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
   return (
     <div className="ap-team-member">
       <div className="ap-member-avatar">
-        {member.image ? (
-          <img src={member.image} alt={member.name} />
+        {member.image && !imageError ? (
+          <>
+            {!imageLoaded && (
+              <div className="ap-member-avatar-placeholder">
+                <span className="ap-member-initial">{member.initial}</span>
+              </div>
+            )}
+            <img
+              src={member.image}
+              alt={member.name}
+              className={`ap-member-image ${imageLoaded ? "loaded" : ""}`}
+              onLoad={() => setImageLoaded(true)}
+              onError={() => setImageError(true)}
+            />
+          </>
         ) : (
           <span className="ap-member-initial">{member.initial}</span>
         )}
+        <div className="ap-member-avatar-ring"></div>
       </div>
       <h4 className="ap-member-name">{member.name}</h4>
       <p className="ap-member-role">{member.role}</p>
@@ -309,20 +434,11 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ===== ABOUT SECTION ===== */}
+      {/* ===== ABOUT SECTION WITH IMAGE SLIDER ===== */}
       <section className="ap-about-section">
         <div className="ap-about-container">
           <div className="ap-about-image">
-            <div className="ap-image-wrapper">
-              <img 
-                src={aboutImage} 
-                alt="About ChiamoOrder" 
-              />
-              <div className="ap-image-overlay">
-                <FaShoppingCart />
-              </div>
-            </div>
-            <div className="ap-image-decoration"></div>
+            <ImageSlider images={SLIDER_IMAGES} />
           </div>
 
           <div className="ap-about-content">

@@ -29,8 +29,8 @@ import "./ContactPage.css";
 const COMPANY_INFO = {
   name: "ChiamoOrder",
   email: "chiamoorder@gmail.com",
-  phone: "0701 832 9357",
-  whatsapp: "+2347018329357",
+  phone: "0703 241 0362",
+  whatsapp: "+2347032410362",
   address: "Along GU Ake Airport Road, Port Harcourt, Rivers State, Nigeria",
   workingHours: {
     days: "Monday - Saturday",

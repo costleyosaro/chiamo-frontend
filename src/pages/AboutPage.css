@@ -873,6 +873,398 @@
   margin: 0;
 }
 
+
+/* ============ IMAGE SLIDER STYLES ============ */
+.ap-slider {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+}
+
+.ap-slider-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+.ap-slider-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+  transform: scale(1.05);
+}
+
+.ap-slider-slide.active {
+  opacity: 1;
+  transform: scale(1);
+  z-index: 1;
+}
+
+.ap-slider-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+/* Slider Navigation Arrows */
+.ap-slider-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1b4b8c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+}
+
+.ap-slider-container:hover .ap-slider-arrow {
+  opacity: 1;
+}
+
+.ap-slider-arrow:hover {
+  background: white;
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.ap-slider-arrow svg {
+  width: 20px;
+  height: 20px;
+}
+
+.ap-slider-arrow-left {
+  left: 16px;
+}
+
+.ap-slider-arrow-right {
+  right: 16px;
+}
+
+/* Slider Dots */
+.ap-slider-dots {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+}
+
+.ap-slider-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid white;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.ap-slider-dot.active {
+  background: white;
+  transform: scale(1.2);
+}
+
+.ap-slider-dot:hover {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+/* Slider Progress Bar */
+.ap-slider-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  z-index: 10;
+}
+
+.ap-slider-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #f5a623, #ff6b35);
+  width: 0%;
+}
+
+@keyframes slideProgress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+/* Image Overlay (Shopping Cart Icon) */
+.ap-slider .ap-image-overlay {
+  position: absolute;
+  bottom: 60px;
+  right: -20px;
+  width: 70px;
+  height: 70px;
+  background: linear-gradient(135deg, #f5a623 0%, #ff6b35 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  box-shadow: 0 10px 30px rgba(245, 166, 35, 0.4);
+  animation: float 3s ease-in-out infinite;
+}
+
+.ap-slider .ap-image-overlay svg {
+  width: 28px;
+  height: 28px;
+  color: white;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Image Decoration */
+.ap-slider .ap-image-decoration {
+  position: absolute;
+  top: -20px;
+  left: -20px;
+  width: 100px;
+  height: 100px;
+  border: 3px solid #1b4b8c;
+  border-radius: 20px;
+  z-index: -1;
+  opacity: 0.3;
+}
+
+/* ============ TEAM MEMBER AVATAR STYLES (UPDATED) ============ */
+.ap-team-member {
+  text-align: center;
+  padding: 24px 16px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.ap-team-member:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+}
+
+.ap-member-avatar {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1b4b8c 0%, #2d5fa8 100%);
+  overflow: hidden;
+}
+
+.ap-member-avatar-ring {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  background: linear-gradient(135deg, #f5a623, #ff6b35, #1b4b8c) border-box;
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) padding-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: destination-out;
+  mask-composite: exclude;
+  animation: rotateRing 8s linear infinite;
+}
+
+@keyframes rotateRing {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ap-member-avatar-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1b4b8c 0%, #2d5fa8 100%);
+  z-index: 1;
+}
+
+.ap-member-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  position: relative;
+  z-index: 2;
+}
+
+.ap-member-image.loaded {
+  opacity: 1;
+}
+
+.ap-member-initial {
+  font-size: 36px;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+}
+
+.ap-member-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 6px;
+}
+
+.ap-member-role {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* ============ TEAM GRID RESPONSIVE ============ */
+.ap-team-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+@media (max-width: 900px) {
+  .ap-team-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
+  .ap-team-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .ap-member-avatar {
+    width: 100px;
+    height: 100px;
+  }
+
+  .ap-member-initial {
+    font-size: 28px;
+  }
+
+  .ap-member-name {
+    font-size: 15px;
+  }
+
+  .ap-member-role {
+    font-size: 12px;
+  }
+}
+
+/* ============ ABOUT IMAGE SECTION RESPONSIVE ============ */
+.ap-about-image {
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  .ap-slider {
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .ap-slider-container {
+    aspect-ratio: 3 / 4;
+  }
+
+  .ap-slider-arrow {
+    width: 36px;
+    height: 36px;
+    opacity: 1;
+  }
+
+  .ap-slider-arrow-left {
+    left: 10px;
+  }
+
+  .ap-slider-arrow-right {
+    right: 10px;
+  }
+
+  .ap-slider .ap-image-overlay {
+    width: 56px;
+    height: 56px;
+    right: -10px;
+    bottom: 50px;
+  }
+
+  .ap-slider .ap-image-overlay svg {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+/* ============ ABOUT SECTION LAYOUT ============ */
+.ap-about-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+@media (max-width: 900px) {
+  .ap-about-container {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .ap-about-image {
+    order: -1;
+  }
+}
+
 .ap-footer-right {
   display: flex;
   gap: 8px;

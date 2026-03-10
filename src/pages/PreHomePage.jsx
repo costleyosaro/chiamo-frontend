@@ -1,5 +1,6 @@
 // src/pages/PreHomePage.jsx
 import React, { useState, useEffect, useRef } from "react";
+import ComingSoonModal from "../components/ComingSoonModal";
 import "./PreHomePage.css";
 import {
   FaFacebookF,
@@ -505,7 +506,7 @@ const Navbar = ({ onScanClick, navigate }) => {
                 <FaTwitter />
               </a>
               <a
-                href="https://wa.me/1234567890"
+                href="https://wa.me/07032410362"
                 target="_blank"
                 rel="noreferrer"
               >
@@ -910,7 +911,8 @@ const ContactSection = () => (
 );
 
 // ============ FOOTER COMPONENT ============
-const Footer = ({ navigate }) => (
+// ============ FOOTER COMPONENT ============
+const Footer = ({ navigate, onComingSoon }) => (
   <footer className="footer">
     <div className="footer-container">
       <div className="footer-main">
@@ -935,6 +937,7 @@ const Footer = ({ navigate }) => (
               href="https://www.facebook.com/share/1BqNPR6azJ/"
               target="_blank"
               rel="noreferrer"
+              aria-label="Facebook"
             >
               <FaFacebookF />
             </a>
@@ -942,6 +945,7 @@ const Footer = ({ navigate }) => (
               href="https://www.instagram.com/ghadco_ph"
               target="_blank"
               rel="noreferrer"
+              aria-label="Instagram"
             >
               <FaInstagram />
             </a>
@@ -949,16 +953,23 @@ const Footer = ({ navigate }) => (
               href="https://www.tiktok.com/@ghadco_phc"
               target="_blank"
               rel="noreferrer"
+              aria-label="TikTok"
             >
               <FaTiktok />
             </a>
-            <a href="https://twitter.com" target="_blank" rel="noreferrer">
+            <a 
+              href="https://twitter.com" 
+              target="_blank" 
+              rel="noreferrer"
+              aria-label="Twitter"
+            >
               <FaTwitter />
             </a>
             <a
               href="https://www.linkedin.com"
               target="_blank"
               rel="noreferrer"
+              aria-label="LinkedIn"
             >
               <FaLinkedinIn />
             </a>
@@ -966,6 +977,7 @@ const Footer = ({ navigate }) => (
         </div>
 
         <div className="footer-links-grid">
+          {/* Product Links */}
           <div className="footer-links-column">
             <h4>Product</h4>
             <ul>
@@ -981,10 +993,14 @@ const Footer = ({ navigate }) => (
                 </button>
               </li>
               <li>
-                <a href="#">Pricing</a>
+                <button onClick={() => onComingSoon("Pricing")}>
+                  Pricing
+                </button>
               </li>
             </ul>
           </div>
+
+          {/* Company Links */}
           <div className="footer-links-column">
             <h4>Company</h4>
             <ul>
@@ -994,10 +1010,14 @@ const Footer = ({ navigate }) => (
                 </button>
               </li>
               <li>
-                <a href="#">Careers</a>
+                <button onClick={() => navigate("/careers")}>
+                  Careers
+                </button>
               </li>
               <li>
-                <a href="#">Press</a>
+                <button onClick={() => onComingSoon("Press & Media")}>
+                  Press
+                </button>
               </li>
               <li>
                 <button onClick={() => navigate("/contact-us")}>
@@ -1006,23 +1026,30 @@ const Footer = ({ navigate }) => (
               </li>
             </ul>
           </div>
+
+          {/* Resources Links */}
           <div className="footer-links-column">
             <h4>Resources</h4>
             <ul>
               <li>
-                <a href="#">Help Center</a>
+                <button onClick={() => navigate("/help-center")}>
+                  Help Center
+                </button>
               </li>
               <li>
-                <a href="#">Documentation</a>
+                <button onClick={() => onComingSoon("Documentation")}>
+                  Documentation
+                </button>
               </li>
               <li>
-                <a href="#">API Reference</a>
-              </li>
-              <li>
-                <a href="#">Community</a>
+                <button onClick={() => onComingSoon("Community Forum")}>
+                  Community
+                </button>
               </li>
             </ul>
           </div>
+
+          {/* Legal Links */}
           <div className="footer-links-column">
             <h4>Legal</h4>
             <ul>
@@ -1032,13 +1059,19 @@ const Footer = ({ navigate }) => (
                 </button>
               </li>
               <li>
-                <a href="#">Terms of Service</a>
+                <button onClick={() => navigate("/terms-of-service")}>
+                  Terms of Service
+                </button>
               </li>
               <li>
-                <a href="#">Cookie Policy</a>
+                <button onClick={() => navigate("/cookie-policy")}>
+                  Cookie Policy
+                </button>
               </li>
               <li>
-                <a href="#">Security</a>
+                <button onClick={() => navigate("/security")}>
+                  Security
+                </button>
               </li>
             </ul>
           </div>
@@ -1082,7 +1115,6 @@ const QRScannerModal = ({ isOpen, onClose }) => {
           <FiX size={24} />
         </button>
         <h3>Scan QR Code</h3>
-        <p>Point your camera at a product QR code to add it to your cart</p>
         <div className="scanner-view">
           <QrReader
             constraints={{ facingMode: "environment" }}
@@ -1108,7 +1140,8 @@ const QRScannerModal = ({ isOpen, onClose }) => {
 
 // ============ MAIN COMPONENT ============
 export default function PreHomePage() {
-  const [scanOpen, setScanOpen] = useState(false);
+  const [scanOpen, setScanOpen] = useState(false);  const [comingSoonOpen, setComingSoonOpen] = useState(false);
+  const [comingSoonFeature, setComingSoonFeature] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -1117,6 +1150,11 @@ export default function PreHomePage() {
       document.documentElement.style.scrollBehavior = "auto";
     };
   }, []);
+  // Handler for Coming Soon modal
+  const handleComingSoon = (feature) => {
+    setComingSoonFeature(feature);
+    setComingSoonOpen(true);
+  };
 
   return (
     <div className="prehome-wrapper">
@@ -1136,6 +1174,7 @@ export default function PreHomePage() {
         <CTASection navigate={navigate} />
         <ContactSection />
       </main>
+      <Footer navigate={navigate} onComingSoon={handleComingSoon} />
 
       <Footer navigate={navigate} />
 

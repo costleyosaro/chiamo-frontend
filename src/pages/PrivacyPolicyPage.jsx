@@ -24,10 +24,10 @@ import {
 import "./PrivacyPolicy.css";
 
 // ============ CONFIGURATION ============
-const LAST_UPDATED = "January 15, 2025";
+const LAST_UPDATED = "March 10, 2026";
 const COMPANY_NAME = "ChiamoOrder";
 const COMPANY_EMAIL = "chiamoorder@gmail.com";
-const COMPANY_PHONE = "0701 832 9357";
+const COMPANY_PHONE = "0703 241 0362";
 const COMPANY_ADDRESS = "Along GU Ake Airport Road, Port Harcourt, Rivers State, Nigeria";
 
 // ============ POLICY SECTIONS DATA ============

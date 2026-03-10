@@ -947,3 +947,118 @@
 [data-theme="dark"] .ord-timeline-step.current .ord-timeline-icon {
   box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.2);
 }
+
+/* ============ REFRESH BUTTON ============ */
+.ord-refresh-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 18px;
+}
+
+.ord-refresh-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.05);
+}
+
+.ord-refresh-btn:active {
+  transform: scale(0.95);
+}
+
+.ord-refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ord-refresh-btn.spinning svg {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ============ UPDATED ORDER HIGHLIGHT ============ */
+.ord-card.updated-order {
+  animation: pulse-update 0.5s ease-out;
+  border: 2px solid #10b981 !important;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3) !important;
+}
+
+@keyframes pulse-update {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 20px 10px rgba(16, 185, 129, 0.3);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  }
+}
+
+/* ============ UPDATED BADGE ============ */
+.ord-updated-badge {
+  position: absolute;
+  top: 12px;
+  right: 50px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  animation: badge-pop 0.3s ease-out;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+}
+
+.ord-updated-badge svg {
+  width: 12px;
+  height: 12px;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes badge-pop {
+  0% { 
+    transform: scale(0); 
+    opacity: 0; 
+  }
+  50% { 
+    transform: scale(1.2); 
+  }
+  100% { 
+    transform: scale(1); 
+    opacity: 1; 
+  }
+}
+
+/* ============ ORDER HIGHLIGHTED (from URL param) ============ */
+.ord-card.order-highlighted {
+  animation: highlight-pulse 1s ease-in-out 3;
+  border: 2px solid #f59e0b !important;
+}
+
+@keyframes highlight-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 20px 10px rgba(245, 158, 11, 0.3);
+  }
+}

@@ -1,8 +1,9 @@
 // src/pages/OrdersPage.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import API from "../services/api";
+import { useAuth } from "../context/AuthContext";
 import PageLoader from "../components/LoadingScreen";
 import smartlistAnimation from "../assets/animations/smart-list.json";
 import "./Order.css";
@@ -11,7 +12,6 @@ import "./Order.css";
 import {
   FiPackage,
   FiChevronLeft,
-  FiChevronRight,
   FiClock,
   FiCheckCircle,
   FiTruck,
@@ -23,7 +23,6 @@ import {
   FiTrash2,
   FiAlertCircle,
   FiCheck,
-  FiX,
   FiMoreVertical,
   FiExternalLink,
 } from "react-icons/fi";
@@ -31,26 +30,24 @@ import { HiOutlineClipboardCheck, HiOutlineSparkles } from "react-icons/hi";
 
 // ============ CONSTANTS ============
 const ORDER_STEPS = [
-  { key: "confirmed", label: "Confirmed", icon: FiCheckCircle },
+  { key: "pending", label: "Confirmed", icon: FiCheckCircle },
   { key: "processing", label: "Processing", icon: FiBox },
   { key: "shipped", label: "Shipped", icon: FiTruck },
   { key: "out_for_delivery", label: "Out for Delivery", icon: FiMapPin },
   { key: "delivered", label: "Delivered", icon: HiOutlineClipboardCheck },
 ];
 
-// Map database status to progress number
+// ✅ FIXED: Map database status to progress number
 const STATUS_TO_PROGRESS = {
-  'confirmed': 1,
-  'order confirmed': 1,
   'pending': 1,
+  'confirmed': 1,
   'processing': 2,
   'shipped': 3,
-  'in transit': 3,
-  'in_transit': 3,
-  'out for delivery': 4,
   'out_for_delivery': 4,
+  'out for delivery': 4,
   'delivered': 5,
   'completed': 5,
+  'cancelled': 0,
 };
 
 // ============ HELPER FUNCTIONS ============
@@ -92,31 +89,27 @@ const getStatusColor = (progress) => {
 };
 
 /**
- * Get progress number from order status
- * This syncs the database status with the frontend progress tracker
+ * ✅ FIXED: Get progress number from order status
  */
 const getProgressFromStatus = (order) => {
-  // If order has explicit progress field, use it
-  if (order.progress && typeof order.progress === 'number') {
-    return order.progress;
-  }
+  // Get status from order, normalize it
+  const status = (order.status || 'pending').toLowerCase().trim().replace(/-/g, '_');
   
-  // Otherwise, derive from status field
-  const status = (order.status || 'confirmed').toLowerCase().trim();
+  console.log(`📊 Order ${order.order_id}: status="${order.status}" -> normalized="${status}"`);
   
-  // Check for exact match first
+  // Direct match
   if (STATUS_TO_PROGRESS[status] !== undefined) {
+    console.log(`   ✅ Matched! Progress = ${STATUS_TO_PROGRESS[status]}`);
     return STATUS_TO_PROGRESS[status];
   }
   
-  // Check for partial matches
-  if (status.includes('deliver') && status.includes('out')) return 4;
-  if (status.includes('delivered') || status.includes('complete')) return 5;
-  if (status.includes('transit') || status.includes('shipped')) return 3;
+  // Partial matches as fallback
+  if (status.includes('deliver') && !status.includes('out')) return 5;
+  if (status.includes('out') && status.includes('deliver')) return 4;
+  if (status.includes('ship') || status.includes('transit')) return 3;
   if (status.includes('process')) return 2;
-  if (status.includes('confirm') || status.includes('pending')) return 1;
   
-  // Default to confirmed
+  console.log(`   ⚠️ No match, defaulting to 1`);
   return 1;
 };
 
@@ -130,8 +123,8 @@ const getStatusLabel = (progress) => {
 
 // ============ SUB-COMPONENTS ============
 
-// Header Component
-const OrdersHeader = ({ activeTab, onBack }) => (
+// Header Component with Refresh Button
+const OrdersHeader = ({ activeTab, onBack, onRefresh, isRefreshing }) => (
   <header className="ord-header">
     <button className="ord-back-btn" onClick={onBack} aria-label="Go back">
       <FiChevronLeft />
@@ -141,7 +134,15 @@ const OrdersHeader = ({ activeTab, onBack }) => (
         {activeTab === "open" ? "My Orders" : "Order History"}
       </h1>
     </div>
-    <div className="ord-header-spacer"></div>
+    <button 
+      className={`ord-refresh-btn ${isRefreshing ? 'spinning' : ''}`} 
+      onClick={onRefresh}
+      disabled={isRefreshing}
+      aria-label="Refresh orders"
+      title="Refresh orders"
+    >
+      <FiRefreshCw />
+    </button>
   </header>
 );
 
@@ -224,6 +225,7 @@ const ProgressTimeline = ({ progress }) => {
 const OrderCard = ({
   order,
   isNew,
+  isUpdated,
   activeTab,
   onConfirm,
   onDelete,
@@ -255,7 +257,7 @@ const OrderCard = ({
 
   return (
     <div 
-      className={`ord-card ${isNew ? "new-order" : ""}`}
+      className={`ord-card ${isNew ? "new-order" : ""} ${isUpdated ? "updated-order" : ""}`}
       data-order-id={order.order_id || order.id}
     >
       {/* New Order Badge */}
@@ -263,6 +265,14 @@ const OrderCard = ({
         <div className="ord-new-badge">
           <HiOutlineSparkles />
           New Order
+        </div>
+      )}
+      
+      {/* Updated Badge */}
+      {isUpdated && !isNew && (
+        <div className="ord-updated-badge">
+          <FiRefreshCw />
+          Updated
         </div>
       )}
 
@@ -430,17 +440,161 @@ const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, orderId }) => {
 export default function OrdersPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
 
   // State
   const [orders, setOrders] = useState([]);
   const [closedOrders, setClosedOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("open");
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [highlightedNewOrders, setHighlightedNewOrders] = useState(new Set());
+  const [recentlyUpdatedOrders, setRecentlyUpdatedOrders] = useState(new Set());
+  const [previousStatuses, setPreviousStatuses] = useState({}); // Track status changes
 
   const newOrderIdFromNav = location?.state?.newOrderId || null;
+
+  // ✅ FETCH ORDERS FUNCTION
+  const fetchOrders = useCallback(async (options = {}) => {
+    const { showToast = false, isBackground = false } = options;
+    
+    if (!isBackground) {
+      // Only show loading on initial load, not background refreshes
+    }
+    
+    try {
+      const res = await API.get("orders/user-orders/");
+      let data = res.data ?? [];
+      if (!Array.isArray(data) && Array.isArray(data.results)) {
+        data = data.results;
+      }
+
+      console.log("📦 Fetched orders:", data.map(o => ({ id: o.order_id, status: o.status })));
+
+      // Sort by date (newest first)
+      data.sort(
+        (a, b) =>
+          new Date(b.created_at || b.createdAt || 0) -
+          new Date(a.created_at || a.createdAt || 0)
+      );
+
+      // ✅ Check for status changes (for highlighting)
+      const newPreviousStatuses = {};
+      const updatedOrderIds = new Set();
+      
+      data.forEach((order) => {
+        const orderId = order.id;
+        const currentStatus = order.status;
+        newPreviousStatuses[orderId] = currentStatus;
+        
+        // If we had a previous status and it changed, mark as updated
+        if (previousStatuses[orderId] && previousStatuses[orderId] !== currentStatus) {
+          console.log(`🔄 Order ${order.order_id} status changed: ${previousStatuses[orderId]} → ${currentStatus}`);
+          updatedOrderIds.add(orderId);
+          
+          if (showToast || isBackground) {
+            toast.success(`Order ${order.order_id} is now: ${currentStatus}`, {
+              icon: "📦",
+              duration: 4000,
+            });
+          }
+        }
+      });
+      
+      setPreviousStatuses(newPreviousStatuses);
+      
+      if (updatedOrderIds.size > 0) {
+        setRecentlyUpdatedOrders(updatedOrderIds);
+        // Clear highlights after 5 seconds
+        setTimeout(() => setRecentlyUpdatedOrders(new Set()), 5000);
+      }
+
+      // ✅ Split into open and closed based on status
+      const open = data.filter((o) => {
+        const status = (o.status || "").toLowerCase().trim();
+        return status !== "delivered" && status !== "completed" && status !== "cancelled";
+      });
+      
+      const closed = data.filter((o) => {
+        const status = (o.status || "").toLowerCase().trim();
+        return status === "delivered" || status === "completed";
+      });
+
+      setOrders(open);
+      setClosedOrders(closed);
+      
+      if (showToast) {
+        toast.success("Orders refreshed!", { icon: "🔄", duration: 2000 });
+      }
+      
+      return data;
+    } catch (err) {
+      console.error("Failed to fetch orders:", err);
+      if (!isBackground) {
+        setError("Failed to load your orders.");
+      }
+      throw err;
+    }
+  }, [previousStatuses]);
+
+  // ✅ INITIAL LOAD
+  useEffect(() => {
+    const loadOrders = async () => {
+      setLoading(true);
+      try {
+        await fetchOrders();
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadOrders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
+
+  // ✅ AUTO-REFRESH EVERY 30 SECONDS (Polling)
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      console.log("⏰ Auto-refreshing orders...");
+      fetchOrders({ isBackground: true });
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(intervalId);
+  }, [fetchOrders]);
+
+  // ✅ REFRESH ON TAB/WINDOW FOCUS
+  useEffect(() => {
+    const handleFocus = () => {
+      console.log("👀 Window focused, refreshing orders...");
+      fetchOrders({ isBackground: true });
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log("👀 Tab visible, refreshing orders...");
+        fetchOrders({ isBackground: true });
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [fetchOrders]);
+
+  // ✅ MANUAL REFRESH HANDLER
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await fetchOrders({ showToast: true });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   // Highlight new order temporarily
   useEffect(() => {
@@ -470,47 +624,6 @@ export default function OrdersPage() {
       }, 500);
     }
   }, [orders]);
-
-  // Fetch orders
-  useEffect(() => {
-    const fetchOrders = async () => {
-      setLoading(true);
-      try {
-        const res = await API.get("orders/user-orders/");
-        let data = res.data ?? [];
-        if (!Array.isArray(data) && Array.isArray(data.results)) {
-          data = data.results;
-        }
-
-        // Sort by date (newest first)
-        data.sort(
-          (a, b) =>
-            new Date(b.created_at || b.createdAt || 0) -
-            new Date(a.created_at || a.createdAt || 0)
-        );
-
-        // ✅ Use status from database to determine if order is open or closed
-        const open = data.filter((o) => {
-          const status = (o.status || "").toLowerCase().trim();
-          return status !== "delivered" && status !== "completed";
-        });
-        
-        const closed = data.filter((o) => {
-          const status = (o.status || "").toLowerCase().trim();
-          return status === "delivered" || status === "completed";
-        });
-
-        setOrders(open);
-        setClosedOrders(closed);
-      } catch (err) {
-        console.error("Failed to fetch orders:", err);
-        setError("Failed to load your orders.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchOrders();
-  }, []);
 
   // Handle Confirm Order
   const handleConfirmOrder = async (orderId) => {
@@ -592,8 +705,8 @@ export default function OrdersPage() {
     const newOrderPayload = {
       ...order,
       id: undefined,
-      order_id: `RE-${Math.floor(Math.random() * 1000000)}`,
-      status: "confirmed",
+      order_id: undefined,
+      status: "pending",
       created_at: new Date().toISOString(),
     };
 
@@ -643,8 +756,13 @@ export default function OrdersPage() {
 
   return (
     <div className="ord-page">
-      {/* Header */}
-      <OrdersHeader activeTab={activeTab} onBack={() => navigate(-1)} />
+      {/* Header with Refresh */}
+      <OrdersHeader 
+        activeTab={activeTab} 
+        onBack={() => navigate(-1)} 
+        onRefresh={handleRefresh}
+        isRefreshing={isRefreshing}
+      />
 
       {/* Tabs */}
       <OrderTabs
@@ -668,6 +786,7 @@ export default function OrdersPage() {
                 key={order.id}
                 order={order}
                 isNew={highlightedNewOrders.has(order.order_id || order.id)}
+                isUpdated={recentlyUpdatedOrders.has(order.id)}
                 activeTab={activeTab}
                 onConfirm={handleConfirmOrder}
                 onDelete={handleDeleteOrder}

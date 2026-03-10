@@ -1,10 +1,13 @@
 /* src/pages/HelpCenterPage.css */
+
+/* ============ HELP CENTER PAGE ============ */
 .help-center-page {
   min-height: 100vh;
   background: #f9fafb;
   padding-bottom: 100px;
 }
 
+/* ============ HEADER ============ */
 .help-header {
   display: flex;
   align-items: center;
@@ -35,12 +38,19 @@
   background: #e5e7eb;
 }
 
+.help-back-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
 .help-header h1 {
   font-size: 20px;
   font-weight: 600;
   color: #1f2937;
+  margin: 0;
 }
 
+/* ============ SEARCH SECTION ============ */
 .help-search-section {
   background: linear-gradient(135deg, #1b4b8c 0%, #2d5fa8 100%);
   padding: 30px 24px 40px;
@@ -51,7 +61,7 @@
   color: white;
   font-size: 24px;
   font-weight: 700;
-  margin-bottom: 20px;
+  margin: 0 0 20px 0;
 }
 
 .help-search-box {
@@ -70,6 +80,7 @@
   color: #9ca3af;
   width: 20px;
   height: 20px;
+  flex-shrink: 0;
 }
 
 .help-search-box input {
@@ -78,12 +89,14 @@
   outline: none;
   font-size: 16px;
   color: #1f2937;
+  background: transparent;
 }
 
 .help-search-box input::placeholder {
   color: #9ca3af;
 }
 
+/* ============ CATEGORIES ============ */
 .help-categories {
   padding: 24px;
   display: flex;
@@ -102,6 +115,9 @@
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  border: none;
+  width: 100%;
+  text-align: left;
 }
 
 .help-category-card:hover {
@@ -112,7 +128,7 @@
 .category-icon {
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #667eea15, #764ba215);
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -134,20 +150,23 @@
   font-size: 16px;
   font-weight: 600;
   color: #1f2937;
-  margin-bottom: 4px;
+  margin: 0 0 4px 0;
 }
 
 .category-info p {
   font-size: 13px;
   color: #6b7280;
+  margin: 0;
 }
 
 .category-arrow {
   color: #9ca3af;
   width: 20px;
   height: 20px;
+  flex-shrink: 0;
 }
 
+/* ============ ARTICLES ============ */
 .help-articles {
   padding: 24px;
 }
@@ -166,11 +185,20 @@
   padding: 0;
 }
 
+.back-to-categories:hover {
+  color: #4f46e5;
+}
+
+.back-to-categories svg {
+  width: 18px;
+  height: 18px;
+}
+
 .help-articles h3 {
   font-size: 20px;
   font-weight: 700;
   color: #1f2937;
-  margin-bottom: 16px;
+  margin: 0 0 16px 0;
 }
 
 .articles-list {
@@ -186,6 +214,10 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
+.article-item.expanded {
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
 .article-header {
   width: 100%;
   display: flex;
@@ -199,10 +231,23 @@
   font-size: 15px;
   font-weight: 500;
   color: #1f2937;
+  transition: background 0.2s ease;
+}
+
+.article-header:hover {
+  background: #f9fafb;
+}
+
+.article-header span {
+  flex: 1;
+  padding-right: 12px;
 }
 
 .article-arrow {
   color: #9ca3af;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
   transition: transform 0.3s ease;
 }
 
@@ -219,8 +264,10 @@
   font-size: 14px;
   color: #4b5563;
   line-height: 1.7;
+  margin: 0;
 }
 
+/* ============ CONTACT CTA ============ */
 .help-contact-cta {
   position: fixed;
   bottom: 20px;
@@ -233,6 +280,7 @@
   align-items: center;
   gap: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 50;
 }
 
 .help-contact-cta > svg {
@@ -250,11 +298,13 @@
   font-size: 14px;
   font-weight: 600;
   color: #1f2937;
+  margin: 0 0 2px 0;
 }
 
 .help-contact-cta p {
   font-size: 12px;
   color: #6b7280;
+  margin: 0;
 }
 
 .help-contact-cta button {
@@ -266,9 +316,101 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
+.help-contact-cta button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* ============ ANIMATIONS ============ */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 480px) {
+  .help-search-section h2 {
+    font-size: 20px;
+  }
+
+  .help-search-box {
+    padding: 12px 16px;
+  }
+
+  .help-search-box input {
+    font-size: 14px;
+  }
+
+  .help-category-card {
+    padding: 16px;
+  }
+
+  .category-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .category-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .category-info h3 {
+    font-size: 14px;
+  }
+
+  .category-info p {
+    font-size: 12px;
+  }
+
+  .help-contact-cta {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .help-contact-cta > svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .help-contact-cta button {
+    width: 100%;
+    padding: 12px;
+  }
+}
+
+/* ============ EMPTY STATE ============ */
+.help-empty-state {
+  text-align: center;
+  padding: 60px 24px;
+}
+
+.help-empty-state svg {
+  width: 64px;
+  height: 64px;
+  color: #d1d5db;
+  margin-bottom: 16px;
+}
+
+.help-empty-state h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 8px 0;
+}
+
+.help-empty-state p {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
 }

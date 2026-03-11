@@ -10,13 +10,12 @@ import { imageUrl, PLACEHOLDER } from "../utils/image";
 import "./Lists.css";
 import "./SmartListDrawer.css";
 
-// Icons
+// Icons - Removed FiChevronLeft for back button
 import {
   FiPlus,
   FiTrash2,
   FiEye,
   FiShoppingCart,
-  FiChevronLeft,
   FiChevronRight,
   FiEdit3,
   FiX,
@@ -26,10 +25,10 @@ import {
   FiClock,
   FiMinus,
   FiAlertCircle,
-  FiMoreVertical,
+  FiMoreHorizontal, // Changed from FiMoreVertical
   FiCopy,
   FiShare2,
-  FiHeart,
+  FiMenu, // Added hamburger icon option
 } from "react-icons/fi";
 import { HiOutlineSparkles, HiOutlineClipboardList } from "react-icons/hi";
 
@@ -83,29 +82,30 @@ const formatCurrency = (val) =>
 
 // ============ SUB-COMPONENTS ============
 
-// Header Component - UPDATED WITH LIST ICON AND TOOLTIP
-// Header Component - UPDATED WITH EMOJI INSTEAD OF REACT ICONS
+// Header Component - SIMPLE BACK ARROW (NO REACT ICON)
 const ListsHeader = ({ onBack, onAdd, listCount }) => {
   const [showTooltip, setShowTooltip] = useState(false);
 
   return (
     <header className="sl-header">
+      {/* ✅ SIMPLE BACK BUTTON - Using plain < character */}
       <button className="sl-back-btn" onClick={onBack} aria-label="Go back">
-        <FiChevronLeft />
+        <span className="sl-back-arrow">‹</span>
       </button>
+      
       <div className="sl-header-center">
         <h1 className="sl-title">Smart Lists</h1>
         {listCount > 0 && (
           <span className="sl-list-count">{listCount} lists</span>
         )}
       </div>
+      
       <div className="sl-header-right">
         <div
           className="sl-add-btn-wrapper"
           onMouseEnter={() => setShowTooltip(true)}
           onMouseLeave={() => setShowTooltip(false)}
         >
-          {/* ✅ Emoji + plain "+" instead of React icons */}
           <button
             className="sl-add-btn"
             onClick={onAdd}
@@ -213,13 +213,14 @@ const CreateListModal = ({ isOpen, onClose, onCreate }) => {
   );
 };
 
-// List Card Component
+// List Card Component - UPDATED DROPDOWN ICON
 const ListCard = ({
   list,
   orderedAt,
   onView,
   onDelete,
   onOrderAll,
+  isOrdering,
 }) => {
   const [showMenu, setShowMenu] = useState(false);
   const itemCount = list.items?.length || 0;
@@ -254,11 +255,17 @@ const ListCard = ({
             )}
           </div>
         </div>
+        
+        {/* ✅ VISIBLE DROPDOWN BUTTON - Hamburger/Three dots */}
         <button
           className="sl-card-menu-btn"
-          onClick={() => setShowMenu(!showMenu)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowMenu(!showMenu);
+          }}
+          aria-label="More options"
         >
-          <FiMoreVertical />
+          <FiMoreHorizontal className="sl-menu-icon" />
         </button>
 
         {/* Dropdown Menu */}
@@ -266,21 +273,36 @@ const ListCard = ({
           <>
             <div className="sl-menu-overlay" onClick={() => setShowMenu(false)} />
             <div className="sl-dropdown-menu">
-              <button className="sl-menu-item" onClick={() => { onView(list); setShowMenu(false); }}>
+              <button 
+                className="sl-menu-item" 
+                onClick={() => { 
+                  onView(list); 
+                  setShowMenu(false); 
+                }}
+              >
                 <FiEye />
                 View List
               </button>
-              <button className="sl-menu-item" onClick={() => setShowMenu(false)}>
+              <button 
+                className="sl-menu-item" 
+                onClick={() => setShowMenu(false)}
+              >
                 <FiCopy />
                 Duplicate
               </button>
-              <button className="sl-menu-item" onClick={() => setShowMenu(false)}>
+              <button 
+                className="sl-menu-item" 
+                onClick={() => setShowMenu(false)}
+              >
                 <FiShare2 />
                 Share
               </button>
               <button
                 className="sl-menu-item danger"
-                onClick={() => { onDelete(list.id); setShowMenu(false); }}
+                onClick={() => { 
+                  onDelete(list.id); 
+                  setShowMenu(false); 
+                }}
               >
                 <FiTrash2 />
                 Delete
@@ -332,12 +354,21 @@ const ListCard = ({
             View
           </button>
           <button
-            className="sl-action-btn order"
+            className={`sl-action-btn order ${isOrdering ? 'loading' : ''}`}
             onClick={() => onOrderAll(list)}
-            disabled={itemCount === 0}
+            disabled={itemCount === 0 || isOrdering}
           >
-            <FiShoppingCart />
-            Order All
+            {isOrdering ? (
+              <>
+                <span className="sl-btn-spinner"></span>
+                Ordering...
+              </>
+            ) : (
+              <>
+                <FiShoppingCart />
+                Order All
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -345,7 +376,7 @@ const ListCard = ({
   );
 };
 
-// View List Modal
+// View List Modal - UPDATED BACK BUTTON
 const ViewListModal = ({
   list,
   isOpen,
@@ -367,8 +398,9 @@ const ViewListModal = ({
     <div className="sl-modal-overlay" onClick={onClose}>
       <div className="sl-view-modal" onClick={(e) => e.stopPropagation()}>
         <div className="sl-view-header">
+          {/* ✅ SIMPLE BACK BUTTON */}
           <button className="sl-view-back" onClick={onClose}>
-            <FiChevronLeft />
+            <span className="sl-back-arrow">‹</span>
           </button>
           <h2 className="sl-view-title">{list.name}</h2>
           <button
@@ -439,7 +471,7 @@ const ViewListModal = ({
                             </button>
                           </div>
                         ) : (
-                                                    <span className="sl-view-item-qty">Qty: {qty}</span>
+                          <span className="sl-view-item-qty">Qty: {qty}</span>
                         )}
                       </div>
                     </div>
@@ -519,6 +551,7 @@ export default function SmartList() {
   const [orderedAt, setOrderedAt] = useState({});
   const [drawerOpen, setDrawerOpen] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [orderingListId, setOrderingListId] = useState(null); // ✅ Track which list is being ordered
 
   // PIN Modal States
   const [showPinModal, setShowPinModal] = useState(false);
@@ -566,28 +599,66 @@ export default function SmartList() {
     setShowPinModal(true);
   };
 
-  // PIN Success Handler
+  // ✅ FIXED: PIN Success Handler with proper Order ID and List Deletion
   const handlePinSuccess = async () => {
     if (!selectedList) return;
+    
+    const listId = selectedList.id;
+    const listName = selectedList.name;
+    
+    setOrderingListId(listId); // Set loading state
+    
     try {
-      const newOrder = await orderAll(selectedList.id);
-      if (newOrder) {
-        toast.success(`Order #${newOrder.id} placed successfully!`, {
-          icon: "🎉",
-          duration: 4000,
-        });
+      const newOrder = await orderAll(listId);
+      
+      // ✅ FIX 1: Properly get the order ID from response
+      const orderId = newOrder?.id || newOrder?.order_id || newOrder?.orderId;
+      
+      if (newOrder && orderId) {
+        // ✅ FIX 2: Show success toast with ACTUAL order ID
+        toast.success(
+          `🎉 Order #${orderId} placed successfully!`,
+          {
+            duration: 4000,
+            position: 'top-center',
+          }
+        );
+
+        // Store ordered timestamp (optional - for showing "ordered" label)
         setOrderedAt((prev) => ({
           ...prev,
-          [selectedList.id]: new Date().toLocaleString(),
+          [listId]: new Date().toLocaleString(),
         }));
+        
+        // Close PIN modal
         setShowPinModal(false);
-        setTimeout(() => navigate("/orders"), 1500);
+        setSelectedList(null);
+
+        // ✅ FIX 3: Delete the smart list from frontend after successful order
+        setTimeout(() => {
+          deleteList(listId);
+          toast.success(
+            `"${listName}" has been removed from your lists`,
+            {
+              duration: 2000,
+              icon: '🗑️',
+            }
+          );
+        }, 1000); // Small delay so user sees the order confirmation first
+
+        // Navigate to orders page
+        setTimeout(() => navigate("/orders"), 2500);
+        
       } else {
-        toast.error("Failed to place order");
+        // Handle case where order was created but no ID returned
+        console.error("Order response missing ID:", newOrder);
+        toast.error("Order placed but couldn't retrieve order ID. Please check your orders.");
       }
     } catch (err) {
       console.error("Order error:", err);
-      toast.error("Something went wrong");
+      toast.error(err?.message || "Something went wrong. Please try again.");
+    } finally {
+      setOrderingListId(null); // Clear loading state
     }
   };
 
@@ -641,6 +712,7 @@ export default function SmartList() {
                 onView={handleViewList}
                 onDelete={handleDeleteList}
                 onOrderAll={handleOrderAllClick}
+                isOrdering={orderingListId === list.id} // ✅ Pass loading state
               />
             ))}
           </div>
@@ -686,7 +758,11 @@ export default function SmartList() {
       {/* Transaction PIN Modals */}
       <TransactionPinModal
         isOpen={showPinModal}
-        onClose={() => setShowPinModal(false)}
+        onClose={() => {
+          setShowPinModal(false);
+          setSelectedList(null);
+          setOrderingListId(null);
+        }}
         customerId={customerId}
         onSuccess={handlePinSuccess}
         onRequestSetPin={() => {

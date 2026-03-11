@@ -14,16 +14,15 @@ import {
   FiTarget,
   FiEye,
   FiHeart,
-  FiAward,
   FiTrendingUp,
   FiPackage,
   FiClock,
   FiStar,
   FiChevronRight,
+  FiChevronDown,
 } from "react-icons/fi";
 import {
   FaShoppingCart,
-  FaHandshake,
   FaRocket,
   FaLightbulb,
   FaQuoteLeft,
@@ -132,31 +131,37 @@ const WHY_CHOOSE_US = [
   },
 ];
 
-// ============ TEAM DATA WITH IMAGES ============
+// ============ TEAM DATA WITH IMAGES (5 MEMBERS) ============
 const TEAM = [
   {
     name: "Chiamo",
     role: "CEO & Founder",
     image: "https://ik.imagekit.io/ljwnlcbqyu/CHIAMO_PIC.jpeg",
-    initial: "CF",
+    initial: "CH",
+  },
+  {
+    name: "Mr. Aseeyl",
+    role: "Operations Manager",
+    image: "https://ik.imagekit.io/ljwnlcbqyu/MR_aseeyl.jpeg",
+    initial: "AS",
   },
   {
     name: "Mr. Ali",
-    role: "Head of Operations",
+    role: "Tech Lead",
     image: "https://ik.imagekit.io/ljwnlcbqyu/MR%20ALI.jpeg",
-    initial: "OL",
+    initial: "AL",
   },
   {
-    name: "Costley",
-    role: "Software & Web Developer",
+    name: "Costley Osaro",
+    role: "Software Developer",
     image: "https://ik.imagekit.io/ljwnlcbqyu/HR%20PIC.jpeg",
-    initial: "TL",
+    initial: "CO",
   },
   {
-    name: "Support Team",
-    role: "Customer Care Manager",
-    image: "https://ik.imagekit.io/ljwnlcbqyu/HR%20PIC.jpeg",
-    initial: "CC",
+    name: "Cynthia",
+    role: "Customer Care",
+    image: "https://ik.imagekit.io/ljwnlcbqyu/CUSTOMER_CARE1.jpg.jpeg?updatedAt=1773224385365",
+    initial: "CY",
   },
 ];
 
@@ -173,13 +178,12 @@ const ImageSlider = ({ images }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
-  // Auto-slide effect
   useEffect(() => {
     if (!isAutoPlaying) return;
 
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % images.length);
-    }, 4000); // Change image every 4 seconds
+    }, 4000);
 
     return () => clearInterval(interval);
   }, [isAutoPlaying, images.length]);
@@ -187,7 +191,6 @@ const ImageSlider = ({ images }) => {
   const goToSlide = (index) => {
     setCurrentIndex(index);
     setIsAutoPlaying(false);
-    // Resume auto-play after 10 seconds of inactivity
     setTimeout(() => setIsAutoPlaying(true), 10000);
   };
 
@@ -215,7 +218,6 @@ const ImageSlider = ({ images }) => {
           </div>
         ))}
 
-        {/* Navigation Arrows */}
         <button
           className="ap-slider-arrow ap-slider-arrow-left"
           onClick={goToPrevious}
@@ -231,7 +233,6 @@ const ImageSlider = ({ images }) => {
           <FiChevronRight />
         </button>
 
-        {/* Dots Indicator */}
         <div className="ap-slider-dots">
           {images.map((_, index) => (
             <button
@@ -243,7 +244,6 @@ const ImageSlider = ({ images }) => {
           ))}
         </div>
 
-        {/* Progress Bar */}
         <div className="ap-slider-progress">
           <div
             className="ap-slider-progress-bar"
@@ -255,12 +255,10 @@ const ImageSlider = ({ images }) => {
         </div>
       </div>
 
-      {/* Overlay Icon */}
       <div className="ap-image-overlay">
         <FaShoppingCart />
       </div>
 
-      {/* Decoration */}
       <div className="ap-image-decoration"></div>
     </div>
   );
@@ -338,7 +336,7 @@ const FeatureCard = ({ feature }) => {
   );
 };
 
-// ============ TEAM MEMBER COMPONENT (UPDATED) ============
+// ============ TEAM MEMBER COMPONENT (IMPROVED) ============
 const TeamMember = ({ member }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -368,6 +366,44 @@ const TeamMember = ({ member }) => {
       </div>
       <h4 className="ap-member-name">{member.name}</h4>
       <p className="ap-member-role">{member.role}</p>
+    </div>
+  );
+};
+
+// ============ COLLAPSIBLE QUOTE COMPONENT ============
+const CollapsibleQuote = ({ quote }) => {
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  return (
+    <div className={`ap-quote-collapsible ${isExpanded ? "expanded" : "collapsed"}`}>
+      <button 
+        className="ap-quote-toggle"
+        onClick={() => setIsExpanded(!isExpanded)}
+        aria-expanded={isExpanded}
+        aria-label={isExpanded ? "Collapse quote" : "Expand quote"}
+      >
+        <div className="ap-quote-toggle-content">
+          <FaQuoteLeft className="ap-quote-icon-small" />
+          <span className="ap-quote-toggle-text">
+            {isExpanded ? "Our Philosophy" : "Read Our Philosophy"}
+          </span>
+        </div>
+        <div className={`ap-quote-toggle-arrow ${isExpanded ? "rotated" : ""}`}>
+          <FiChevronDown />
+        </div>
+      </button>
+      
+      <div className="ap-quote-content-wrapper">
+        <div className="ap-quote-content">
+          <FaQuoteLeft className="ap-quote-icon" />
+          <blockquote className="ap-quote-text">
+            {quote}
+          </blockquote>
+          <div className="ap-quote-author">
+            <span className="ap-author-name">— ChiamoOrder Team</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -540,16 +576,10 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ===== QUOTE SECTION ===== */}
+      {/* ===== COLLAPSIBLE QUOTE SECTION ===== */}
       <section className="ap-quote-section">
         <div className="ap-quote-container">
-          <FaQuoteLeft className="ap-quote-icon" />
-          <blockquote className="ap-quote-text">
-            {COMPANY_INFO.quote}
-          </blockquote>
-          <div className="ap-quote-author">
-            <span className="ap-author-name">ChiamoOrder Team</span>
-          </div>
+          <CollapsibleQuote quote={COMPANY_INFO.quote} />
         </div>
       </section>
 

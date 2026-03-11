@@ -708,72 +708,410 @@
 }
 
 /* ============ TEAM SECTION ============ */
+/* ============ IMPROVED TEAM SECTION STYLES ============ */
 .ap-team-section {
-  padding: 80px 24px;
-  background: var(--ap-gray-50);
+  padding: 60px 24px;
+  background: #f9fafb;
 }
 
 .ap-team-container {
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
+/* Grid for 5 members */
 .ap-team-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
+/* Team Member Card */
 .ap-team-member {
   text-align: center;
-  padding: 28px 20px;
-  background: var(--ap-white);
-  border: 1px solid var(--ap-gray-200);
-  border-radius: var(--ap-radius-xl);
-  transition: all var(--ap-transition-normal);
+  padding: 28px 16px;
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  transition: all 0.4s ease;
 }
 
 .ap-team-member:hover {
-  box-shadow: var(--ap-shadow-lg);
-  transform: translateY(-4px);
+  transform: translateY(-10px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
 }
 
+/* Avatar Container - BIGGER SIZE */
 .ap-member-avatar {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 16px;
+  position: relative;
+  width: 140px;
+  height: 140px;
+  margin: 0 auto 20px;
   border-radius: 50%;
-  overflow: hidden;
-  background: linear-gradient(135deg, var(--ap-primary) 0%, var(--ap-primary-light) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
+  background: linear-gradient(135deg, #1b4b8c 0%, #2d5fa8 100%);
+  overflow: visible;
 }
 
-.ap-member-avatar img {
+/* Avatar Ring */
+.ap-member-avatar-ring {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  right: -6px;
+  bottom: -6px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  background: linear-gradient(135deg, #f5a623, #ff6b35, #1b4b8c, #10b981) border-box;
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) padding-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: rotateRing 6s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes rotateRing {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Placeholder */
+.ap-member-avatar-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1b4b8c 0%, #2d5fa8 100%);
+  border-radius: 50%;
+  z-index: 1;
+}
+
+/* Image */
+.ap-member-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center top;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  position: relative;
+  z-index: 2;
 }
 
+.ap-member-image.loaded {
+  opacity: 1;
+}
+
+/* Initial */
 .ap-member-initial {
-  font-family: "Poppins", sans-serif;
-  font-size: 28px;
+  font-size: 42px;
   font-weight: 700;
-  color: var(--ap-white);
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
 
+/* Name */
 .ap-member-name {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--ap-gray-900);
-  margin: 0 0 4px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 6px 0;
 }
 
+/* Role */
 .ap-member-role {
   font-size: 13px;
-  color: var(--ap-gray-500);
+  color: #6b7280;
   margin: 0;
+  line-height: 1.4;
+}
+
+/* ============ RESPONSIVE TEAM GRID ============ */
+
+/* Tablet - 3 columns */
+@media (max-width: 1024px) {
+  .ap-team-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  
+  .ap-member-avatar {
+    width: 130px;
+    height: 130px;
+  }
+}
+
+/* Mobile Large - 2 columns */
+@media (max-width: 768px) {
+  .ap-team-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  
+  .ap-team-member {
+    padding: 24px 12px;
+  }
+  
+  .ap-member-avatar {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .ap-member-initial {
+    font-size: 36px;
+  }
+  
+  .ap-member-name {
+    font-size: 15px;
+  }
+  
+  .ap-member-role {
+    font-size: 12px;
+  }
+}
+
+/* Mobile Small - 2 columns still but smaller */
+@media (max-width: 480px) {
+  .ap-team-section {
+    padding: 40px 16px;
+  }
+  
+  .ap-team-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .ap-team-member {
+    padding: 20px 10px;
+    border-radius: 20px;
+  }
+  
+  .ap-member-avatar {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 14px;
+  }
+  
+  .ap-member-avatar-ring {
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    border-width: 2px;
+  }
+  
+  .ap-member-initial {
+    font-size: 30px;
+  }
+  
+  .ap-member-name {
+    font-size: 14px;
+  }
+  
+  .ap-member-role {
+    font-size: 11px;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 360px) {
+  .ap-member-avatar {
+    width: 85px;
+    height: 85px;
+  }
+  
+  .ap-member-initial {
+    font-size: 26px;
+  }
+  
+  .ap-member-name {
+    font-size: 13px;
+  }
+}
+
+/* ============ COLLAPSIBLE QUOTE SECTION ============ */
+.ap-quote-section {
+  padding: 40px 24px;
+  background: linear-gradient(135deg, #1b4b8c 0%, #2d5fa8 100%);
+}
+
+.ap-quote-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.ap-quote-collapsible {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: all 0.4s ease;
+}
+
+.ap-quote-collapsible:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Toggle Button */
+.ap-quote-toggle {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.ap-quote-toggle:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.ap-quote-toggle-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ap-quote-icon-small {
+  width: 24px;
+  height: 24px;
+  color: #f5a623;
+}
+
+.ap-quote-toggle-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+.ap-quote-toggle-arrow {
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.ap-quote-toggle-arrow svg {
+  width: 20px;
+  height: 20px;
+  color: white;
+  transition: transform 0.3s ease;
+}
+
+.ap-quote-toggle-arrow.rotated svg {
+  transform: rotate(180deg);
+}
+
+/* Content Wrapper for Animation */
+.ap-quote-content-wrapper {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.4s ease;
+}
+
+.ap-quote-collapsible.collapsed .ap-quote-content-wrapper {
+  grid-template-rows: 0fr;
+}
+
+.ap-quote-content {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.ap-quote-collapsible.expanded .ap-quote-content {
+  padding: 0 24px 28px;
+}
+
+.ap-quote-collapsible.collapsed .ap-quote-content {
+  padding: 0 24px;
+}
+
+/* Quote Icon */
+.ap-quote-icon {
+  width: 40px;
+  height: 40px;
+  color: #f5a623;
+  margin-bottom: 16px;
+  opacity: 0.8;
+}
+
+/* Quote Text */
+.ap-quote-text {
+  font-size: 18px;
+  line-height: 1.8;
+  color: white;
+  font-style: italic;
+  margin: 0 0 20px 0;
+  text-align: center;
+}
+
+/* Quote Author */
+.ap-quote-author {
+  text-align: center;
+}
+
+.ap-author-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Responsive Quote */
+@media (max-width: 600px) {
+  .ap-quote-section {
+    padding: 30px 16px;
+  }
+  
+  .ap-quote-toggle {
+    padding: 16px 18px;
+  }
+  
+  .ap-quote-toggle-text {
+    font-size: 14px;
+  }
+  
+  .ap-quote-toggle-arrow {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .ap-quote-collapsible.expanded .ap-quote-content {
+    padding: 0 18px 24px;
+  }
+  
+  .ap-quote-icon {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .ap-quote-text {
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  
+  .ap-author-name {
+    font-size: 13px;
+  }
 }
 
 /* ============ CTA SECTION ============ */

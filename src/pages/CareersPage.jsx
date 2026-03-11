@@ -11,25 +11,25 @@ import "./CareersPage.css";
 const JOB_OPENINGS = [
   {
     id: 1,
-    title: "Senior Frontend Developer",
-    department: "Engineering",
+    title: "Area Sales Manager",
+    department: "Beverages",
     location: "Port Harcourt, Nigeria",
     type: "Full-time",
-    description: "We're looking for an experienced React developer to help build amazing user experiences."
+    description: "We're looking for an experienced Area Sales Manager to help build and improve sales in a location."
   },
   {
     id: 2,
-    title: "Product Designer",
-    department: "Design",
-    location: "Remote",
+    title: "Sales Rep",
+    department: "FOOD",
+    location: "On-site",
     type: "Full-time",
-    description: "Join our design team to create beautiful and intuitive interfaces for our platform."
+    description: "Join our sales team to drive Sales and Grow product awareness in the market."
   },
   {
     id: 3,
     title: "Customer Success Manager",
     department: "Operations",
-    location: "Lagos, Nigeria",
+    location: "Portharcourt, Nigeria",
     type: "Full-time",
     description: "Help our customers succeed and grow their businesses with ChiamoOrder."
   },
@@ -133,7 +133,7 @@ export default function CareersPage() {
           We're always looking for talented people. Send us your resume and 
           we'll keep you in mind for future opportunities.
         </p>
-        <a href="mailto:careers@chiamoorder.com" className="careers-email-btn">
+        <a href="mailto:careers@chiamoorder@gmail.com" className="careers-email-btn">
           Send Your Resume
         </a>
       </section>

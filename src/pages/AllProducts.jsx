@@ -297,7 +297,7 @@ const ProductBadge = ({ type }) => {
 };
 
 // ============ RATING STARS COMPONENT ============
-const RatingStars = ({ rating, reviews, onRate, productId, readonly = false }) => {
+const RatingStars = ({ rating, onRate, productId, readonly = false }) => {
   const numRating = parseFloat(rating) || 0;
   const fullStars = Math.floor(numRating);
   const hasHalf = numRating % 1 >= 0.5;
@@ -339,12 +339,12 @@ const RatingStars = ({ rating, reviews, onRate, productId, readonly = false }) =
           </button>
         ))}
       </div>
-      <span className="ap-rating-text">
-        {numRating.toFixed(1)} ({reviews || 0})
-      </span>
+      {/* Only show rating number like "4.5", removed the (271) reviews count */}
+      <span className="ap-rating-text">{numRating.toFixed(1)}</span>
     </div>
   );
 };
+
 
 // ============ PRODUCT CARD COMPONENT ============
 const ProductCard = ({
@@ -352,7 +352,6 @@ const ProductCard = ({
 }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
 
   // Extract category name
@@ -373,12 +372,10 @@ const ProductCard = ({
 
   // Get stock info
   const stock = Number(product.stock) || 0;
-  const stockStatus = getStockStatus(stock);
   const inStock = stock > 0;
 
-  // Get badge and reviews
+  // Get badge
   const badge = product.badge || (product.is_new ? 'new' : (product.is_promo ? 'sale' : (product.flash_sale ? 'hot' : getRandomBadge())));
-  const reviews = product.num_reviews || getRandomReviews();
 
   // Handle image error
   const handleImgError = (e) => {
@@ -386,19 +383,12 @@ const ProductCard = ({
     e.target.src = PLACEHOLDER;
   };
 
-  // Handle quantity change (fast local update)
-  const handleQuantityChange = useCallback((newQty) => {
-    const maxQty = inStock ? Math.min(stock, 99) : 0;
-    setQuantity(Math.max(1, Math.min(newQty, maxQty)));
-  }, [stock, inStock]);
-
-  // Handle add to cart
+  // Handle add to cart (always adds 1)
   const handleAdd = async (e) => {
     if (!inStock) return;
     setIsAdding(true);
     try {
-      await onAddToCart(e, product, quantity);
-      setQuantity(1); // Reset after adding
+      await onAddToCart(e, product, 1);
     } finally {
       setIsAdding(false);
     }
@@ -476,16 +466,15 @@ const ProductCard = ({
         {/* Name */}
         <h3 className="ap-product-name">{product.name}</h3>
 
-        {/* Rating */}
+        {/* Rating - No review count */}
         <RatingStars
           rating={rating || product.rating || 0}
-          reviews={reviews}
           onRate={onRate}
           productId={product.id}
         />
 
         {/* Stock Indicator */}
-        <StockIndicator stock={stock} compact={viewMode === 'grid'} />
+        <StockIndicator stock={stock} compact={true} />
 
         {/* Pricing */}
         <div className="ap-product-pricing">
@@ -497,20 +486,7 @@ const ProductCard = ({
           )}
         </div>
 
-        {/* Quantity Selector (Shows in both views when in stock) */}
-        {inStock && (
-          <div className="ap-quantity-row">
-            <QuantitySelector
-              quantity={quantity}
-              onQuantityChange={handleQuantityChange}
-              maxQuantity={Math.min(stock, 99)}
-              minQuantity={1}
-              size={viewMode === 'grid' ? 'small' : 'default'}
-            />
-          </div>
-        )}
-
-        {/* Add to Cart Button */}
+        {/* Add to Cart Button - Dark Yellow */}
         <button
           className={`ap-add-to-cart-btn ${isAdding ? "loading" : ""} ${!inStock ? 'disabled' : ''}`}
           onClick={handleAdd}
@@ -521,7 +497,7 @@ const ProductCard = ({
           ) : (
             <>
               <FiShoppingCart />
-              <span>{inStock ? `Add ${quantity > 1 ? `(${quantity})` : ''}` : "Out of Stock"}</span>
+              <span>{inStock ? "Add to Cart" : "Out of Stock"}</span>
             </>
           )}
         </button>

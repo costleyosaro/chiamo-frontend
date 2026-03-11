@@ -902,79 +902,88 @@
 }
 
 /* ============ CATEGORIES ============ */
-.hp-categories-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
+.hp-categories-section {
+  padding: 0 16px;
+  margin-bottom: 24px;
 }
 
-.hp-category-card {
+.hp-categories-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 8px 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.hp-categories-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Category Item */
+.hp-category-item {
+  flex: 0 0 auto;
+  width: 90px;
+  text-decoration: none;
   display: flex;
   flex-direction: column;
-  background: var(--hp-bg-card);
-  border: 1px solid var(--hp-border);
-  border-radius: var(--hp-radius-lg);
-  overflow: hidden;
-  text-decoration: none;
-  transition: all var(--hp-transition);
-}
-
-.hp-category-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--hp-shadow-lg);
-  border-color: transparent;
-}
-
-.hp-category-image-wrapper {
-  position: relative;
-  aspect-ratio: 1;
-  overflow: hidden;
-  background-color: #f5f5f5;
-}
-
-.hp-category-image-wrapper img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: center;
-  display: block;
-  padding: 8px;
+  align-items: center;
   transition: transform 0.3s ease;
 }
 
-.hp-category-card:hover .hp-category-image-wrapper img {
-  transform: scale(1.08);
+.hp-category-item:hover {
+  transform: translateY(-4px);
 }
 
-.hp-category-overlay {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity var(--hp-transition);
+/* Category Image Wrapper */
+.hp-category-img-wrapper {
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #f5f5f5;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
 }
 
-.hp-category-card:hover .hp-category-overlay {
-  opacity: 1;
+.hp-category-item:hover .hp-category-img-wrapper {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
-.hp-category-info {
+/* Category Image - Fill Container */
+.hp-category-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.3s ease;
+}
+
+.hp-category-item:hover .hp-category-img {
+  transform: scale(1.1);
+}
+
+/* Category Label - Icon & Text */
+.hp-category-label {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 10px 6px;
-  background: var(--hp-bg-secondary);
+  gap: 2px;
+  margin-top: 8px;
 }
 
 .hp-category-icon {
-  font-size: 14px;
+  width: 16px;
+  height: 16px;
+  color: #1a1a1a;
 }
 
 .hp-category-name {
   font-size: 11px;
   font-weight: 600;
-  color: var(--hp-text);
-  white-space: nowrap;
+  color: #1a1a1a;
+  text-align: center;
+  line-height: 1.2;
 }
 
 /* ===== NOTIFICATION BELL ENHANCEMENTS ===== */
@@ -2224,14 +2233,130 @@
     font-size: 15px;
   }
   
-  .hp-promo-banner {
-    padding: 24px 18px;
-    min-height: 160px;
-  }
-  
-  .hp-promo-title {
-    font-size: 24px;
-  }
+  /* ============ PROMO BANNER - ORIGINAL YELLOW STYLE ============ */
+.hp-promo-section {
+  padding: 0 16px;
+  margin-bottom: 24px;
+}
+
+.hp-promo-banner {
+  position: relative;
+  background: linear-gradient(135deg, #f5a623 0%, #e09500 100%);
+  border-radius: 20px;
+  padding: 24px;
+  overflow: hidden;
+  min-height: 180px;
+  display: flex;
+  align-items: center;
+}
+
+.hp-promo-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 90% 20%, rgba(255, 255, 255, 0.3) 0%, transparent 40%),
+    radial-gradient(circle at 10% 80%, rgba(255, 255, 255, 0.15) 0%, transparent 40%);
+}
+
+.hp-promo-content {
+  position: relative;
+  z-index: 2;
+  max-width: 65%;
+}
+
+.hp-promo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.25);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 12px;
+  backdrop-filter: blur(4px);
+}
+
+.hp-promo-badge svg {
+  width: 14px;
+  height: 14px;
+}
+
+.hp-promo-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: white;
+  line-height: 1.1;
+  margin: 0 0 8px 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.hp-promo-title span {
+  color: #1a1a1a;
+}
+
+.hp-promo-text {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0 0 16px 0;
+}
+
+.hp-promo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  color: #e09500;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.hp-promo-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.hp-promo-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Promo Visual Circles */
+.hp-promo-visual {
+  position: absolute;
+  right: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.hp-promo-circle {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.hp-promo-circle-2 {
+  width: 100px;
+  height: 100px;
+  right: 60px;
+  background: rgba(255, 255, 255, 0.1);
+}
   
   .hp-quick-grid {
     grid-template-columns: repeat(4, 1fr);
@@ -2668,7 +2793,7 @@
   }
 }
 
-/* ============ QUICK ACTIONS - BLACK ICONS ============ */
+/* ============ QUICK ACTIONS - PROFESSIONAL COLORS ============ */
 .hp-quick-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -2691,8 +2816,8 @@
 
 .hp-quick-item:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-  border-color: #1a1a1a;
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+  border-color: #3b82f6;
 }
 
 .hp-quick-icon {
@@ -2702,14 +2827,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f3f4f6 !important;
-  color: #1a1a1a !important;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  color: white !important;
 }
 
 .hp-quick-icon svg {
   width: 22px;
   height: 22px;
-  color: #1a1a1a !important;
+  color: white !important;
 }
 
 .quick-scan-animation {
@@ -2720,7 +2845,7 @@
 .hp-quick-label {
   font-size: 12px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: #374151;
   text-align: center;
 }
 
@@ -2728,13 +2853,14 @@
   position: absolute;
   top: 8px;
   right: 8px;
-  background: #f5a623;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   color: white;
   font-size: 9px;
   font-weight: 700;
   padding: 2px 6px;
   border-radius: 6px;
   text-transform: uppercase;
+  box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
 }
 
 /* ============ TRUST BADGES - BLACK ICONS ============ */

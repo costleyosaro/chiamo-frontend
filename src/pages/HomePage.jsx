@@ -13,54 +13,35 @@ import scanningAnimation from "../assets/animations/scanning.json";
 import ComingSoonModal from "../components/ComingSoonModal";
 import { imageUrl, PLACEHOLDER } from '../utils/image';
 
-// Icons - ALL BLACK COLOR
+// Icons
 import {
   FiShoppingCart,
-  FiUser,
   FiSearch,
   FiBell,
   FiChevronRight,
-  FiPackage,
-  FiClock,
   FiArrowRight,
   FiStar,
   FiTruck,
   FiShield,
   FiHeadphones,
-  FiGrid,
   FiHeart,
-  FiEye,
   FiPlus,
-  FiMinus,
   FiX,
   FiRefreshCw,
-  FiSettings,
-  FiLogOut,
-  FiMoon,
-  FiSun,
-  FiMenu,
-  FiHome,
   FiList,
-  FiPercent,
 } from "react-icons/fi";
 import {
   FaWineGlassAlt,
   FaPumpSoap,
   FaSpa,
   FaFire,
-  FaShoppingBag,
   FaQrcode,
   FaHistory,
-  FaHeart,
   FaWallet,
-  FaHeadset,
-  FaGift,
-  FaPercent,
 } from "react-icons/fa";
 import { LuCandy } from "react-icons/lu";
-import { HiOutlineSparkles, HiOutlineQrcode } from "react-icons/hi";
-import { BiScan, BiSupport } from "react-icons/bi";
-import { MdLocalOffer, MdOutlineInventory } from "react-icons/md";
+import { HiOutlineSparkles } from "react-icons/hi";
+import { BiSupport } from "react-icons/bi";
 
 // Animations
 import cartAnimation from "../assets/animations/cart.json";
@@ -72,59 +53,41 @@ import SubscriptionsAnimation from "../assets/animations/subscriptions.json";
 import SetTransactionPinModal from "../components/SetTransactionPinModal";
 import "../main.css";
 
-// ============ PROMO SLIDER IMAGES ============
-const PROMO_SLIDER_IMAGES = [
-  { url: "https://ik.imagekit.io/ljwnlcbqyu/banners/POP-COLA-AD3.png?updatedAt=1771852933769", alt: "Pop Cola Ad" },
-  { url: "https://ik.imagekit.io/ljwnlcbqyu/banners/POP-COLA-AD2.png?updatedAt=1771852913650", alt: "Pop Cola Ad 2" },
-  { url: "https://ik.imagekit.io/ljwnlcbqyu/banners/MAMUDA-FOOD-AD5.png?updatedAt=1771852882803", alt: "Mamuda Food" },
-  { url: "https://ik.imagekit.io/ljwnlcbqyu/banners/CARE-BANNER2.jpeg?updatedAt=1771852855997", alt: "Care Banner" },
-  { url: "https://ik.imagekit.io/ljwnlcbqyu/banners/CARE-BANNER1.jpeg?updatedAt=1771852855658", alt: "Care Banner 1" },
-  { url: "https://ik.imagekit.io/ljwnlcbqyu/banners/POP-POWER1.jpg?updatedAt=1771852852224", alt: "Pop Power" },
-  { url: "https://ik.imagekit.io/ljwnlcbqyu/banners/CARE_BANNER9.jpg?updatedAt=1771852849750", alt: "Care Banner 9" },
-  { url: "https://ik.imagekit.io/ljwnlcbqyu/banners/POP-COLA-AD1.jpg?updatedAt=1771852847942", alt: "Pop Cola Ad 1" },
-  { url: "https://ik.imagekit.io/ljwnlcbqyu/banners/CARE-BANNER3.jpg?updatedAt=1771852847350", alt: "Care Banner 3" },
-  { url: "https://ik.imagekit.io/ljwnlcbqyu/banners/ZIZOU_ORANGE.jpg?updatedAt=1771852845588", alt: "Zizou Orange" },
-  { url: "https://ik.imagekit.io/ljwnlcbqyu/banners/CARE-BANNER5.webp?updatedAt=1771852850345", alt: "Care Banner 5" },
-];
-
+// ============ CATEGORIES DATA ============
 const CATEGORIES = [
   {
     id: "food",
     name: "Food",
     icon: LuCandy,
     image: "food/FOOD-CATEGORY-PHOTO.png",
-    color: "#1a1a1a",
   },
   {
     id: "beverage",
     name: "Beverages",
     icon: FaWineGlassAlt,
     image: "beverages/BEVERAGE-CATEGORY-PHOTO.png",
-    color: "#1a1a1a",
   },
   {
     id: "ZIZOU",
     name: "Zizou",
     icon: FaWineGlassAlt,
     image: "zizou/zizou-orange.jpeg",
-    color: "#1a1a1a",
   },
   {
     id: "care",
     name: "Care",
     icon: FaPumpSoap,
     image: "care/CARE-CATEGORY-PHOTO1.png",
-    color: "#1a1a1a",
   },
   {
     id: "beauty",
     name: "Beauty",
     icon: FaSpa,
     image: "beauty/CLASSY_JELLY_48PCS-100g.png",
-    color: "#1a1a1a",
   },
 ];
 
+// ============ QUICK ACTIONS ============
 const QUICK_ACTIONS = [
   {
     id: "scan",
@@ -132,7 +95,6 @@ const QUICK_ACTIONS = [
     label: "Scan QR",
     color: "#1a1a1a",
     path: null,
-    isLottie: true,
     isScan: true,
   },
   {
@@ -202,10 +164,6 @@ const useCountdown = (endTime) => {
 const HomeHeader = ({ businessName, cartCount, smartListCount, navigate }) => {
   const { unreadCount } = useNotifications();
 
-  const handleNotificationClick = () => {
-    navigate("/notifications");
-  };
-
   return (
     <header className="hp-header">
       <div className="hp-header-left">
@@ -221,8 +179,8 @@ const HomeHeader = ({ businessName, cartCount, smartListCount, navigate }) => {
       <div className="hp-header-right">
         <button
           className="hp-header-btn hp-notification-btn"
-          onClick={handleNotificationClick}
-          aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ''}`}
+          onClick={() => navigate("/notifications")}
+          aria-label="Notifications"
         >
           <FiBell className="hp-icon" />
           {unreadCount > 0 && (
@@ -262,7 +220,7 @@ const HomeHeader = ({ businessName, cartCount, smartListCount, navigate }) => {
 };
 
 // ============ SEARCH BAR COMPONENT ============
-const HomeSearchBar = ({ onSearch }) => {
+const HomeSearchBar = () => {
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
 
@@ -298,77 +256,39 @@ const HomeSearchBar = ({ onSearch }) => {
   );
 };
 
-// ============ PROMO IMAGE SLIDER COMPONENT ============
-const PromoImageSlider = ({ images }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % images.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [images.length]);
-
-  return (
-    <div className="hp-promo-slider">
-      <div className="hp-promo-slider-track">
-        {images.map((image, index) => (
-          <div
-            key={index}
-            className={`hp-promo-slide ${index === currentIndex ? "active" : ""}`}
-          >
-            <img src={image.url} alt={image.alt} />
-          </div>
-        ))}
-      </div>
-      <div className="hp-promo-slider-dots">
-        {images.slice(0, 5).map((_, index) => (
-          <button
-            key={index}
-            className={`hp-promo-dot ${index === currentIndex % 5 ? "active" : ""}`}
-            onClick={() => setCurrentIndex(index)}
-          />
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// ============ PROMO BANNER COMPONENT - UPDATED ============
+// ============ PROMO BANNER COMPONENT (ORIGINAL YELLOW STYLE) ============
 const PromoBanner = () => {
   const navigate = useNavigate();
 
   return (
     <section className="hp-promo-section">
-      <div className="hp-promo-banner-wrapper">
-        {/* Left Side - Promo Content */}
-        <div className="hp-promo-banner">
-          <div className="hp-promo-bg"></div>
-          <div className="hp-promo-content">
-            <div className="hp-promo-badge">
-              <HiOutlineSparkles />
-              <span>Limited Offer</span>
-            </div>
-            <h2 className="hp-promo-title">
-              50% Off <br />
-              <span>First Order!</span>
-            </h2>
-            <p className="hp-promo-text">
-              Get amazing deals on your favorite products
-            </p>
-            <button
-              className="hp-promo-btn"
-              onClick={() => navigate("/all-products")}
-            >
-              <FiShoppingCart />
-              Shop Now
-              <FiArrowRight />
-            </button>
+      <div className="hp-promo-banner">
+        <div className="hp-promo-bg"></div>
+        <div className="hp-promo-content">
+          <div className="hp-promo-badge">
+            <HiOutlineSparkles />
+            <span>Limited Offer</span>
           </div>
+          <h2 className="hp-promo-title">
+            50% Off <br />
+            <span>First Order!</span>
+          </h2>
+          <p className="hp-promo-text">
+            Get amazing deals on your favorite products
+          </p>
+          <button
+            className="hp-promo-btn"
+            onClick={() => navigate("/all-products")}
+          >
+            <FiShoppingCart />
+            Shop Now
+            <FiArrowRight />
+          </button>
         </div>
-
-        {/* Right Side - Image Slider */}
-        <PromoImageSlider images={PROMO_SLIDER_IMAGES} />
+        <div className="hp-promo-visual">
+          <div className="hp-promo-circle"></div>
+          <div className="hp-promo-circle hp-promo-circle-2"></div>
+        </div>
       </div>
     </section>
   );
@@ -400,11 +320,6 @@ const QuickActions = ({ onScanClick }) => {
     if (action.path) {
       navigate(action.path);
     }
-  };
-
-  const handleCloseModal = () => {
-    setShowComingSoon(false);
-    setComingSoonFeature("");
   };
 
   return (
@@ -444,19 +359,19 @@ const QuickActions = ({ onScanClick }) => {
 
       <ComingSoonModal
         isOpen={showComingSoon}
-        onClose={handleCloseModal}
+        onClose={() => setShowComingSoon(false)}
         featureName={comingSoonFeature}
       />
     </>
   );
 };
 
-// ============ CATEGORIES COMPONENT - IMPROVED ============
+// ============ CATEGORIES COMPONENT (FIXED) ============
 const CategoriesSection = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="hp-section">
+    <section className="hp-section hp-categories-section">
       <div className="hp-section-header">
         <div className="hp-section-title-wrapper">
           <h2 className="hp-section-title">Shop by Category</h2>
@@ -475,26 +390,25 @@ const CategoriesSection = () => {
         </button>
       </div>
 
-      <div className="hp-categories-grid">
+      <div className="hp-categories-scroll">
         {CATEGORIES.map((category) => (
           <Link
             key={category.id}
             to={`/all-products?category=${category.id}`}
-            className="hp-category-card"
+            className="hp-category-item"
           >
-            <div className="hp-category-image-wrapper">
+            <div className="hp-category-img-wrapper">
               <img
-                src={imageUrl(category.image, 400, 400)}
+                src={imageUrl(category.image, 200, 200)}
                 alt={category.name}
-                className="hp-category-image"
+                className="hp-category-img"
                 onError={(e) => {
                   e.target.onerror = null;
                   e.target.src = PLACEHOLDER;
                 }}
               />
-              <div className="hp-category-gradient"></div>
             </div>
-            <div className="hp-category-info">
+            <div className="hp-category-label">
               <category.icon className="hp-category-icon" />
               <span className="hp-category-name">{category.name}</span>
             </div>
@@ -543,7 +457,6 @@ const FlashSaleSection = ({ addToCart }) => {
       }
       await addToCart(identifier, 1, product.name);
       toast.success(`Added ${product.name} to cart!`);
-      animateToCart(e.target.closest(".hp-product-card"));
     } catch (err) {
       toast.error("Failed to add to cart");
     }
@@ -732,47 +645,6 @@ const TrustBadges = () => (
   </section>
 );
 
-// ============ CART ANIMATION ============
-function animateToCart(cardEl) {
-  const img = cardEl?.querySelector("img");
-  if (!img) return;
-
-  const cartIcon =
-    document.querySelector(".hp-cart-btn") ||
-    document.querySelector('[data-role="cart-icon"]');
-
-  if (!cartIcon) return;
-
-  const imgRect = img.getBoundingClientRect();
-  const cartRect = cartIcon.getBoundingClientRect();
-
-  const flyingImg = img.cloneNode(true);
-  flyingImg.style.cssText = `
-    position: fixed;
-    left: ${imgRect.left}px;
-    top: ${imgRect.top}px;
-    width: ${imgRect.width}px;
-    height: ${imgRect.height}px;
-    transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    z-index: 9999;
-    border-radius: 8px;
-    pointer-events: none;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  `;
-  document.body.appendChild(flyingImg);
-
-  requestAnimationFrame(() => {
-    flyingImg.style.left = `${cartRect.left + cartRect.width / 2 - 20}px`;
-    flyingImg.style.top = `${cartRect.top + cartRect.height / 2 - 20}px`;
-    flyingImg.style.width = "40px";
-    flyingImg.style.height = "40px";
-    flyingImg.style.opacity = "0";
-    flyingImg.style.transform = "scale(0.3)";
-  });
-
-  flyingImg.addEventListener("transitionend", () => flyingImg.remove());
-}
-
 // ============ MAIN HOMEPAGE COMPONENT ============
 export default function HomePage() {
   const navigate = useNavigate();
@@ -783,7 +655,6 @@ export default function HomePage() {
     const smartListContext = useSmartLists();
     totalSmartListCount = smartListContext?.totalSmartListCount || 0;
   } catch (error) {
-    console.warn('SmartLists context not available:', error);
     totalSmartListCount = 0;
   }
 
@@ -840,7 +711,6 @@ export default function HomePage() {
 
   const handleScanClick = () => {
     setShowScanner(true);
-    console.log("Scan clicked from Quick Actions!");
   };
 
   if (loading) {

@@ -196,13 +196,13 @@
   text-overflow: ellipsis;
 }
 
+/* ============ HEADER BUTTONS - REACT-ICONS FIX ============ */
 .hp-header-right {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-/* ============ HEADER BUTTONS - FIXED ============ */
 .hp-header-btn {
   position: relative;
   width: 40px;
@@ -213,40 +213,61 @@
   background: var(--hp-bg-card);
   border: 1px solid var(--hp-border);
   border-radius: 50%;
-  color: var(--hp-text);
-  font-size: 18px;
   cursor: pointer;
   transition: all var(--hp-transition);
+  padding: 0;
 }
 
-.hp-header-btn .hp-icon,
-.hp-header-btn svg {
+/* React-Icons (Feather Icons) Visibility Fix */
+.hp-header-btn .hp-icon {
   width: 20px;
   height: 20px;
+  display: block;
   color: var(--hp-text);
   stroke-width: 2;
-  display: block;
 }
 
+/* Ensure the SVG itself is visible */
+.hp-header-btn svg.hp-icon {
+  width: 20px;
+  height: 20px;
+  stroke: var(--hp-text);
+  stroke-width: 2;
+  fill: none;
+}
+
+/* Hover state */
 .hp-header-btn:hover {
   background: var(--hp-bg-secondary);
   border-color: var(--hp-primary);
+  transform: scale(1.05);
 }
 
-.hp-header-btn:hover .hp-icon,
-.hp-header-btn:hover svg {
+.hp-header-btn:hover .hp-icon {
   color: var(--hp-primary);
+  stroke: var(--hp-primary);
 }
 
-/* Cart button - NO BLUE BACKGROUND */
+/* Notification Button */
+.hp-header-btn.hp-notification-btn {
+  background: var(--hp-bg-card);
+  border: 1px solid var(--hp-border);
+}
+
+.hp-header-btn.hp-notification-btn .hp-icon {
+  color: var(--hp-text);
+  stroke: var(--hp-text);
+}
+
+/* Cart Button - NO BLUE BACKGROUND */
 .hp-header-btn.hp-cart-btn {
   background: var(--hp-bg-card);
   border: 1px solid var(--hp-border);
 }
 
-.hp-header-btn.hp-cart-btn .hp-icon,
-.hp-header-btn.hp-cart-btn svg {
+.hp-header-btn.hp-cart-btn .hp-icon {
   color: var(--hp-text);
+  stroke: var(--hp-text);
 }
 
 .hp-header-btn.hp-cart-btn:hover {
@@ -254,7 +275,33 @@
   border-color: var(--hp-primary);
 }
 
-/* Notification dot */
+.hp-header-btn.hp-cart-btn:hover .hp-icon {
+  color: var(--hp-primary);
+  stroke: var(--hp-primary);
+}
+
+/* Badge - RED FOR ALL ICONS */
+.hp-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
+  border: 2px solid var(--hp-bg-card);
+  z-index: 10;
+}
+
+/* Notification dot (optional alternative to badge) */
 .hp-notification-dot {
   position: absolute;
   top: 8px;
@@ -264,6 +311,67 @@
   background: var(--hp-danger);
   border-radius: 50%;
   border: 2px solid var(--hp-bg-card);
+}
+
+/* Dark mode support */
+[data-theme="dark"] .hp-header-btn {
+  background: var(--hp-bg-card);
+  border-color: var(--hp-border);
+}
+
+[data-theme="dark"] .hp-header-btn .hp-icon {
+  color: var(--hp-text);
+  stroke: var(--hp-text);
+}
+
+[data-theme="dark"] .hp-header-btn:hover .hp-icon {
+  color: #60a5fa;
+  stroke: #60a5fa;
+}
+
+[data-theme="dark"] .hp-badge {
+  border-color: var(--hp-bg-card);
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 400px) {
+  .hp-header-right {
+    gap: 6px;
+  }
+  
+  .hp-header-btn {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .hp-header-btn .hp-icon {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .hp-badge {
+    min-width: 16px;
+    height: 16px;
+    font-size: 9px;
+    top: -3px;
+    right: -3px;
+  }
+}
+
+@media (max-width: 340px) {
+  .hp-header-right {
+    gap: 4px;
+  }
+  
+  .hp-header-btn {
+    width: 34px;
+    height: 34px;
+  }
+  
+  .hp-header-btn .hp-icon {
+    width: 16px;
+    height: 16px;
+  }
 }
 
 /* Badge - RED FOR ALL */

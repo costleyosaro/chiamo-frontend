@@ -158,7 +158,7 @@ const TEAM = [
     initial: "CO",
   },
   {
-    name: "Cynthia",
+    name: "Cynthia Onome",
     role: "Customer Care",
     image: "https://ik.imagekit.io/ljwnlcbqyu/CUSTOMER_CARE1.jpg.jpeg?updatedAt=1773224385365",
     initial: "CY",

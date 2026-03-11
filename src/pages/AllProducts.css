@@ -1744,3 +1744,430 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ============ STOCK INDICATOR STYLES (Jumia/Temu Style) ============ */
+.ap-stock-indicator {
+  margin: 8px 0;
+}
+
+.ap-stock-indicator.compact {
+  margin: 6px 0;
+}
+
+.ap-stock-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.ap-stock-indicator.compact .ap-stock-badge {
+  padding: 4px 10px;
+  font-size: 11px;
+}
+
+.ap-stock-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.ap-stock-indicator.compact .ap-stock-icon {
+  width: 12px;
+  height: 12px;
+}
+
+/* Stock Status Colors */
+.ap-stock-indicator.stock-available .ap-stock-badge {
+  background-color: #ecfdf5;
+  color: #10b981;
+}
+
+.ap-stock-indicator.stock-low .ap-stock-badge {
+  background-color: #fffbeb;
+  color: #f59e0b;
+  animation: pulse-warning 2s infinite;
+}
+
+.ap-stock-indicator.stock-critical .ap-stock-badge {
+  background-color: #fef2f2;
+  color: #dc2626;
+  animation: pulse-danger 1.5s infinite;
+}
+
+.ap-stock-indicator.stock-out .ap-stock-badge {
+  background-color: #f3f4f6;
+  color: #6b7280;
+}
+
+@keyframes pulse-warning {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes pulse-danger {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.02); }
+}
+
+/* Stock Progress Bar */
+.ap-stock-progress-container {
+  position: relative;
+  height: 4px;
+  margin-top: 8px;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.ap-stock-progress-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #e5e7eb;
+  border-radius: 2px;
+}
+
+.ap-stock-progress-bar {
+  position: relative;
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s ease;
+  z-index: 1;
+}
+
+/* ============ QUANTITY SELECTOR STYLES ============ */
+.ap-qty-selector {
+  display: inline-flex;
+  align-items: center;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.ap-qty-selector:hover:not(.disabled) {
+  border-color: #1b4b8c;
+}
+
+.ap-qty-selector.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ap-qty-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1b4b8c;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.ap-qty-btn:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.ap-qty-btn:active:not(:disabled) {
+  background: #e5e7eb;
+  transform: scale(0.95);
+}
+
+.ap-qty-btn:disabled {
+  color: #d1d5db;
+  cursor: not-allowed;
+}
+
+.ap-qty-btn.decrement {
+  border-right: 1px solid #e5e7eb;
+}
+
+.ap-qty-btn.increment {
+  border-left: 1px solid #e5e7eb;
+}
+
+.ap-qty-input {
+  width: 48px;
+  height: 36px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2937;
+  border: none;
+  background: transparent;
+  -moz-appearance: textfield;
+}
+
+.ap-qty-input::-webkit-outer-spin-button,
+.ap-qty-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.ap-qty-input:focus {
+  outline: none;
+  background: #f9fafb;
+}
+
+/* Size Variants */
+.ap-qty-selector.small .ap-qty-btn {
+  width: 30px;
+  height: 30px;
+  font-size: 16px;
+}
+
+.ap-qty-selector.small .ap-qty-input {
+  width: 40px;
+  height: 30px;
+  font-size: 13px;
+}
+
+.ap-qty-selector.large .ap-qty-btn {
+  width: 44px;
+  height: 44px;
+  font-size: 22px;
+}
+
+.ap-qty-selector.large .ap-qty-input {
+  width: 60px;
+  height: 44px;
+  font-size: 17px;
+}
+
+/* ============ PRODUCT CARD QUANTITY ROW ============ */
+.ap-quantity-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 10px 0;
+}
+
+/* ============ QUICK VIEW MODAL UPDATES ============ */
+.ap-modal-stock {
+  margin: 16px 0;
+}
+
+.ap-modal-quantity {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+.ap-modal-quantity-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.ap-modal-max-qty {
+  font-size: 12px;
+  color: #6b7280;
+  margin-left: auto;
+}
+
+.ap-modal-add-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #1b4b8c 0%, #2d5fa8 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 20px;
+}
+
+.ap-modal-add-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(27, 75, 140, 0.3);
+}
+
+.ap-modal-add-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.ap-modal-add-btn.disabled,
+.ap-modal-add-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.ap-modal-add-btn.loading {
+  pointer-events: none;
+}
+
+.ap-modal-add-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Discount Badge on Modal Image */
+.ap-modal-discount-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: #dc2626;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* ============ ADD TO CART BUTTON UPDATES ============ */
+.ap-add-to-cart-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #1b4b8c 0%, #2d5fa8 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 12px;
+}
+
+.ap-add-to-cart-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(27, 75, 140, 0.25);
+}
+
+.ap-add-to-cart-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.ap-add-to-cart-btn.disabled,
+.ap-add-to-cart-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.ap-add-to-cart-btn.loading {
+  pointer-events: none;
+}
+
+.ap-add-to-cart-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Button Loader */
+.ap-btn-loader {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============ OUT OF STOCK OVERLAY ============ */
+.ap-out-of-stock-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: inherit;
+}
+
+.ap-out-of-stock-overlay span {
+  background: white;
+  color: #dc2626;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ============ RESPONSIVE ADJUSTMENTS ============ */
+@media (max-width: 768px) {
+  .ap-stock-badge {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+  
+  .ap-stock-icon {
+    width: 12px;
+    height: 12px;
+  }
+  
+  .ap-qty-selector .ap-qty-btn {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .ap-qty-selector .ap-qty-input {
+    width: 42px;
+    height: 32px;
+    font-size: 14px;
+  }
+  
+  .ap-modal-quantity {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .ap-modal-max-qty {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .ap-quantity-row {
+    margin: 8px 0;
+  }
+  
+  .ap-qty-selector.small .ap-qty-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+  
+  .ap-qty-selector.small .ap-qty-input {
+    width: 36px;
+    height: 28px;
+    font-size: 12px;
+  }
+}

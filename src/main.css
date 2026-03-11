@@ -2358,3 +2358,477 @@
 .pf-loyalty-card {
   background: linear-gradient(135deg, #d4a017, #b8860b) !important;
 }
+
+/* ============ PROMO BANNER WITH SLIDER - UPDATED ============ */
+.hp-promo-section {
+  padding: 0 16px;
+  margin-bottom: 24px;
+}
+
+.hp-promo-banner-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.hp-promo-banner {
+  position: relative;
+  background: linear-gradient(135deg, #1b4b8c 0%, #2d5fa8 100%);
+  border-radius: 20px;
+  padding: 24px;
+  overflow: hidden;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.hp-promo-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 80% 20%, rgba(245, 166, 35, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+}
+
+.hp-promo-content {
+  position: relative;
+  z-index: 2;
+}
+
+.hp-promo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 12px;
+}
+
+.hp-promo-badge svg {
+  width: 14px;
+  height: 14px;
+  color: #f5a623;
+}
+
+.hp-promo-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: white;
+  line-height: 1.2;
+  margin: 0 0 8px 0;
+}
+
+.hp-promo-title span {
+  color: #f5a623;
+}
+
+.hp-promo-text {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0 0 16px 0;
+}
+
+.hp-promo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  color: #1b4b8c;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.hp-promo-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* ============ PROMO IMAGE SLIDER ============ */
+.hp-promo-slider {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #f5f5f5;
+  min-height: 200px;
+}
+
+.hp-promo-slider-track {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+}
+
+.hp-promo-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.6s ease-in-out;
+}
+
+.hp-promo-slide.active {
+  opacity: 1;
+}
+
+.hp-promo-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.hp-promo-slider-dots {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+}
+
+.hp-promo-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.hp-promo-dot.active {
+  background: white;
+  transform: scale(1.3);
+}
+
+/* ============ RESPONSIVE PROMO ============ */
+@media (max-width: 768px) {
+  .hp-promo-banner-wrapper {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .hp-promo-banner {
+    min-height: 180px;
+    padding: 20px;
+  }
+
+  .hp-promo-title {
+    font-size: 22px;
+  }
+
+  .hp-promo-slider {
+    min-height: 180px;
+  }
+
+  .hp-promo-slider-track {
+    min-height: 180px;
+  }
+}
+
+/* ============ CATEGORIES - IMPROVED ============ */
+.hp-categories-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+
+.hp-category-card {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  aspect-ratio: 1;
+  background: #f5f5f5;
+}
+
+.hp-category-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.hp-category-image-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.hp-category-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.4s ease;
+}
+
+.hp-category-card:hover .hp-category-image {
+  transform: scale(1.1);
+}
+
+.hp-category-gradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.7) 0%,
+    rgba(0, 0, 0, 0.3) 40%,
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
+.hp-category-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  z-index: 2;
+}
+
+.hp-category-icon {
+  width: 24px;
+  height: 24px;
+  color: #1a1a1a !important;
+  background: white;
+  padding: 6px;
+  border-radius: 8px;
+  box-sizing: content-box;
+}
+
+.hp-category-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  text-align: center;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* ============ RESPONSIVE CATEGORIES ============ */
+@media (max-width: 768px) {
+  .hp-categories-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hp-categories-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .hp-category-card {
+    aspect-ratio: 1;
+    min-height: 120px;
+  }
+
+  .hp-category-info {
+    padding: 10px;
+  }
+
+  .hp-category-icon {
+    width: 20px;
+    height: 20px;
+    padding: 5px;
+  }
+
+  .hp-category-name {
+    font-size: 12px;
+  }
+}
+
+/* ============ QUICK ACTIONS - BLACK ICONS ============ */
+.hp-quick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.hp-quick-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.hp-quick-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  border-color: #1a1a1a;
+}
+
+.hp-quick-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6 !important;
+  color: #1a1a1a !important;
+}
+
+.hp-quick-icon svg {
+  width: 22px;
+  height: 22px;
+  color: #1a1a1a !important;
+}
+
+.quick-scan-animation {
+  width: 36px;
+  height: 36px;
+}
+
+.hp-quick-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1a1a1a;
+  text-align: center;
+}
+
+.hp-coming-soon-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #f5a623;
+  color: white;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+/* ============ TRUST BADGES - BLACK ICONS ============ */
+.hp-trust-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  padding: 0 16px;
+}
+
+.hp-trust-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.hp-trust-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+  flex-shrink: 0;
+}
+
+.hp-trust-icon svg {
+  width: 20px;
+  height: 20px;
+  color: #1a1a1a;
+}
+
+.hp-trust-text h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 2px 0;
+}
+
+.hp-trust-text p {
+  font-size: 11px;
+  color: #6b7280;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .hp-trust-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .hp-quick-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  .hp-quick-item {
+    padding: 12px 8px;
+  }
+
+  .hp-quick-icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .hp-quick-label {
+    font-size: 10px;
+  }
+
+  .hp-trust-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .hp-trust-item {
+    padding: 12px 10px;
+  }
+
+  .hp-trust-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .hp-trust-text h4 {
+    font-size: 12px;
+  }
+
+  .hp-trust-text p {
+    font-size: 10px;
+  }
+}

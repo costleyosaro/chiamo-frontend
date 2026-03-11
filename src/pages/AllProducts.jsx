@@ -1,5 +1,5 @@
-// src/pages/AllProducts.jsx - Complete Version (Uses Global Theme - No Local Toggle)
-import React, { useState, useEffect, useRef, useMemo } from "react";
+// src/pages/AllProducts.jsx - Complete Version with Stock Indicators & Fast Controls
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "./CartContext";
 import { useSmartLists } from "./SmartListContext";
@@ -11,7 +11,6 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import "./AllProducts.css";
 import { imageUrl, PLACEHOLDER } from '../utils/image';
-
 
 // Icons
 import {
@@ -30,9 +29,8 @@ import {
   FiPackage,
   FiTruck,
   FiShield,
-  FiPlus,
-  FiMinus,
   FiCheck,
+  FiAlertCircle,
 } from "react-icons/fi";
 import {
   FaStar,
@@ -64,7 +62,52 @@ const SORT_OPTIONS = [
   { id: "newest", name: "Newest First" },
 ];
 
+// ============ STOCK STATUS CONFIG (Jumia/Temu Style) ============
+const STOCK_STATUS = {
+  OUT_OF_STOCK: {
+    key: 'out',
+    label: 'Out of Stock',
+    className: 'stock-out',
+    color: '#dc2626',
+    bgColor: '#fef2f2',
+  },
+  CRITICAL: {
+    key: 'critical',
+    label: 'Almost Gone!',
+    className: 'stock-critical',
+    color: '#dc2626',
+    bgColor: '#fef2f2',
+  },
+  LOW: {
+    key: 'low',
+    label: 'Low Stock',
+    className: 'stock-low',
+    color: '#f59e0b',
+    bgColor: '#fffbeb',
+  },
+  IN_STOCK: {
+    key: 'in-stock',
+    label: 'In Stock',
+    className: 'stock-available',
+    color: '#10b981',
+    bgColor: '#ecfdf5',
+  },
+};
+
 // ============ HELPER FUNCTIONS ============
+const getStockStatus = (stock) => {
+  const stockNum = Number(stock) || 0;
+  
+  if (stockNum === 0) return { ...STOCK_STATUS.OUT_OF_STOCK, count: 0 };
+  if (stockNum <= 5) return { ...STOCK_STATUS.CRITICAL, count: stockNum };
+  if (stockNum <= 20) return { ...STOCK_STATUS.LOW, count: stockNum };
+  return { ...STOCK_STATUS.IN_STOCK, count: stockNum };
+};
+
+const getStockPercentage = (stock, maxStock = 100) => {
+  const stockNum = Number(stock) || 0;
+  return Math.min((stockNum / maxStock) * 100, 100);
+};
 
 const getRandomBadge = () => {
   const badges = ["hot", "new", "sale", "organic", "premium", null, null, null];
@@ -73,6 +116,106 @@ const getRandomBadge = () => {
 
 const getRandomRating = () => (Math.random() * 2 + 3).toFixed(1);
 const getRandomReviews = () => Math.floor(Math.random() * 500) + 10;
+
+// ============ STOCK INDICATOR COMPONENT (Jumia/Temu Style) ============
+const StockIndicator = ({ stock, showProgress = false, compact = false }) => {
+  const status = getStockStatus(stock);
+  const percentage = getStockPercentage(stock);
+  
+  return (
+    <div className={`ap-stock-indicator ${status.className} ${compact ? 'compact' : ''}`}>
+      <div className="ap-stock-badge" style={{ backgroundColor: status.bgColor, color: status.color }}>
+        {status.key === 'out' && <FiX className="ap-stock-icon" />}
+        {status.key === 'critical' && <FiAlertCircle className="ap-stock-icon" />}
+        {status.key === 'low' && <FiAlertCircle className="ap-stock-icon" />}
+        {status.key === 'in-stock' && <FiCheck className="ap-stock-icon" />}
+        
+        <span className="ap-stock-text">
+          {status.key === 'out' && 'Out of Stock'}
+          {status.key === 'critical' && `Only ${status.count} left!`}
+          {status.key === 'low' && `${status.count} left - Low Stock`}
+          {status.key === 'in-stock' && (compact ? 'In Stock' : `${status.count} in Stock`)}
+        </span>
+      </div>
+      
+      {showProgress && status.key !== 'out' && (
+        <div className="ap-stock-progress-container">
+          <div 
+            className="ap-stock-progress-bar"
+            style={{ 
+              width: `${percentage}%`,
+              backgroundColor: status.color,
+            }}
+          />
+          <div className="ap-stock-progress-bg" />
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ============ QUANTITY SELECTOR COMPONENT (Fast & Responsive) ============
+const QuantitySelector = ({ 
+  quantity, 
+  onQuantityChange, 
+  maxQuantity = 999, 
+  minQuantity = 1,
+  disabled = false,
+  size = 'default' // 'default' | 'small' | 'large'
+}) => {
+  const handleDecrement = useCallback(() => {
+    if (quantity > minQuantity && !disabled) {
+      onQuantityChange(quantity - 1);
+    }
+  }, [quantity, minQuantity, disabled, onQuantityChange]);
+
+  const handleIncrement = useCallback(() => {
+    if (quantity < maxQuantity && !disabled) {
+      onQuantityChange(quantity + 1);
+    }
+  }, [quantity, maxQuantity, disabled, onQuantityChange]);
+
+  const handleInputChange = useCallback((e) => {
+    const value = parseInt(e.target.value, 10);
+    if (!isNaN(value)) {
+      const clampedValue = Math.max(minQuantity, Math.min(value, maxQuantity));
+      onQuantityChange(clampedValue);
+    }
+  }, [minQuantity, maxQuantity, onQuantityChange]);
+
+  return (
+    <div className={`ap-qty-selector ${size} ${disabled ? 'disabled' : ''}`}>
+      <button
+        type="button"
+        className="ap-qty-btn decrement"
+        onClick={handleDecrement}
+        disabled={quantity <= minQuantity || disabled}
+        aria-label="Decrease quantity"
+      >
+        −
+      </button>
+      <input
+        type="number"
+        className="ap-qty-input"
+        value={quantity}
+        onChange={handleInputChange}
+        min={minQuantity}
+        max={maxQuantity}
+        disabled={disabled}
+        aria-label="Quantity"
+      />
+      <button
+        type="button"
+        className="ap-qty-btn increment"
+        onClick={handleIncrement}
+        disabled={quantity >= maxQuantity || disabled}
+        aria-label="Increase quantity"
+      >
+        +
+      </button>
+    </div>
+  );
+};
 
 // ============ SEARCH BAR COMPONENT ============
 const SearchBar = ({ query, setQuery, resultsCount }) => {
@@ -218,7 +361,7 @@ const ProductCard = ({
       ? product.category
       : product.category?.name || "";
 
-  // ✅ FIX: Get image source using imageUrl()
+  // Get image source
   const imageSrc = imageUrl(product.image ?? product.image_url ?? '');
 
   // Calculate pricing
@@ -228,17 +371,26 @@ const ProductCard = ({
     ? Math.round(((oldPrice - price) / oldPrice) * 100)
     : null;
 
-  // Get badge and reviews
-  const badge = product.badge || getRandomBadge();
-  const reviews = product.reviews || getRandomReviews();
-  const inStock = product.stock !== 0;
+  // Get stock info
+  const stock = Number(product.stock) || 0;
+  const stockStatus = getStockStatus(stock);
+  const inStock = stock > 0;
 
-  // ✅ FIX: Handle image error (was syntax error before!)
+  // Get badge and reviews
+  const badge = product.badge || (product.is_new ? 'new' : (product.is_promo ? 'sale' : (product.flash_sale ? 'hot' : getRandomBadge())));
+  const reviews = product.num_reviews || getRandomReviews();
+
+  // Handle image error
   const handleImgError = (e) => {
     e.target.onerror = null;
     e.target.src = PLACEHOLDER;
   };
 
+  // Handle quantity change (fast local update)
+  const handleQuantityChange = useCallback((newQty) => {
+    const maxQty = inStock ? Math.min(stock, 99) : 0;
+    setQuantity(Math.max(1, Math.min(newQty, maxQty)));
+  }, [stock, inStock]);
 
   // Handle add to cart
   const handleAdd = async (e) => {
@@ -246,9 +398,9 @@ const ProductCard = ({
     setIsAdding(true);
     try {
       await onAddToCart(e, product, quantity);
+      setQuantity(1); // Reset after adding
     } finally {
       setIsAdding(false);
-      setQuantity(1);
     }
   };
 
@@ -310,7 +462,9 @@ const ProductCard = ({
 
         {/* Out of Stock Overlay */}
         {!inStock && (
-          <div className="ap-out-of-stock-overlay">Out of Stock</div>
+          <div className="ap-out-of-stock-overlay">
+            <span>Out of Stock</span>
+          </div>
         )}
       </div>
 
@@ -324,11 +478,14 @@ const ProductCard = ({
 
         {/* Rating */}
         <RatingStars
-          rating={rating || 0}
+          rating={rating || product.rating || 0}
           reviews={reviews}
           onRate={onRate}
           productId={product.id}
         />
+
+        {/* Stock Indicator */}
+        <StockIndicator stock={stock} compact={viewMode === 'grid'} />
 
         {/* Pricing */}
         <div className="ap-product-pricing">
@@ -340,33 +497,22 @@ const ProductCard = ({
           )}
         </div>
 
-        {/* Quantity Selector (List View Only) */}
-        {viewMode === "list" && inStock && (
+        {/* Quantity Selector (Shows in both views when in stock) */}
+        {inStock && (
           <div className="ap-quantity-row">
-            <div className="ap-quantity-selector">
-              <button
-                type="button"
-                className="ap-qty-btn"
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                disabled={quantity <= 1}
-              >
-                <FiMinus />
-              </button>
-              <span className="ap-qty-value">{quantity}</span>
-              <button
-                type="button"
-                className="ap-qty-btn"
-                onClick={() => setQuantity(quantity + 1)}
-              >
-                <FiPlus />
-              </button>
-            </div>
+            <QuantitySelector
+              quantity={quantity}
+              onQuantityChange={handleQuantityChange}
+              maxQuantity={Math.min(stock, 99)}
+              minQuantity={1}
+              size={viewMode === 'grid' ? 'small' : 'default'}
+            />
           </div>
         )}
 
         {/* Add to Cart Button */}
         <button
-          className={`ap-add-to-cart-btn ${isAdding ? "loading" : ""}`}
+          className={`ap-add-to-cart-btn ${isAdding ? "loading" : ""} ${!inStock ? 'disabled' : ''}`}
           onClick={handleAdd}
           disabled={!inStock || isAdding}
         >
@@ -375,7 +521,7 @@ const ProductCard = ({
           ) : (
             <>
               <FiShoppingCart />
-              <span>{inStock ? "Add to Cart" : "Out of Stock"}</span>
+              <span>{inStock ? `Add ${quantity > 1 ? `(${quantity})` : ''}` : "Out of Stock"}</span>
             </>
           )}
         </button>
@@ -388,6 +534,7 @@ const ProductCard = ({
 const QuickViewModal = ({ product, onClose, onAddToCart }) => {
   const [quantity, setQuantity] = useState(1);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
 
   // Return null if no product
   if (!product) return null;
@@ -408,10 +555,14 @@ const QuickViewModal = ({ product, onClose, onAddToCart }) => {
     ? Math.round(((oldPrice - price) / oldPrice) * 100)
     : null;
 
+  // Get stock info
+  const stock = Number(product.stock) || 0;
+  const stockStatus = getStockStatus(stock);
+  const inStock = stock > 0;
+
   // Get rating and reviews
   const rating = product.rating || getRandomRating();
-  const reviews = product.reviews || getRandomReviews();
-  const inStock = product.stock !== 0;
+  const reviews = product.num_reviews || getRandomReviews();
 
   // Handle image error
   const handleImgError = (e) => {
@@ -419,10 +570,22 @@ const QuickViewModal = ({ product, onClose, onAddToCart }) => {
     e.currentTarget.src = PLACEHOLDER;
   };
 
+  // Handle quantity change
+  const handleQuantityChange = (newQty) => {
+    const maxQty = inStock ? Math.min(stock, 99) : 0;
+    setQuantity(Math.max(1, Math.min(newQty, maxQty)));
+  };
+
   // Handle add to cart
-  const handleAddToCart = (e) => {
-    onAddToCart(e, product, quantity);
-    onClose();
+  const handleAddToCart = async (e) => {
+    if (!inStock) return;
+    setIsAdding(true);
+    try {
+      await onAddToCart(e, product, quantity);
+      onClose();
+    } finally {
+      setIsAdding(false);
+    }
   };
 
   // Handle overlay click
@@ -431,6 +594,9 @@ const QuickViewModal = ({ product, onClose, onAddToCart }) => {
       onClose();
     }
   };
+
+  // Calculate total
+  const total = price * quantity;
 
   return (
     <div className="ap-modal-overlay" onClick={handleOverlayClick}>
@@ -452,6 +618,9 @@ const QuickViewModal = ({ product, onClose, onAddToCart }) => {
               onError={handleImgError}
               style={{ opacity: imageLoaded ? 1 : 0 }}
             />
+            {discount && (
+              <span className="ap-modal-discount-badge">-{discount}%</span>
+            )}
           </div>
 
           {/* Details Section */}
@@ -477,9 +646,11 @@ const QuickViewModal = ({ product, onClose, onAddToCart }) => {
                   ₦{oldPrice.toLocaleString()}
                 </span>
               )}
-              {discount && (
-                <span className="ap-modal-discount">-{discount}%</span>
-              )}
+            </div>
+
+            {/* Stock Indicator - Prominent Display */}
+            <div className="ap-modal-stock">
+              <StockIndicator stock={stock} showProgress={true} />
             </div>
 
             {/* Description */}
@@ -504,51 +675,42 @@ const QuickViewModal = ({ product, onClose, onAddToCart }) => {
               </div>
             </div>
 
-            {/* Stock Status */}
-            {!inStock ? (
-              <div className="ap-modal-stock-status out">
-                <span>Out of Stock</span>
-              </div>
-            ) : product.stock <= 10 ? (
-              <div className="ap-modal-stock-status low">
-                <span>Only {product.stock} left in stock!</span>
-              </div>
-            ) : null}
-
             {/* Quantity Selector */}
             {inStock && (
               <div className="ap-modal-quantity">
                 <span className="ap-modal-quantity-label">Quantity:</span>
-                <div className="ap-quantity-selector">
-                  <button
-                    type="button"
-                    className="ap-qty-btn"
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    disabled={quantity <= 1}
-                  >
-                    <FiMinus />
-                  </button>
-                  <span className="ap-qty-value">{quantity}</span>
-                  <button
-                    type="button"
-                    className="ap-qty-btn"
-                    onClick={() => setQuantity(quantity + 1)}
-                    disabled={product.stock && quantity >= product.stock}
-                  >
-                    <FiPlus />
-                  </button>
-                </div>
+                <QuantitySelector
+                  quantity={quantity}
+                  onQuantityChange={handleQuantityChange}
+                  maxQuantity={Math.min(stock, 99)}
+                  minQuantity={1}
+                  size="large"
+                />
+                {stock <= 10 && (
+                  <span className="ap-modal-max-qty">Max: {stock}</span>
+                )}
               </div>
             )}
 
             {/* Add to Cart Button */}
             <button
-              className="ap-modal-add-btn"
+              className={`ap-modal-add-btn ${isAdding ? 'loading' : ''} ${!inStock ? 'disabled' : ''}`}
               onClick={handleAddToCart}
-              disabled={!inStock}
+              disabled={!inStock || isAdding}
             >
-              <FiShoppingCart />
-              {inStock ? `Add to Cart - ₦${(price * quantity).toLocaleString()}` : "Out of Stock"}
+              {isAdding ? (
+                <span className="ap-btn-loader"></span>
+              ) : (
+                <>
+                  <FiShoppingCart />
+                  <span>
+                    {inStock 
+                      ? `Add to Cart - ₦${total.toLocaleString()}` 
+                      : "Out of Stock"
+                    }
+                  </span>
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -657,7 +819,7 @@ export default function AllProducts() {
         const productsArray = Array.isArray(data) ? data : [];
         setProducts(productsArray);
 
-        // Initialize ratings
+        // Initialize ratings from backend
         const ratingsMap = {};
         productsArray.forEach((p) => {
           ratingsMap[p.id] = p.rating || parseFloat(getRandomRating());
@@ -740,7 +902,7 @@ export default function AllProducts() {
         result.sort((a, b) => (b.price || 0) - (a.price || 0));
         break;
       case "newest":
-        result.sort((a, b) => (b.id || 0) - (a.id || 0));
+        result.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         break;
       default:
         break;
@@ -768,10 +930,17 @@ export default function AllProducts() {
     }
   };
 
-  // Handle add to cart
+  // Handle add to cart with optimistic local update
   const handleAddToCart = async (e, product, quantity = 1) => {
-    if (product.stock === 0) {
+    const stock = Number(product.stock) || 0;
+    
+    if (stock === 0) {
       toast.error(`${product.name} is out of stock`);
+      return;
+    }
+
+    if (quantity > stock) {
+      toast.error(`Only ${stock} available in stock`);
       return;
     }
 
@@ -786,14 +955,7 @@ export default function AllProducts() {
         return;
       }
 
-      await addToCartContext(identifier, quantity);
-      
-      // Add to smart list if active
-      if (activeList) {
-        addToActiveList(product);
-      }
-
-      // Update stock locally
+      // Optimistic local stock update (immediate feedback)
       setProducts((prev) =>
         prev.map((p) =>
           p.id === product.id
@@ -801,6 +963,22 @@ export default function AllProducts() {
             : p
         )
       );
+
+      // Update quick view product if open
+      if (quickViewProduct && quickViewProduct.id === product.id) {
+        setQuickViewProduct((prev) => ({
+          ...prev,
+          stock: Math.max((prev.stock || 0) - quantity, 0),
+        }));
+      }
+
+      // Add to cart (this syncs with backend)
+      await addToCartContext(identifier, quantity);
+      
+      // Add to smart list if active
+      if (activeList) {
+        addToActiveList(product);
+      }
 
       // Flying animation
       if (img && cartIcon) {
@@ -824,7 +1002,6 @@ export default function AllProducts() {
         `;
         document.body.appendChild(imgClone);
 
-        // Trigger animation
         requestAnimationFrame(() => {
           imgClone.style.left = `${cartRect.left + cartRect.width / 2 - 20}px`;
           imgClone.style.top = `${cartRect.top + cartRect.height / 2 - 20}px`;
@@ -834,12 +1011,10 @@ export default function AllProducts() {
           imgClone.style.transform = "scale(0.3) rotate(20deg)";
         });
 
-        // Remove clone after animation
         imgClone.addEventListener("transitionend", () => {
           imgClone.remove();
         });
 
-        // Fallback removal
         setTimeout(() => {
           if (imgClone.parentNode) {
             imgClone.remove();
@@ -850,6 +1025,16 @@ export default function AllProducts() {
       toast.success(`Added ${quantity > 1 ? `${quantity}x ` : ""}${product.name} to cart!`);
     } catch (err) {
       console.error("Add to cart failed:", err);
+      
+      // Rollback optimistic update on error
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === product.id
+            ? { ...p, stock: (p.stock || 0) + quantity }
+            : p
+        )
+      );
+      
       toast.error("Failed to add to cart");
     }
   };
@@ -916,7 +1101,6 @@ export default function AllProducts() {
       {/* ===== HEADER ===== */}
       <header className="ap-header">
         <div className="ap-header-container">
-          {/* Left - Back Button */}
           <div className="ap-header-left">
             <button className="ap-back-btn" onClick={() => navigate(-1)}>
               <FiChevronLeft />
@@ -929,7 +1113,6 @@ export default function AllProducts() {
             </div>
           </div>
 
-          {/* Center - Title */}
           <div className="ap-header-center">
             <h1 className="ap-title">
               <FiPackage className="ap-title-icon" />
@@ -937,7 +1120,6 @@ export default function AllProducts() {
             </h1>
           </div>
 
-          {/* Right - Cart Button Only (No Theme Toggle) */}
           <div className="ap-header-right">
             <button
               className="ap-cart-btn"
@@ -1003,21 +1185,18 @@ export default function AllProducts() {
       {/* ===== MAIN CONTENT ===== */}
       <main className="ap-main">
         <div className="ap-main-container">
-          {/* Search Bar */}
           <SearchBar
             query={query}
             setQuery={setQuery}
             resultsCount={filteredProducts.length}
           />
 
-          {/* Category Tabs */}
           <CategoryTabs
             categories={CATEGORIES}
             selected={selectedCategory}
             onSelect={handleCategorySelect}
           />
 
-          {/* Toolbar */}
           <div className="ap-toolbar">
             <div className="ap-toolbar-left">
               <span className="ap-products-count">
@@ -1026,7 +1205,6 @@ export default function AllProducts() {
             </div>
 
             <div className="ap-toolbar-right">
-              {/* Sort Dropdown */}
               <div className="ap-sort-dropdown-container">
                 <button
                   className="ap-sort-btn"
@@ -1062,13 +1240,11 @@ export default function AllProducts() {
                 )}
               </div>
 
-              {/* View Toggle */}
               <div className="ap-view-toggle">
                 <button
                   className={`ap-view-btn ${viewMode === "grid" ? "active" : ""}`}
                   onClick={() => setViewMode("grid")}
                   title="Grid View"
-                  aria-label="Grid view"
                 >
                   <FiGrid />
                 </button>
@@ -1076,7 +1252,6 @@ export default function AllProducts() {
                   className={`ap-view-btn ${viewMode === "list" ? "active" : ""}`}
                   onClick={() => setViewMode("list")}
                   title="List View"
-                  aria-label="List view"
                 >
                   <FiList />
                 </button>
@@ -1084,7 +1259,6 @@ export default function AllProducts() {
             </div>
           </div>
 
-          {/* Products Grid/List */}
           {loading ? (
             <div className="ap-products-loading">
               {[...Array(8)].map((_, i) => (

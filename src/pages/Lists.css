@@ -407,19 +407,24 @@
   color: var(--accent-color);
 }
 
-/* ✅ VISIBLE DROPDOWN BUTTON - Three Horizontal Dots */
+/* ============ DROPDOWN BUTTON - VISIBLE ARROW ============ */
 .sl-card-menu-btn {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-color);
-  border: 1px solid var(--border-color);
+  background: var(--bg-color, #f1f5f9);
+  border: 1px solid var(--border-color, #e2e8f0);
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s ease;
   flex-shrink: 0;
+}
+
+.sl-card-menu-btn:hover {
+  background: var(--accent-color, #f5a623);
+  border-color: var(--accent-color, #f5a623);
 }
 
 [data-theme="dark"] .sl-card-menu-btn {
@@ -427,14 +432,43 @@
   border-color: #404040;
 }
 
-.sl-card-menu-btn:hover {
+[data-theme="dark"] .sl-card-menu-btn:hover {
   background: var(--accent-color);
   border-color: var(--accent-color);
 }
 
-[data-theme="dark"] .sl-card-menu-btn:hover {
-  background: var(--accent-color);
-  border-color: var(--accent-color);
+/* ✅ FIXED: Dropdown Arrow - Bold and Visible */
+.sl-dropdown-arrow {
+  font-size: 28px;
+  font-weight: 400;
+  color: var(--text-color, #475569);
+  line-height: 1;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.sl-card-menu-btn:hover .sl-dropdown-arrow {
+  color: #000000;
+  transform: rotate(90deg);
+}
+
+[data-theme="dark"] .sl-dropdown-arrow {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .sl-card-menu-btn:hover .sl-dropdown-arrow {
+  color: #000000;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .sl-card-menu-btn {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .sl-dropdown-arrow {
+    font-size: 24px;
+  }
 }
 
 /* Menu Icon - VISIBLE */

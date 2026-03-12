@@ -32,25 +32,82 @@
   z-index: 100;
 }
 
+/* ============ BACK BUTTON - SIMPLE ARROW ============ */
 .pf-back-btn {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-color);
-  border: 1px solid var(--border-color);
-  border-radius: 50%;
-  color: var(--text-color);
-  font-size: 20px;
+  background: var(--bg-color, #f8fafc);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .pf-back-btn:hover {
-  background: var(--accent-color);
-  border-color: var(--accent-color);
+  background: var(--accent-color, #f5a623);
+  border-color: var(--accent-color, #f5a623);
+  transform: scale(1.05);
+}
+
+.pf-back-btn:active {
+  transform: scale(0.95);
+}
+
+/* Simple < arrow character */
+.pf-back-arrow {
+  font-size: 32px;
+  font-weight: 300;
+  color: var(--text-color, #1e293b);
+  line-height: 1;
+}
+
+.pf-back-btn:hover .pf-back-arrow {
   color: #000000;
+}
+
+[data-theme="dark"] .pf-back-btn {
+  background: #262626;
+  border-color: #404040;
+}
+
+[data-theme="dark"] .pf-back-arrow {
+  color: var(--text-color, #f1f5f9);
+}
+
+[data-theme="dark"] .pf-back-btn:hover {
+  background: var(--accent-color, #f5a623);
+  border-color: var(--accent-color, #f5a623);
+}
+
+[data-theme="dark"] .pf-back-btn:hover .pf-back-arrow {
+  color: #000000;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .pf-back-btn {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .pf-back-arrow {
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 340px) {
+  .pf-back-btn {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .pf-back-arrow {
+    font-size: 24px;
+  }
 }
 
 .pf-header-title {
@@ -175,6 +232,61 @@
   border: 1px solid var(--border-color);
   border-radius: 14px;
   transition: all 0.2s ease;
+}
+
+/* ============ CLICKABLE STAT CARD ============ */
+.pf-stat-card.clickable {
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.pf-stat-card.clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  border-color: var(--accent-color, #f5a623);
+}
+
+.pf-stat-card.clickable:active {
+  transform: translateY(0);
+}
+
+/* Arrow icon for clickable card */
+.pf-stat-arrow {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: var(--text-muted, #94a3b8);
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.pf-stat-card.clickable:hover .pf-stat-arrow {
+  opacity: 1;
+  color: var(--accent-color, #f5a623);
+}
+
+/* Focus state for accessibility */
+.pf-stat-card.clickable:focus-visible {
+  outline: 3px solid var(--accent-color, #f5a623);
+  outline-offset: 2px;
+}
+
+/* Dark mode */
+[data-theme="dark"] .pf-stat-card.clickable:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .pf-stat-arrow {
+    right: 10px;
+    width: 16px;
+    height: 16px;
+  }
 }
 
 .pf-stat-card:hover {

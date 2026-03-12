@@ -1086,16 +1086,7 @@ const Footer = ({ navigate, onComingSoon }) => (
           <span className="footer-version">{CONFIG.version}</span>
         </div>
         <div className="footer-developer">
-          <p>
-            Developed with ❤️ by{" "}
-            <a
-              href="https://github.com/costleyosaro"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Costley
-            </a>
-          </p>
+
         </div>
       </div>
     </div>

@@ -10,13 +10,12 @@ import { imageUrl, PLACEHOLDER } from "../utils/image";
 import "./Lists.css";
 import "./SmartListDrawer.css";
 
-// Icons - Removed FiChevronLeft for back button
+// Icons
 import {
   FiPlus,
   FiTrash2,
   FiEye,
   FiShoppingCart,
-  FiChevronRight,
   FiEdit3,
   FiX,
   FiCheck,
@@ -25,10 +24,8 @@ import {
   FiClock,
   FiMinus,
   FiAlertCircle,
-  FiMoreHorizontal, // Changed from FiMoreVertical
   FiCopy,
   FiShare2,
-  FiMenu, // Added hamburger icon option
 } from "react-icons/fi";
 import { HiOutlineSparkles, HiOutlineClipboardList } from "react-icons/hi";
 
@@ -82,13 +79,12 @@ const formatCurrency = (val) =>
 
 // ============ SUB-COMPONENTS ============
 
-// Header Component - SIMPLE BACK ARROW (NO REACT ICON)
+// Header Component - SIMPLE BACK ARROW
 const ListsHeader = ({ onBack, onAdd, listCount }) => {
   const [showTooltip, setShowTooltip] = useState(false);
 
   return (
     <header className="sl-header">
-      {/* ✅ SIMPLE BACK BUTTON - Using plain < character */}
       <button className="sl-back-btn" onClick={onBack} aria-label="Go back">
         <span className="sl-back-arrow">‹</span>
       </button>
@@ -213,7 +209,7 @@ const CreateListModal = ({ isOpen, onClose, onCreate }) => {
   );
 };
 
-// List Card Component - UPDATED DROPDOWN ICON
+// ✅ List Card Component - FIXED DROPDOWN BUTTON WITH > ARROW
 const ListCard = ({
   list,
   orderedAt,
@@ -225,12 +221,10 @@ const ListCard = ({
   const [showMenu, setShowMenu] = useState(false);
   const itemCount = list.items?.length || 0;
 
-  // Calculate total
   const total = (list.items || []).reduce((sum, item) => {
     return sum + (getItemPrice(item) * (item.quantity || 1));
   }, 0);
 
-  // Get first 3 items for preview
   const previewItems = (list.items || []).slice(0, 3);
   const remainingCount = itemCount > 3 ? itemCount - 3 : 0;
 
@@ -256,7 +250,7 @@ const ListCard = ({
           </div>
         </div>
         
-        {/* ✅ VISIBLE DROPDOWN BUTTON - Hamburger/Three dots */}
+        {/* ✅ FIXED: Dropdown Button with > arrow instead of white circle */}
         <button
           className="sl-card-menu-btn"
           onClick={(e) => {
@@ -265,7 +259,7 @@ const ListCard = ({
           }}
           aria-label="More options"
         >
-          <FiMoreHorizontal className="sl-menu-icon" />
+          <span className="sl-dropdown-arrow">›</span>
         </button>
 
         {/* Dropdown Menu */}
@@ -376,7 +370,7 @@ const ListCard = ({
   );
 };
 
-// View List Modal - UPDATED BACK BUTTON
+// View List Modal
 const ViewListModal = ({
   list,
   isOpen,
@@ -398,7 +392,6 @@ const ViewListModal = ({
     <div className="sl-modal-overlay" onClick={onClose}>
       <div className="sl-view-modal" onClick={(e) => e.stopPropagation()}>
         <div className="sl-view-header">
-          {/* ✅ SIMPLE BACK BUTTON */}
           <button className="sl-view-back" onClick={onClose}>
             <span className="sl-back-arrow">‹</span>
           </button>
@@ -551,7 +544,7 @@ export default function SmartList() {
   const [orderedAt, setOrderedAt] = useState({});
   const [drawerOpen, setDrawerOpen] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
-  const [orderingListId, setOrderingListId] = useState(null); // ✅ Track which list is being ordered
+  const [orderingListId, setOrderingListId] = useState(null);
 
   // PIN Modal States
   const [showPinModal, setShowPinModal] = useState(false);
@@ -567,7 +560,9 @@ export default function SmartList() {
     try {
       const newList = await createList(name);
       const safeList = { ...newList, items: newList.items || [] };
-      toast.success(`"${name}" created successfully!`);
+      toast.success(`"${name}" created successfully!`, {
+        position: 'bottom-center',
+      });
       setTimeout(() => setDrawerOpen(safeList.id), 300);
     } catch (err) {
       console.error("Error creating list:", err);
@@ -584,7 +579,7 @@ export default function SmartList() {
   const confirmDelete = () => {
     if (deleteConfirm) {
       deleteList(deleteConfirm.id);
-      toast.success("List deleted");
+      toast.success("List deleted", { position: 'bottom-center' });
       setDeleteConfirm(null);
     }
   };
@@ -592,15 +587,14 @@ export default function SmartList() {
   // Handle Order All
   const handleOrderAllClick = (list) => {
     if (!list.items || list.items.length === 0) {
-      toast.error("This list is empty");
+      toast.error("This list is empty", { position: 'bottom-center' });
       return;
     }
     setSelectedList(list);
     setShowPinModal(true);
   };
 
-  // ✅ FIXED: PIN Success Handler with proper Order ID and List Deletion
-  // ✅ PIN Success Handler - SHOWS ORDER REFERENCE & TOAST AT BOTTOM
+  // ✅ FIXED: PIN Success Handler - Proper Order Reference & Navigation with State
   const handlePinSuccess = async () => {
     if (!selectedList) return;
     
@@ -612,34 +606,47 @@ export default function SmartList() {
     try {
       const response = await orderAll(listId);
       
-      console.log("📦 Order Response:", response);
+      // 🔍 DEBUG: Log full response to see structure
+      console.log("📦 Full Order Response:", JSON.stringify(response, null, 2));
       
-      // ✅ FIX: Get the ORDER REFERENCE (ORD-2026-XXXX) first, fallback to ID
+      // ✅ FIX 1: Extract ORDER REFERENCE from nested order object
+      const order = response?.order || response;
+      
       const orderReference = 
-        response?.reference || 
-        response?.order_reference || 
-        response?.orderReference ||
-        response?.order_number ||
-        response?.order?.reference ||
-        response?.order?.order_reference;
+        order?.reference ||
+        order?.order_reference ||
+        order?.orderReference ||
+        order?.order_number ||
+        order?.order_id ||
+        response?.reference ||
+        response?.order_reference;
       
-      const orderId = response?.id || response?.order_id;
+      const orderId = order?.id || response?.id;
       
-      // Use reference if available, otherwise use ID
+      // ✅ Use reference if available (like ORD-2026-XXXX), otherwise format the ID
       const displayOrderId = orderReference || (orderId ? `#${orderId}` : null);
       
-      if (displayOrderId) {
-        // ✅ Show success toast with ORDER REFERENCE at BOTTOM
+      console.log("🎯 Extracted Order Reference:", orderReference);
+      console.log("🎯 Display Order ID:", displayOrderId);
+      
+      if (displayOrderId || orderId) {
+        // ✅ Show success toast with ORDER REFERENCE
         toast.success(
-          `🎉 Order ${displayOrderId} placed successfully!`,
+          `🎉 Order ${displayOrderId || `#${orderId}`} placed successfully!`,
           {
             duration: 4000,
-            position: 'bottom-center', // ✅ BOTTOM position
+            position: 'bottom-center',
           }
         );
 
         setShowPinModal(false);
         setSelectedList(null);
+
+        // Store ordered timestamp
+        setOrderedAt((prev) => ({
+          ...prev,
+          [listId]: new Date().toLocaleString(),
+        }));
 
         // Delete the smart list
         setTimeout(() => {
@@ -649,20 +656,30 @@ export default function SmartList() {
             {
               duration: 2000,
               icon: '🗑️',
-              position: 'bottom-center', // ✅ BOTTOM position
+              position: 'bottom-center',
             }
           );
         }, 1000);
 
-        setTimeout(() => navigate("/orders"), 2500);
+        // ✅ FIX 2: Navigate to Orders page WITH state to show "New Order" badge
+        setTimeout(() => {
+          navigate("/orders", { 
+            state: { 
+              newOrderId: orderReference || orderId,
+              source: "smartlist"
+            } 
+          });
+        }, 2500);
         
       } else {
-        // Fallback
+        // Fallback if no order ID found
+        console.warn("⚠️ Could not extract order ID from response:", response);
+        
         toast.success(
           response?.message || "Order placed successfully!",
           {
             duration: 3000,
-            position: 'bottom-center', // ✅ BOTTOM position
+            position: 'bottom-center',
           }
         );
         
@@ -670,23 +687,30 @@ export default function SmartList() {
           deleteList(listId);
         }, 1000);
         
-        setTimeout(() => navigate("/orders"), 2000);
+        // ✅ Still navigate with state
+        setTimeout(() => {
+          navigate("/orders", { 
+            state: { 
+              source: "smartlist",
+              isNew: true
+            } 
+          });
+        }, 2000);
       }
       
     } catch (err) {
-      console.error("Order error:", err);
+      console.error("❌ Order error:", err);
       toast.error(
         err?.message || "Something went wrong. Please try again.",
         {
           duration: 4000,
-          position: 'bottom-center', // ✅ BOTTOM position for errors too
+          position: 'bottom-center',
         }
       );
     } finally {
       setOrderingListId(null);
     }
   };
-  
 
   // View list handlers
   const handleViewList = (list) => {
@@ -738,7 +762,7 @@ export default function SmartList() {
                 onView={handleViewList}
                 onDelete={handleDeleteList}
                 onOrderAll={handleOrderAllClick}
-                isOrdering={orderingListId === list.id} // ✅ Pass loading state
+                isOrdering={orderingListId === list.id}
               />
             ))}
           </div>
@@ -802,7 +826,7 @@ export default function SmartList() {
         onClose={() => setShowSetPinModal(false)}
         customerId={customerId}
         onSuccess={() => {
-          toast.success("PIN set successfully!");
+          toast.success("PIN set successfully!", { position: 'bottom-center' });
           setShowSetPinModal(false);
           setShowPinModal(true);
         }}
@@ -813,4 +837,3 @@ export default function SmartList() {
     </div>
   );
 }
-

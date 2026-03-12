@@ -16,7 +16,6 @@ import {
   FiCreditCard,
   FiHelpCircle,
   FiLogOut,
-  FiChevronLeft,
   FiChevronRight,
   FiMoon,
   FiSun,
@@ -45,27 +44,19 @@ const calculateLoyaltyPoints = (profile, orderSummary) => {
 
   let points = 0;
   
-  // Base points for registration
   points += 50;
-  
-  // Points for orders (10 points per order)
   points += (orderSummary.total_orders || 0) * 10;
-  
-  // Points for spending (1 point per ₦100 spent)
   points += Math.floor((orderSummary.total_spent || 0) / 100);
   
-  // Login frequency bonus (estimate based on account age)
   const accountCreated = profile.created_at ? new Date(profile.created_at) : new Date();
   const daysSinceCreation = Math.floor((new Date() - accountCreated) / (1000 * 60 * 60 * 24));
   const estimatedLogins = Math.min(daysSinceCreation * 0.3, 100);
   points += Math.floor(estimatedLogins);
   
-  // Bonus for having profile complete
   if (profile.name && profile.email && profile.phone) {
     points += 25;
   }
   
-  // Bonus for business verification
   if (profile.businessName) {
     points += 30;
   }
@@ -75,11 +66,11 @@ const calculateLoyaltyPoints = (profile, orderSummary) => {
 
 // ============ SUB-COMPONENTS ============
 
-// Header Component
+// Header Component - Simple Back Arrow
 const ProfileHeader = ({ onBack }) => (
   <header className="pf-header">
     <button className="pf-back-btn" onClick={onBack} aria-label="Go back">
-      <FiChevronLeft />
+      <span className="pf-back-arrow">‹</span>
     </button>
     <h1 className="pf-header-title">My Profile</h1>
     <div className="pf-header-spacer"></div>
@@ -111,10 +102,18 @@ const AvatarSection = ({ profile, onEdit }) => {
   );
 };
 
-// Stats Cards
-const StatsSection = ({ orderSummary }) => (
+// ✅ UPDATED: Stats Cards - Clickable Total Orders
+const StatsSection = ({ orderSummary, onViewOrders }) => (
   <div className="pf-stats">
-    <div className="pf-stat-card">
+    {/* ✅ Clickable Total Orders - Navigates to Orders Page */}
+    <div 
+      className="pf-stat-card clickable" 
+      onClick={onViewOrders}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === 'Enter' && onViewOrders()}
+      title="View all orders"
+    >
       <div className="pf-stat-icon orders">
         <FiPackage />
       </div>
@@ -122,7 +121,10 @@ const StatsSection = ({ orderSummary }) => (
         <span className="pf-stat-value">{orderSummary?.total_orders || 0}</span>
         <span className="pf-stat-label">Total Orders</span>
       </div>
+      <FiChevronRight className="pf-stat-arrow" />
     </div>
+    
+    {/* Total Spent - Not clickable */}
     <div className="pf-stat-card">
       <div className="pf-stat-icon savings">
         <span className="naira-symbol">₦</span>
@@ -158,6 +160,7 @@ const QuickActions = ({ smartListsCount = 0, onNavigate }) => {
   const handleSubscriptionsClick = () => {
     toast.success("🚀 New feature coming soon!", {
       duration: 3000,
+      position: 'bottom-center',
       style: {
         background: 'linear-gradient(135deg, #1b4b8c, #143a6e)',
         color: 'white',
@@ -316,7 +319,6 @@ export default function ProfilePage() {
   const { theme, toggleTheme } = useTheme();
   const { clearCart, user } = useCart();
 
-  // Smart Lists context
   let totalSmartListCount = 0;
   try {
     const smartListContext = useSmartLists();
@@ -326,7 +328,6 @@ export default function ProfilePage() {
     totalSmartListCount = 0;
   }
 
-  // State
   const [profile, setProfile] = useState(null);
   const [orderSummary, setOrderSummary] = useState({
     total_orders: 0,
@@ -337,7 +338,6 @@ export default function ProfilePage() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  // Fetch profile data
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -359,10 +359,8 @@ export default function ProfilePage() {
     fetchData();
   }, []);
 
-  // Calculate loyalty points
   const loyaltyPoints = calculateLoyaltyPoints(profile, orderSummary);
 
-  // Handle Logout
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
@@ -372,23 +370,21 @@ export default function ProfilePage() {
       if (user?.id) localStorage.removeItem(`cart_${user.id}`);
       await clearCart();
       delete API.defaults.headers.common["Authorization"];
-      toast.success("Signed out successfully");
+      toast.success("Signed out successfully", { position: 'bottom-center' });
       navigate("/", { replace: true });
     } catch (err) {
       console.error("Logout failed:", err);
-      toast.error("Logout failed. Please try again.");
+      toast.error("Logout failed. Please try again.", { position: 'bottom-center' });
       navigate("/", { replace: true });
     } finally {
       setIsLoggingOut(false);
     }
   };
 
-  // Handle navigation
   const handleNavigate = (path) => {
     navigate(path);
   };
 
-  // Loading state
   if (loading) {
     return (
       <div className="pf-page">
@@ -400,7 +396,6 @@ export default function ProfilePage() {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="pf-page">
@@ -417,30 +412,27 @@ export default function ProfilePage() {
 
   return (
     <div className="pf-page">
-      {/* Header */}
       <ProfileHeader onBack={() => navigate(-1)} />
 
-      {/* Content */}
       <div className="pf-content">
-        {/* Avatar Section */}
         <AvatarSection
           profile={profile}
           onEdit={() => navigate("/edit-profile")}
         />
 
-        {/* Stats */}
-        <StatsSection orderSummary={orderSummary} />
+        {/* ✅ UPDATED: Pass onViewOrders prop */}
+        <StatsSection 
+          orderSummary={orderSummary} 
+          onViewOrders={() => navigate("/orders")}
+        />
 
-        {/* Loyalty Card */}
         <LoyaltyCard points={loyaltyPoints} />
 
-        {/* Quick Actions */}
         <QuickActions
           smartListsCount={totalSmartListCount}
           onNavigate={handleNavigate}
         />
 
-        {/* Account Settings */}
         <MenuSection title="Account">
           <MenuItem
             icon={FiUser}
@@ -459,7 +451,6 @@ export default function ProfilePage() {
           />
         </MenuSection>
 
-        {/* Preferences */}
         <MenuSection title="Preferences">
           <MenuItem
             icon={FiBell}
@@ -475,7 +466,6 @@ export default function ProfilePage() {
           />
         </MenuSection>
 
-        {/* Support */}
         <MenuSection title="Support">
           <MenuItem
             icon={FiHelpCircle}
@@ -494,7 +484,6 @@ export default function ProfilePage() {
           />
         </MenuSection>
 
-        {/* Sign Out */}
         <MenuSection>
           <MenuItem
             icon={FiLogOut}
@@ -504,11 +493,9 @@ export default function ProfilePage() {
           />
         </MenuSection>
 
-        {/* Footer */}
         <AppFooter />
       </div>
 
-      {/* Logout Modal */}
       <LogoutModal
         isOpen={showLogoutModal}
         onClose={() => setShowLogoutModal(false)}
@@ -516,7 +503,6 @@ export default function ProfilePage() {
         isLoading={isLoggingOut}
       />
 
-      {/* Bottom Spacer */}
       <div className="pf-bottom-spacer"></div>
     </div>
   );

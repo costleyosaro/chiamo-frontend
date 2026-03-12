@@ -247,7 +247,7 @@ export function SmartListProvider({ children }) {
     }
   };
 
-  /** 🛍️ Order all items - FIXED ORDER ID EXTRACTION */
+  /** 🛍️ Order all items - FIXED TO RETURN ORDER REFERENCE */
   const orderAll = async (listId) => {
     if (!user) throw new Error("You must be logged in to order");
     
@@ -256,31 +256,39 @@ export function SmartListProvider({ children }) {
       
       console.log("📦 Order API Response:", res.data);
       
-      // ✅ FIX: Extract order from nested structure
       const responseData = res.data;
       const order = responseData?.order || responseData?.data?.order || responseData;
       
-      // Extract order ID from all possible locations
+      // ✅ FIX: Extract the ORDER REFERENCE (ORD-2026-XXXX) not just the ID
+      const orderReference = 
+        order?.reference ||
+        order?.order_reference ||
+        order?.order_number ||
+        order?.orderReference ||
+        order?.ref ||
+        responseData?.reference ||
+        responseData?.order_reference;
+      
+      // Also get the numeric ID as fallback
       const orderId = 
         order?.id || 
         order?.order_id || 
-        order?.orderId || 
-        responseData?.id ||
-        responseData?.order_id;
+        responseData?.id;
       
-      // ✅ Return normalized structure with ID at root level
+      // ✅ Return normalized structure with REFERENCE as primary identifier
       const normalizedResponse = {
         id: orderId,
-        order_id: orderId,
-        orderId: orderId,
+        reference: orderReference,
+        order_reference: orderReference,
+        orderReference: orderReference,
+        order_number: orderReference,
         message: responseData?.message || "Order placed successfully",
-        order: order, // Keep original nested order
-        ...order, // Spread all order properties to root
+        order: order,
+        ...order,
       };
       
       console.log("✅ Normalized Order Response:", normalizedResponse);
       
-      // Refresh lists after successful order
       await fetchLists(user);
       
       return normalizedResponse;

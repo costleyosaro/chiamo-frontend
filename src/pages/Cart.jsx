@@ -1,5 +1,5 @@
 // src/pages/Cart.jsx
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "./CartContext";
 import { useSmartLists } from "./SmartListContext";
@@ -11,10 +11,9 @@ import SetTransactionPinModal from "../components/SetTransactionPinModal";
 import { imageUrl, PLACEHOLDER } from "../utils/image";
 import "./Cart.css";
 
-// Icons — removed FiTrash2 (replaced with emoji)
+// Icons — removed FiChevronLeft (replaced with simple arrow)
 import {
   FiShoppingCart,
-  FiChevronLeft,
   FiPackage,
   FiTruck,
   FiShield,
@@ -70,11 +69,11 @@ const formatCurrency = (val) =>
 
 // ============ SUB-COMPONENTS ============
 
-// Header Component
+// ✅ Header Component - SIMPLE BACK ARROW
 const CartHeader = ({ itemCount, onBack }) => (
   <header className="cart-header">
     <button className="cart-back-btn" onClick={onBack} aria-label="Go back">
-      <FiChevronLeft />
+      <span className="cart-back-arrow">‹</span>
     </button>
     <div className="cart-header-center">
       <h1 className="cart-title">My Cart</h1>
@@ -108,10 +107,11 @@ const EmptyCart = ({ onShop }) => (
   </div>
 );
 
-// ✅ Cart Item Component — dustbin emoji instead of FiTrash2
-const CartItem = ({ item, onUpdateQty, onRemove }) => {
+// ✅ Cart Item Component - OPTIMISTIC QUANTITY UPDATES
+const CartItem = ({ item, onUpdateQty, onRemove, pendingQty }) => {
   const price = parsePrice(item.price);
-  const qty = Number(item.quantity) || 1;
+  // ✅ Use pending quantity if available, otherwise use item quantity
+  const qty = pendingQty !== undefined ? pendingQty : (Number(item.quantity) || 1);
   const total = price * qty;
   const [isRemoving, setIsRemoving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -122,7 +122,9 @@ const CartItem = ({ item, onUpdateQty, onRemove }) => {
     setIsRemoving(true);
     setTimeout(() => {
       onRemove(item.productId);
-      toast.success("Item removed from cart");
+      toast.success("Item removed from cart", {
+        position: 'bottom-center',
+      });
     }, 300);
   };
 
@@ -164,7 +166,8 @@ const CartItem = ({ item, onUpdateQty, onRemove }) => {
     setIsEditing(true);
   };
 
-  React.useEffect(() => {
+  // ✅ Update edit value when qty changes
+  useEffect(() => {
     if (!isEditing) {
       setEditValue(String(qty));
     }
@@ -189,7 +192,6 @@ const CartItem = ({ item, onUpdateQty, onRemove }) => {
         <div className="cart-item-content">
           <div className="cart-item-header">
             <h3 className="cart-item-name">{item.name}</h3>
-            {/* ✅ Dustbin emoji instead of FiTrash2 react icon */}
             <button
               className="cart-item-delete-btn"
               onClick={handleDeleteClick}
@@ -247,7 +249,7 @@ const CartItem = ({ item, onUpdateQty, onRemove }) => {
         </div>
       </div>
 
-      {/* Individual Delete Confirmation Modal — emoji instead of icon */}
+      {/* Individual Delete Confirmation Modal */}
       {showDeleteConfirm && (
         <div
           className="cart-modal-overlay"
@@ -282,11 +284,10 @@ const CartItem = ({ item, onUpdateQty, onRemove }) => {
   );
 };
 
-// ✅ Cart Items Section — "Cart Items()" replaced with "Clear All" button
-const CartItemsSection = ({ cart, onUpdateQty, onRemove, onClearAll }) => (
+// ✅ Cart Items Section
+const CartItemsSection = ({ cart, onUpdateQty, onRemove, onClearAll, pendingQuantities }) => (
   <section className="cart-items-section">
     <div className="cart-items-header">
-      {/* ✅ Clear All button replaces the duplicate "Cart Items (X)" text */}
       <button className="cart-clear-all-btn" onClick={onClearAll}>
         🗑️ Clear All Items
       </button>
@@ -298,6 +299,7 @@ const CartItemsSection = ({ cart, onUpdateQty, onRemove, onClearAll }) => (
           item={item}
           onUpdateQty={onUpdateQty}
           onRemove={onRemove}
+          pendingQty={pendingQuantities[item.productId]}
         />
       ))}
     </div>
@@ -561,6 +563,15 @@ export default function Cart() {
   const [showSetPinModal, setShowSetPinModal] = useState(false);
   const [deliveryMethod, setDeliveryMethod] = useState("delivery");
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  
+  // ✅ OPTIMISTIC QUANTITY STATE - Stores pending quantity changes
+  const [pendingQuantities, setPendingQuantities] = useState({});
+  
+  // ✅ DEBOUNCE TIMERS - One per product for independent debouncing
+  const debounceTimers = useRef({});
+  
+  // ✅ DEBOUNCE DELAY (ms) - How long to wait after user stops clicking
+  const DEBOUNCE_DELAY = 800;
 
   const storedUser = JSON.parse(localStorage.getItem("auth_user") || "{}");
   const customerId =
@@ -571,18 +582,24 @@ export default function Cart() {
     storedUser?.profile?.id ||
     null;
 
-  // ✅ FIX: Track original item order so items don't jump when qty changes
+  // ✅ Track original item order so items don't jump when qty changes
   const itemOrderRef = useRef([]);
 
   useEffect(() => {
     const currentIds = cart.map((item) => item.productId || item.id);
-    // Keep existing order, append only genuinely new items
     const existingOrder = itemOrderRef.current.filter((id) =>
       currentIds.includes(id)
     );
     const newIds = currentIds.filter((id) => !existingOrder.includes(id));
     itemOrderRef.current = [...existingOrder, ...newIds];
   }, [cart]);
+
+  // ✅ Cleanup debounce timers on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(debounceTimers.current).forEach(clearTimeout);
+    };
+  }, []);
 
   // ✅ Stable-sorted cart that never reorders on qty change
   const stableCart = useMemo(() => {
@@ -592,7 +609,6 @@ export default function Cart() {
       const idB = b.productId || b.id;
       const indexA = order.indexOf(idA);
       const indexB = order.indexOf(idB);
-      // If somehow not found, keep original array order
       if (indexA === -1 && indexB === -1) return 0;
       if (indexA === -1) return 1;
       if (indexB === -1) return -1;
@@ -600,12 +616,62 @@ export default function Cart() {
     });
   }, [cart]);
 
-  // Calculate totals
-  const subtotal = cart.reduce((sum, item) => {
-    const price = parsePrice(item.price);
-    const qty = Number(item.quantity) || 1;
-    return sum + price * qty;
-  }, 0);
+  // ✅ OPTIMISTIC QUANTITY UPDATE HANDLER
+  const handleOptimisticQtyUpdate = useCallback((productId, newQty) => {
+    // 1️⃣ IMMEDIATELY update local state (optimistic update)
+    setPendingQuantities(prev => ({
+      ...prev,
+      [productId]: newQty
+    }));
+
+    // 2️⃣ Clear existing debounce timer for this product
+    if (debounceTimers.current[productId]) {
+      clearTimeout(debounceTimers.current[productId]);
+    }
+
+    // 3️⃣ Set new debounce timer to sync with backend
+    debounceTimers.current[productId] = setTimeout(async () => {
+      try {
+        // Sync to backend
+        await updateQty(productId, newQty);
+        
+        // Clear pending state after successful sync
+        setPendingQuantities(prev => {
+          const updated = { ...prev };
+          delete updated[productId];
+          return updated;
+        });
+        
+        console.log(`✅ Synced qty for ${productId}: ${newQty}`);
+      } catch (error) {
+        console.error(`❌ Failed to sync qty for ${productId}:`, error);
+        
+        // Revert to original quantity on error
+        setPendingQuantities(prev => {
+          const updated = { ...prev };
+          delete updated[productId];
+          return updated;
+        });
+        
+        toast.error("Failed to update quantity. Please try again.", {
+          position: 'bottom-center',
+        });
+      }
+    }, DEBOUNCE_DELAY);
+  }, [updateQty]);
+
+  // ✅ Calculate totals using PENDING quantities where available
+  const subtotal = useMemo(() => {
+    return cart.reduce((sum, item) => {
+      const price = parsePrice(item.price);
+      const productId = item.productId || item.id;
+      // Use pending quantity if available, otherwise use cart quantity
+      const qty = pendingQuantities[productId] !== undefined 
+        ? pendingQuantities[productId] 
+        : (Number(item.quantity) || 1);
+      return sum + price * qty;
+    }, 0);
+  }, [cart, pendingQuantities]);
 
   const deliveryFee = getDeliveryFee(subtotal, deliveryMethod);
   const grandTotal = subtotal + deliveryFee;
@@ -613,6 +679,25 @@ export default function Cart() {
   // ✅ Create order after PIN validation with notification
   const createOrder = async () => {
     setProcessing(true);
+    
+    // ✅ Flush any pending quantity updates before checkout
+    const pendingProductIds = Object.keys(pendingQuantities);
+    if (pendingProductIds.length > 0) {
+      // Clear all pending timers and sync immediately
+      for (const productId of pendingProductIds) {
+        if (debounceTimers.current[productId]) {
+          clearTimeout(debounceTimers.current[productId]);
+        }
+        const qty = pendingQuantities[productId];
+        try {
+          await updateQty(productId, qty);
+        } catch (err) {
+          console.error(`Failed to sync qty before checkout:`, err);
+        }
+      }
+      setPendingQuantities({});
+    }
+    
     try {
       const res = await API.post("/orders/checkout/", {
         delivery_method: deliveryMethod,
@@ -623,6 +708,8 @@ export default function Cart() {
         res.data?.order_id ||
         res.data?.order?.order_id ||
         res.data?.order?.id ||
+        res.data?.reference ||
+        res.data?.order?.reference ||
         `ORD-${Date.now()}`;
 
       // ✅ Create notification for successful order
@@ -630,7 +717,7 @@ export default function Cart() {
         id: Date.now(),
         type: "order_placed",
         title: "Order Placed Successfully! 🎉",
-        message: `Your order #${orderId} has been placed and is being processed. Total: ${formatCurrency(grandTotal)}`,
+        message: `Your order ${orderId} has been placed and is being processed. Total: ${formatCurrency(grandTotal)}`,
         order_id: orderId,
         is_read: false,
         created_at: new Date().toISOString(),
@@ -643,12 +730,12 @@ export default function Cart() {
 
       // ✅ Clear cart BEFORE navigating
       await clearCart().catch(() => {});
-      // Also reset the order ref
       itemOrderRef.current = [];
 
-      toast.success(`Order #${orderId} placed successfully!`, {
+      toast.success(`Order ${orderId} placed successfully!`, {
         duration: 4000,
         icon: "🎉",
+        position: 'bottom-center',
         style: {
           background: "#10b981",
           color: "#fff",
@@ -672,7 +759,7 @@ export default function Cart() {
           })),
           total: res.data?.order?.total || grandTotal,
           delivery_method: deliveryMethod,
-          isNew: true, // ✅ Flag for "New Order" label
+          isNew: true,
         };
         setOrders((prev) => [optimisticOrder, ...(prev || [])]);
       }
@@ -683,7 +770,7 @@ export default function Cart() {
           id: Date.now() + 1,
           type: "order_confirmed",
           title: "Order Confirmed! 📦",
-          message: `Order #${orderId} has been confirmed and will be processed shortly. You'll receive updates on delivery status.`,
+          message: `Order ${orderId} has been confirmed and will be processed shortly. You'll receive updates on delivery status.`,
           order_id: orderId,
           is_read: false,
           created_at: new Date().toISOString(),
@@ -715,6 +802,7 @@ export default function Cart() {
         err?.response?.data?.detail ||
         "Failed to place order. Please try again.";
       toast.error(msg, {
+        position: 'bottom-center',
         style: {
           background: "#ef4444",
           color: "#fff",
@@ -728,7 +816,7 @@ export default function Cart() {
   // Handle checkout click
   const handleCheckoutClick = async () => {
     if (cart.length === 0) {
-      toast.error("Your cart is empty");
+      toast.error("Your cart is empty", { position: 'bottom-center' });
       return;
     }
 
@@ -742,7 +830,7 @@ export default function Cart() {
         setShowSetPinModal(true);
       }
     } catch (err) {
-      toast.error("Could not verify PIN status");
+      toast.error("Could not verify PIN status", { position: 'bottom-center' });
     }
   };
 
@@ -753,12 +841,21 @@ export default function Cart() {
 
   const confirmClearAll = async () => {
     setShowClearConfirm(false);
+    
+    // Clear all pending timers
+    Object.values(debounceTimers.current).forEach(clearTimeout);
+    debounceTimers.current = {};
+    setPendingQuantities({});
+    
     try {
       await clearCart();
       itemOrderRef.current = [];
-      toast.success("Cart cleared successfully!", { icon: "🗑️" });
+      toast.success("Cart cleared successfully!", { 
+        icon: "🗑️",
+        position: 'bottom-center',
+      });
     } catch {
-      toast.error("Failed to clear cart");
+      toast.error("Failed to clear cart", { position: 'bottom-center' });
     }
   };
 
@@ -771,12 +868,13 @@ export default function Cart() {
           <EmptyCart onShop={() => navigate("/all-products")} />
         ) : (
           <>
-            {/* ✅ Pass stableCart (fixed order) + onClearAll */}
+            {/* ✅ Pass optimistic update handler and pending quantities */}
             <CartItemsSection
               cart={stableCart}
-              onUpdateQty={updateQty}
+              onUpdateQty={handleOptimisticQtyUpdate}
               onRemove={removeFromCart}
               onClearAll={handleClearAll}
+              pendingQuantities={pendingQuantities}
             />
 
             <DeliverySection
@@ -859,7 +957,7 @@ export default function Cart() {
         onClose={() => setShowSetPinModal(false)}
         customerId={customerId}
         onSuccess={() => {
-          toast.success("PIN set successfully!");
+          toast.success("PIN set successfully!", { position: 'bottom-center' });
           setShowSetPinModal(false);
           setShowPinModal(true);
         }}

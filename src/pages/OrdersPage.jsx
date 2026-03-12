@@ -11,7 +11,6 @@ import "./Order.css";
 // Icons
 import {
   FiPackage,
-  FiChevronLeft,
   FiClock,
   FiCheckCircle,
   FiTruck,
@@ -23,7 +22,6 @@ import {
   FiTrash2,
   FiAlertCircle,
   FiCheck,
-  FiMoreVertical,
   FiExternalLink,
 } from "react-icons/fi";
 import { HiOutlineClipboardCheck, HiOutlineSparkles } from "react-icons/hi";
@@ -92,18 +90,15 @@ const getStatusColor = (progress) => {
  * ✅ FIXED: Get progress number from order status
  */
 const getProgressFromStatus = (order) => {
-  // Get status from order, normalize it
   const status = (order.status || 'pending').toLowerCase().trim().replace(/-/g, '_');
   
   console.log(`📊 Order ${order.order_id}: status="${order.status}" -> normalized="${status}"`);
   
-  // Direct match
   if (STATUS_TO_PROGRESS[status] !== undefined) {
     console.log(`   ✅ Matched! Progress = ${STATUS_TO_PROGRESS[status]}`);
     return STATUS_TO_PROGRESS[status];
   }
   
-  // Partial matches as fallback
   if (status.includes('deliver') && !status.includes('out')) return 5;
   if (status.includes('out') && status.includes('deliver')) return 4;
   if (status.includes('ship') || status.includes('transit')) return 3;
@@ -123,11 +118,11 @@ const getStatusLabel = (progress) => {
 
 // ============ SUB-COMPONENTS ============
 
-// Header Component with Refresh Button
+// ✅ Header Component - SIMPLE BACK ARROW
 const OrdersHeader = ({ activeTab, onBack, onRefresh, isRefreshing }) => (
   <header className="ord-header">
     <button className="ord-back-btn" onClick={onBack} aria-label="Go back">
-      <FiChevronLeft />
+      <span className="ord-back-arrow">‹</span>
     </button>
     <div className="ord-header-center">
       <h1 className="ord-title">
@@ -221,7 +216,7 @@ const ProgressTimeline = ({ progress }) => {
   );
 };
 
-// Order Card Component
+// ✅ Order Card Component - FIXED DROPDOWN & BADGES
 const OrderCard = ({
   order,
   isNew,
@@ -243,15 +238,12 @@ const OrderCard = ({
 
   const itemCount = order.items?.length || 0;
   
-  // ✅ Get progress from database status
   const progress = getProgressFromStatus(order);
   const statusClass = getStatusColor(progress);
   const currentStatus = getStatusLabel(progress);
   
-  // ✅ Check if confirm button should be enabled (only when "Out for Delivery" - progress 4)
   const canConfirmDelivery = progress === 4;
   
-  // ✅ Get helpful message for disabled button
   const getConfirmButtonMessage = () => {
     switch (progress) {
       case 1:
@@ -276,14 +268,17 @@ const OrderCard = ({
       ? "Smart List"
       : "Direct";
 
+  // ✅ Check if this is a reordered item
+  const isReordered = order.isReordered || order.source === "reorder";
+
   return (
     <div 
-      className={`ord-card ${isNew ? "new-order" : ""} ${isUpdated ? "updated-order" : ""}`}
+      className={`ord-card ${isNew ? "new-order" : ""} ${isUpdated ? "updated-order" : ""} ${isReordered ? "reordered-order" : ""}`}
       data-order-id={order.order_id || order.id}
     >
-      {/* ✅ FIXED: New Order Badge - Now in its own row, no overlap */}
+      {/* ✅ FIXED: New Order Badge - Separate row, works for both cart and smartlist */}
       {isNew && (
-        <div className="ord-new-badge-container">
+        <div className="ord-badge-row">
           <div className="ord-new-badge">
             <HiOutlineSparkles />
             New Order
@@ -291,9 +286,19 @@ const OrderCard = ({
         </div>
       )}
       
-      {/* ✅ Updated Badge - Also in its own space */}
-      {isUpdated && !isNew && (
-        <div className="ord-new-badge-container">
+      {/* ✅ Reordered Badge */}
+      {isReordered && !isNew && (
+        <div className="ord-badge-row">
+          <div className="ord-reordered-badge">
+            <FiRefreshCw />
+            Reordered
+          </div>
+        </div>
+      )}
+      
+      {/* ✅ Updated Badge */}
+      {isUpdated && !isNew && !isReordered && (
+        <div className="ord-badge-row">
           <div className="ord-updated-badge">
             <FiRefreshCw />
             Status Updated
@@ -321,11 +326,17 @@ const OrderCard = ({
             </span>
           </div>
         </div>
+        
+        {/* ✅ FIXED: Dropdown Button - Now visible arrow instead of hidden circle */}
         <button
-          className="ord-card-menu"
-          onClick={() => setShowActions(!showActions)}
+          className="ord-card-menu-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowActions(!showActions);
+          }}
+          aria-label="More options"
         >
-          <FiMoreVertical />
+          <span className="ord-dropdown-arrow">›</span>
         </button>
 
         {/* Dropdown Actions */}
@@ -383,7 +394,9 @@ const OrderCard = ({
 
       {/* Source Badge */}
       <div className="ord-card-source">
-        <span className="ord-source-badge">{sourceLabel}</span>
+        <span className={`ord-source-badge ${order.source === 'smartlist' ? 'smartlist' : ''}`}>
+          {sourceLabel}
+        </span>
         {activeTab === "open" && (
           <div className="ord-delivery-estimate">
             <FiTruck />
@@ -407,7 +420,6 @@ const OrderCard = ({
               <FiExternalLink />
               Track Order
             </button>
-            {/* ✅ FIXED: Confirm button with proper disabled state and tooltip */}
             <div className="ord-confirm-btn-wrapper" title={getConfirmButtonMessage()}>
               <button
                 className={`ord-action-btn primary ${!canConfirmDelivery ? 'disabled' : ''} ${canConfirmDelivery ? 'ready-to-confirm' : ''}`}
@@ -431,7 +443,6 @@ const OrderCard = ({
                   </>
                 )}
               </button>
-              {/* ✅ Show hint when not ready */}
               {!canConfirmDelivery && progress < 5 && (
                 <span className="ord-confirm-hint">
                   {progress === 3 ? "Almost there! 🚚" : ""}
@@ -445,7 +456,8 @@ const OrderCard = ({
               <FiExternalLink />
               View Details
             </button>
-            <button className="ord-action-btn primary" onClick={() => onReorder(order)}>
+            {/* ✅ FIXED: Reorder button with yellow color (handled in CSS) */}
+            <button className="ord-action-btn reorder" onClick={() => onReorder(order)}>
               <FiRefreshCw />
               Reorder
             </button>
@@ -501,17 +513,13 @@ export default function OrdersPage() {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [highlightedNewOrders, setHighlightedNewOrders] = useState(new Set());
   const [recentlyUpdatedOrders, setRecentlyUpdatedOrders] = useState(new Set());
-  const [previousStatuses, setPreviousStatuses] = useState({}); // Track status changes
+  const [previousStatuses, setPreviousStatuses] = useState({});
 
   const newOrderIdFromNav = location?.state?.newOrderId || null;
 
   // ✅ FETCH ORDERS FUNCTION
   const fetchOrders = useCallback(async (options = {}) => {
     const { showToast = false, isBackground = false } = options;
-    
-    if (!isBackground) {
-      // Only show loading on initial load, not background refreshes
-    }
     
     try {
       const res = await API.get("orders/user-orders/");
@@ -522,14 +530,12 @@ export default function OrdersPage() {
 
       console.log("📦 Fetched orders:", data.map(o => ({ id: o.order_id, status: o.status })));
 
-      // Sort by date (newest first)
       data.sort(
         (a, b) =>
           new Date(b.created_at || b.createdAt || 0) -
           new Date(a.created_at || a.createdAt || 0)
       );
 
-      // ✅ Check for status changes (for highlighting)
       const newPreviousStatuses = {};
       const updatedOrderIds = new Set();
       
@@ -538,7 +544,6 @@ export default function OrdersPage() {
         const currentStatus = order.status;
         newPreviousStatuses[orderId] = currentStatus;
         
-        // If we had a previous status and it changed, mark as updated
         if (previousStatuses[orderId] && previousStatuses[orderId] !== currentStatus) {
           console.log(`🔄 Order ${order.order_id} status changed: ${previousStatuses[orderId]} → ${currentStatus}`);
           updatedOrderIds.add(orderId);
@@ -547,6 +552,7 @@ export default function OrdersPage() {
             toast.success(`Order ${order.order_id} is now: ${currentStatus}`, {
               icon: "📦",
               duration: 4000,
+              position: 'bottom-center',
             });
           }
         }
@@ -556,11 +562,9 @@ export default function OrdersPage() {
       
       if (updatedOrderIds.size > 0) {
         setRecentlyUpdatedOrders(updatedOrderIds);
-        // Clear highlights after 5 seconds
         setTimeout(() => setRecentlyUpdatedOrders(new Set()), 5000);
       }
 
-      // ✅ Split into open and closed based on status
       const open = data.filter((o) => {
         const status = (o.status || "").toLowerCase().trim();
         return status !== "delivered" && status !== "completed" && status !== "cancelled";
@@ -575,7 +579,11 @@ export default function OrdersPage() {
       setClosedOrders(closed);
       
       if (showToast) {
-        toast.success("Orders refreshed!", { icon: "🔄", duration: 2000 });
+        toast.success("Orders refreshed!", { 
+          icon: "🔄", 
+          duration: 2000,
+          position: 'bottom-center',
+        });
       }
       
       return data;
@@ -600,14 +608,14 @@ export default function OrdersPage() {
     };
     loadOrders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run on mount
+  }, []);
 
-  // ✅ AUTO-REFRESH EVERY 30 SECONDS (Polling)
+  // ✅ AUTO-REFRESH EVERY 30 SECONDS
   useEffect(() => {
     const intervalId = setInterval(() => {
       console.log("⏰ Auto-refreshing orders...");
       fetchOrders({ isBackground: true });
-    }, 30000); // 30 seconds
+    }, 30000);
 
     return () => clearInterval(intervalId);
   }, [fetchOrders]);
@@ -691,6 +699,7 @@ export default function OrdersPage() {
       };
       toast(messages[progress] || "Please wait for delivery.", {
         icon: "⏳",
+        position: 'bottom-center',
       });
       return;
     }
@@ -703,19 +712,25 @@ export default function OrdersPage() {
 
         toast.success("Order confirmed! Thank you for your purchase.", {
           icon: "🎉",
+          position: 'bottom-center',
         });
 
         setOrders((prev) => prev.filter((o) => o.id !== orderId));
         setClosedOrders((prev) => [updated.data, ...prev]);
       } catch (error) {
         console.error("Error confirming delivery:", error);
-        toast.error("Something went wrong. Please try again.");
+        toast.error("Something went wrong. Please try again.", {
+          position: 'bottom-center',
+        });
       }
       return;
     }
 
     if (progress >= 5) {
-      toast("Order already delivered!", { icon: "✅" });
+      toast("Order already delivered!", { 
+        icon: "✅",
+        position: 'bottom-center',
+      });
     }
   };
 
@@ -741,35 +756,120 @@ export default function OrdersPage() {
         setClosedOrders((prev) => prev.filter((o) => o.id !== orderId));
       }
       
-      toast.success("Order deleted successfully");
+      toast.success("Order deleted successfully", {
+        position: 'bottom-center',
+      });
       setDeleteConfirm(null);
     } catch (err) {
       console.error("Failed to delete order:", err);
-      toast.error("Could not delete order. Please try again.");
+      toast.error("Could not delete order. Please try again.", {
+        position: 'bottom-center',
+      });
     }
   };
 
-  // Handle Reorder
+  // ✅ FIXED: Handle Reorder - Creates NEW order with ITEMS and NEW ORDER ID
   const handleReorder = async (order) => {
-    const newOrderPayload = {
-      ...order,
-      id: undefined,
-      order_id: undefined,
-      status: "pending",
-      created_at: new Date().toISOString(),
-    };
+    // ✅ Validate that we have items to reorder
+    if (!order.items || order.items.length === 0) {
+      toast.error("No items found in this order to reorder.", {
+        position: 'bottom-center',
+      });
+      return;
+    }
+
+    // ✅ Show loading toast
+    const loadingToast = toast.loading("Placing your reorder...", {
+      position: 'bottom-center',
+    });
 
     try {
-      const res = await API.post("orders/user-orders/", newOrderPayload);
-      const newOrder = res.data;
+      // ✅ Create new order payload WITH items
+      const reorderPayload = {
+        items: order.items.map(item => ({
+          product_id: item.product_id || item.productId || item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity || 1,
+          image: item.image || item.image_url,
+        })),
+        delivery_method: order.delivery_method || "delivery",
+        delivery_fee: order.delivery_fee || 0,
+        source: "reorder", // ✅ Mark as reorder
+        reordered_from: order.order_id || order.id, // ✅ Track original order
+      };
 
+      console.log("📦 Reorder payload:", reorderPayload);
+
+      // ✅ Create new order via API
+      const res = await API.post("orders/checkout/", reorderPayload);
+      
+      // ✅ Extract the NEW order data
+      const newOrderData = res.data?.order || res.data;
+      const newOrderId = newOrderData?.order_id || 
+                         newOrderData?.reference || 
+                         res.data?.order_id ||
+                         res.data?.reference;
+
+      console.log("✅ Reorder response:", res.data);
+
+      // ✅ Create optimistic order for immediate UI update
+      const newOrder = {
+        id: newOrderData?.id || Date.now(),
+        order_id: newOrderId || `ORD-${Date.now()}`,
+        status: "pending",
+        source: "reorder", // ✅ Mark as reorder
+        isReordered: true, // ✅ Flag for badge display
+        reordered_from: order.order_id,
+        created_at: new Date().toISOString(),
+        items: order.items.map(item => ({
+          ...item,
+          quantity: item.quantity || 1,
+        })),
+        total: order.total || order.items.reduce(
+          (sum, it) => sum + Number(it.price) * (it.quantity || 1),
+          0
+        ),
+        delivery_method: order.delivery_method || "delivery",
+        delivery_fee: order.delivery_fee || 0,
+        isNew: true, // ✅ Show "New Order" badge initially
+      };
+
+      // ✅ Add to open orders
       setOrders((prev) => [newOrder, ...prev]);
+      
+      // ✅ Switch to active tab to show the new order
       setActiveTab("open");
 
-      toast.success("Order placed successfully!", { icon: "🛒" });
+      // ✅ Highlight the new order
+      setHighlightedNewOrders(new Set([newOrder.order_id]));
+      setTimeout(() => setHighlightedNewOrders(new Set()), 8000);
+
+      // ✅ Dismiss loading toast and show success
+      toast.dismiss(loadingToast);
+      toast.success(
+        `🎉 Reorder placed successfully! Order ${newOrderId || 'created'}`,
+        { 
+          icon: "🛒", 
+          duration: 4000,
+          position: 'bottom-center',
+        }
+      );
+
+      // ✅ Scroll to top to see the new order
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
     } catch (err) {
       console.error("Error reordering:", err);
-      toast.error("Could not reorder. Please try again.");
+      toast.dismiss(loadingToast);
+      
+      const errorMessage = err?.response?.data?.error || 
+                          err?.response?.data?.message || 
+                          "Could not place reorder. Please try again.";
+      
+      toast.error(errorMessage, {
+        position: 'bottom-center',
+      });
     }
   };
 
@@ -834,7 +934,10 @@ export default function OrdersPage() {
               <OrderCard
                 key={order.id}
                 order={order}
-                isNew={highlightedNewOrders.has(order.order_id || order.id)}
+                isNew={
+                  highlightedNewOrders.has(order.order_id || order.id) || 
+                  order.isNew
+                }
                 isUpdated={recentlyUpdatedOrders.has(order.id)}
                 activeTab={activeTab}
                 onConfirm={handleConfirmOrder}

@@ -4,16 +4,12 @@ import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../context/NotificationContext";
 import { 
   FiBell, 
-  FiCheck, 
   FiPackage, 
   FiShoppingCart, 
   FiTruck, 
   FiAlertCircle,
-  FiTrash2,
   FiCheckCircle,
   FiClock,
-  FiX,
-  FiChevronLeft,
   FiGift,
   FiInfo
 } from "react-icons/fi";
@@ -63,7 +59,7 @@ const extractOrderId = (message) => {
   return match ? match[1] : null;
 };
 
-// Enhanced NotificationCard component
+// ✅ Enhanced NotificationCard component - BOLD ACTION BUTTONS
 const NotificationCard = ({ notification, onMarkAsRead, onDelete }) => {
   const [isRemoving, setIsRemoving] = useState(false);
   const navigate = useNavigate();
@@ -84,11 +80,9 @@ const NotificationCard = ({ notification, onMarkAsRead, onDelete }) => {
   const handleCardClick = () => {
     handleMarkAsRead();
     
-    // Extract order ID from message or use order_id field
     const orderId = notification.order_id || extractOrderId(notification.message);
     
     if (orderId && (notification.type === 'order' || notification.type === 'delivery')) {
-      // Navigate to orders page with order ID for highlighting
       navigate(`/orders?highlight=${orderId}`);
     } else if (notification.type === 'promo') {
       navigate('/all-products');
@@ -97,7 +91,6 @@ const NotificationCard = ({ notification, onMarkAsRead, onDelete }) => {
     }
   };
 
-  // Determine if notification is clickable
   const isClickable = notification.type === 'order' || 
                      notification.type === 'delivery' || 
                      notification.type === 'promo' || 
@@ -124,7 +117,6 @@ const NotificationCard = ({ notification, onMarkAsRead, onDelete }) => {
         
         <p className="notif-message">{notification.message}</p>
         
-        {/* Show order info for order-related notifications */}
         {(notification.type === 'order' || notification.type === 'delivery') && (
           <div className="notif-order-info">
             <FiPackage />
@@ -133,7 +125,6 @@ const NotificationCard = ({ notification, onMarkAsRead, onDelete }) => {
           </div>
         )}
 
-        {/* Show action button for promotional notifications */}
         {notification.type === 'promo' && (
           <div className="notif-action-info">
             <FiGift />
@@ -141,7 +132,6 @@ const NotificationCard = ({ notification, onMarkAsRead, onDelete }) => {
           </div>
         )}
 
-        {/* Show action button for support notifications */}
         {notification.type === 'support' && (
           <div className="notif-action-info">
             <FiInfo />
@@ -150,6 +140,7 @@ const NotificationCard = ({ notification, onMarkAsRead, onDelete }) => {
         )}
       </div>
       
+      {/* ✅ FIXED: Bold action buttons with symbols instead of tiny icons */}
       <div className="notif-actions">
         {!notification.is_read && (
           <button 
@@ -159,8 +150,9 @@ const NotificationCard = ({ notification, onMarkAsRead, onDelete }) => {
               handleMarkAsRead();
             }}
             title="Mark as read"
+            aria-label="Mark as read"
           >
-            <FiCheck />
+            <span className="notif-btn-icon">✓</span>
           </button>
         )}
         <button 
@@ -170,8 +162,9 @@ const NotificationCard = ({ notification, onMarkAsRead, onDelete }) => {
             handleDelete();
           }}
           title="Delete notification"
+          aria-label="Delete notification"
         >
-          <FiTrash2 />
+          <span className="notif-btn-icon">🗑️</span>
         </button>
       </div>
     </div>
@@ -195,7 +188,7 @@ const EmptyNotifications = () => (
 // Main notifications component
 export default function Notifications() {
   const navigate = useNavigate();
-  const [filter, setFilter] = useState('all'); // all, unread, read
+  const [filter, setFilter] = useState('all');
   
   const { 
     notifications, 
@@ -208,16 +201,12 @@ export default function Notifications() {
     loadNotifications
   } = useNotifications();
 
-  // Add sample notifications for testing (remove this in production)
   useEffect(() => {
-    // Only add sample notifications if there are no real notifications
     if (notifications.length === 0 && !loading && !error) {
-      // You can remove this in production - it's just for testing
       console.log("No notifications found - this is normal if backend doesn't have any");
     }
   }, [notifications, loading, error]);
 
-  // Mark notification as read
   const handleMarkAsRead = async (notificationId) => {
     try {
       await markAsRead(notificationId);
@@ -226,12 +215,10 @@ export default function Notifications() {
     }
   };
 
-  // Delete notification
   const handleDeleteNotification = (notificationId) => {
     deleteNotification(notificationId);
   };
 
-  // Mark all as read
   const handleMarkAllAsRead = async () => {
     try {
       await markAllAsRead();
@@ -240,7 +227,6 @@ export default function Notifications() {
     }
   };
 
-  // Clear all notifications
   const handleClearAll = () => {
     if (window.confirm("Are you sure you want to delete all notifications?")) {
       notifications.forEach(notification => {
@@ -249,7 +235,6 @@ export default function Notifications() {
     }
   };
 
-  // Filter notifications
   const filteredNotifications = notifications.filter(notification => {
     if (filter === 'unread') return !notification.is_read;
     if (filter === 'read') return notification.is_read;
@@ -261,9 +246,9 @@ export default function Notifications() {
   if (loading) {
     return (
       <div className="notifications-page">
-        <div className="notif-header">
+        <div className="notif-page-header">
           <button className="notif-back-btn" onClick={() => navigate(-1)}>
-            <FiChevronLeft />
+            <span className="notif-back-arrow">‹</span>
           </button>
           <h1 className="notif-page-title">Notifications</h1>
         </div>
@@ -287,9 +272,9 @@ export default function Notifications() {
   if (error) {
     return (
       <div className="notifications-page">
-        <div className="notif-header">
+        <div className="notif-page-header">
           <button className="notif-back-btn" onClick={() => navigate(-1)}>
-            <FiChevronLeft />
+            <span className="notif-back-arrow">‹</span>
           </button>
           <h1 className="notif-page-title">Notifications</h1>
         </div>
@@ -305,10 +290,10 @@ export default function Notifications() {
 
   return (
     <div className="notifications-page">
-      {/* Header */}
-      <div className="notif-header">
+      {/* ✅ Header - SIMPLE BACK ARROW */}
+      <div className="notif-page-header">
         <button className="notif-back-btn" onClick={() => navigate(-1)}>
-          <FiChevronLeft />
+          <span className="notif-back-arrow">‹</span>
         </button>
         <div className="notif-header-content">
           <h1 className="notif-page-title">Notifications</h1>
@@ -319,19 +304,21 @@ export default function Notifications() {
         {notifications.length > 0 && (
           <div className="notif-header-actions">
             <button 
-              className="notif-action-btn secondary"
+              className="notif-header-btn mark-all"
               onClick={handleMarkAllAsRead}
               disabled={currentUnreadCount === 0}
+              title="Mark all as read"
             >
-              <FiCheck />
-              Mark all read
+              <span className="notif-header-btn-icon">✓</span>
+              <span className="notif-header-btn-text">Mark all</span>
             </button>
             <button 
-              className="notif-action-btn danger"
+              className="notif-header-btn clear-all"
               onClick={handleClearAll}
+              title="Clear all notifications"
             >
-              <FiTrash2 />
-              Clear all
+              <span className="notif-header-btn-icon">🗑️</span>
+              <span className="notif-header-btn-text">Clear all</span>
             </button>
           </div>
         )}
@@ -362,7 +349,7 @@ export default function Notifications() {
       )}
 
       {/* Content */}
-      <div className="notif-content">
+      <div className="notif-content-area">
         {filteredNotifications.length === 0 ? (
           <EmptyNotifications />
         ) : (

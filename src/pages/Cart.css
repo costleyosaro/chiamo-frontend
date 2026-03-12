@@ -32,24 +32,48 @@
   z-index: 100;
 }
 
+/* ============ BACK BUTTON - SIMPLE ARROW ============ */
 .cart-back-btn {
   width: 40px;
   height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-color);
-  border: 1px solid var(--border-color);
-  border-radius: 50%;
-  color: var(--text-color);
-  font-size: 20px;
+  background: var(--bg-color, #f8fafc);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .cart-back-btn:hover {
-  background: var(--accent-color);
-  border-color: var(--accent-color);
+  background: var(--accent-color, #f5a623);
+  border-color: var(--accent-color, #f5a623);
+  transform: scale(1.05);
+}
+
+.cart-back-btn:active {
+  transform: scale(0.95);
+}
+
+/* Simple < arrow character */
+.cart-back-arrow {
+  font-size: 28px;
+  font-weight: 300;
+  color: var(--text-color, #1e293b);
+  line-height: 1;
+}
+
+.cart-back-btn:hover .cart-back-arrow {
+  color: #000000;
+}
+
+[data-theme="dark"] .cart-back-arrow {
+  color: var(--text-color, #f1f5f9);
+}
+
+[data-theme="dark"] .cart-back-btn:hover .cart-back-arrow {
   color: #000000;
 }
 

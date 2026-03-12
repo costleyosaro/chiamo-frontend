@@ -76,63 +76,63 @@ export function SmartListProvider({ children }) {
 
   /** 📋 Fetch SmartLists for logged-in user - WITH ERROR HANDLING */
   const fetchLists = useCallback(
-  async (activeUser = user) => {
-    if (!activeUser) {
-      setLists([]);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    
-    // ✅ Use safe API call
-    const result = await safeApiCall("/orders/smartlists/");
-    
-    if (result.success) {
-      const data = Array.isArray(result.data?.results)
-        ? result.data.results
-        : Array.isArray(result.data)
-        ? result.data
-        : [];
-
-      const mapped = data.map((list) => ({
-        id: list.id,
-        name: list.name ?? "Unnamed SmartList",
-        created_at: list.created_at,
-        updated_at: list.updated_at,
-        items: (list.items || []).map(enrichItem),
-      }));
-
-      setLists(mapped);
-      localStorage.setItem(`smartlists_${activeUser.id}`, JSON.stringify(mapped));
-    } else {
-      if (result.isNotFound) {
-        console.info("📝 SmartLists feature not implemented yet");
-        setError("SmartLists feature coming soon!");
-      } else if (result.isTimeout) {
-        setError("Connection timeout - please try again");
-      } else {
-        setError("Unable to load smartlists");
+    async (activeUser = user) => {
+      if (!activeUser) {
+        setLists([]);
+        setLoading(false);
+        return;
       }
+
+      setLoading(true);
+      setError(null);
       
-      // Try to load from cache
-      const cached = localStorage.getItem(`smartlists_${activeUser?.id}`);
-      if (cached) {
-        try {
-          setLists(JSON.parse(cached));
-        } catch (parseErr) {
+      // ✅ Use safe API call
+      const result = await safeApiCall("/orders/smartlists/");
+      
+      if (result.success) {
+        const data = Array.isArray(result.data?.results)
+          ? result.data.results
+          : Array.isArray(result.data)
+          ? result.data
+          : [];
+
+        const mapped = data.map((list) => ({
+          id: list.id,
+          name: list.name ?? "Unnamed SmartList",
+          created_at: list.created_at,
+          updated_at: list.updated_at,
+          items: (list.items || []).map(enrichItem),
+        }));
+
+        setLists(mapped);
+        localStorage.setItem(`smartlists_${activeUser.id}`, JSON.stringify(mapped));
+      } else {
+        if (result.isNotFound) {
+          console.info("📝 SmartLists feature not implemented yet");
+          setError("SmartLists feature coming soon!");
+        } else if (result.isTimeout) {
+          setError("Connection timeout - please try again");
+        } else {
+          setError("Unable to load smartlists");
+        }
+        
+        // Try to load from cache
+        const cached = localStorage.getItem(`smartlists_${activeUser?.id}`);
+        if (cached) {
+          try {
+            setLists(JSON.parse(cached));
+          } catch (parseErr) {
+            setLists([]);
+          }
+        } else {
           setLists([]);
         }
-      } else {
-        setLists([]);
       }
-    }
-    
-    setLoading(false);
-  },
-  [user, products]
-);
+      
+      setLoading(false);
+    },
+    [user, products]
+  );
 
   /** 🚀 Sync SmartLists whenever user changes */
   useEffect(() => {
@@ -247,20 +247,56 @@ export function SmartListProvider({ children }) {
     }
   };
 
-  /** 🛍️ Order all items - WITH ERROR HANDLING */
+  /** 🛍️ Order all items - FIXED ORDER ID EXTRACTION */
   const orderAll = async (listId) => {
     if (!user) throw new Error("You must be logged in to order");
     
     try {
       const res = await API.post(`/orders/smartlists/${listId}/order_all/`);
+      
+      console.log("📦 Order API Response:", res.data);
+      
+      // ✅ FIX: Extract order from nested structure
+      const responseData = res.data;
+      const order = responseData?.order || responseData?.data?.order || responseData;
+      
+      // Extract order ID from all possible locations
+      const orderId = 
+        order?.id || 
+        order?.order_id || 
+        order?.orderId || 
+        responseData?.id ||
+        responseData?.order_id;
+      
+      // ✅ Return normalized structure with ID at root level
+      const normalizedResponse = {
+        id: orderId,
+        order_id: orderId,
+        orderId: orderId,
+        message: responseData?.message || "Order placed successfully",
+        order: order, // Keep original nested order
+        ...order, // Spread all order properties to root
+      };
+      
+      console.log("✅ Normalized Order Response:", normalizedResponse);
+      
+      // Refresh lists after successful order
       await fetchLists(user);
-      return res.data;
+      
+      return normalizedResponse;
+      
     } catch (err) {
       console.error("❌ orderAll failed:", err);
+      
       if (err.response?.status === 404) {
         throw new Error("SmartLists feature is not available yet.");
       }
-      throw err;
+      
+      throw new Error(
+        err.response?.data?.message || 
+        err.response?.data?.error || 
+        "Failed to place order. Please try again."
+      );
     }
   };
 

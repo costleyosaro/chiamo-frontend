@@ -600,22 +600,31 @@ export default function SmartList() {
   };
 
   // ✅ FIXED: PIN Success Handler with proper Order ID and List Deletion
+  // ✅ PIN Success Handler - PRODUCTION READY
   const handlePinSuccess = async () => {
-    if (!selectedList) return;
+    if (!selectedList) {
+      console.error("No list selected for ordering");
+      return;
+    }
     
     const listId = selectedList.id;
     const listName = selectedList.name;
     
-    setOrderingListId(listId); // Set loading state
+    // Set loading state for this specific list
+    setOrderingListId(listId);
     
     try {
-      const newOrder = await orderAll(listId);
+      // Call the orderAll function from context
+      const response = await orderAll(listId);
       
-      // ✅ FIX 1: Properly get the order ID from response
-      const orderId = newOrder?.id || newOrder?.order_id || newOrder?.orderId;
+      // Debug log to see what we got back
+      console.log("📦 Order Response:", response);
       
-      if (newOrder && orderId) {
-        // ✅ FIX 2: Show success toast with ACTUAL order ID
+      // ✅ Extract order ID (context already normalized it to root level)
+      const orderId = response?.id || response?.order_id || response?.orderId;
+      
+      if (orderId) {
+        // ✅ SUCCESS: Show toast with actual order ID
         toast.success(
           `🎉 Order #${orderId} placed successfully!`,
           {
@@ -624,17 +633,12 @@ export default function SmartList() {
           }
         );
 
-        // Store ordered timestamp (optional - for showing "ordered" label)
-        setOrderedAt((prev) => ({
-          ...prev,
-          [listId]: new Date().toLocaleString(),
-        }));
-        
-        // Close PIN modal
+        // Close modals and clear selection
         setShowPinModal(false);
         setSelectedList(null);
 
-        // ✅ FIX 3: Delete the smart list from frontend after successful order
+        // ✅ Delete the smart list from frontend
+        // Small delay so user sees the success message first
         setTimeout(() => {
           deleteList(listId);
           toast.success(
@@ -644,23 +648,63 @@ export default function SmartList() {
               icon: '🗑️',
             }
           );
-        }, 1000); // Small delay so user sees the order confirmation first
+        }, 1000);
 
-        // Navigate to orders page
-        setTimeout(() => navigate("/orders"), 2500);
+        // Navigate to orders page after everything
+        setTimeout(() => {
+          navigate("/orders");
+        }, 2500);
         
       } else {
-        // Handle case where order was created but no ID returned
-        console.error("Order response missing ID:", newOrder);
-        toast.error("Order placed but couldn't retrieve order ID. Please check your orders.");
+        // ⚠️ Order created but no ID found
+        console.warn("Order response missing ID:", response);
+        
+        toast.success(
+          response?.message || "Order placed successfully! Check your orders.",
+          {
+            duration: 3000,
+            icon: '✅',
+          }
+        );
+        
+        // Still delete the list since order was placed
+        setTimeout(() => {
+          deleteList(listId);
+          toast.success(`"${listName}" removed from lists`, {
+            duration: 2000,
+            icon: '🗑️',
+          });
+        }, 1000);
+        
+        // Navigate to orders
+        setTimeout(() => {
+          navigate("/orders");
+        }, 2000);
       }
+      
     } catch (err) {
-      console.error("Order error:", err);
-      toast.error(err?.message || "Something went wrong. Please try again.");
+      // ❌ ERROR: Failed to place order
+      console.error("❌ Order failed:", err);
+      
+      // Show user-friendly error message
+      const errorMessage = 
+        err?.message || 
+        err?.response?.data?.message || 
+        err?.response?.data?.error ||
+        "Failed to place order. Please try again.";
+      
+      toast.error(errorMessage, {
+        duration: 4000,
+      });
+      
+      // Keep modal open so user can try again
+      // Don't delete the list on error
+      
     } finally {
-      setOrderingListId(null); // Clear loading state
+      // ✅ Always clear loading state
+      setOrderingListId(null);
     }
-  };
+  };  
 
   // View list handlers
   const handleViewList = (list) => {

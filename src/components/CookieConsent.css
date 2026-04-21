@@ -2,7 +2,7 @@
 
 /* ============================================
    COOKIE CONSENT BANNER - ChiamoOrder
-   Colors: Dark Blue (#0a1f3f) + Deep Yellow (#D4A017)
+   White background + Dark Blue & Deep Yellow
    ============================================ */
 
 /* ---------- Overlay ---------- */
@@ -12,119 +12,131 @@
   left: 0;
   right: 0;
   z-index: 99999;
-  padding: 16px;
+  padding: 20px 16px;
+  display: flex;
+  justify-content: center;
   animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   pointer-events: none;
+
+  /* Subtle gradient fade at bottom of page */
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.15) 0%,
+    transparent 100%
+  );
 }
 
 .cookie-overlay--closing {
   animation: slideDown 0.5s cubic-bezier(0.55, 0, 1, 0.45) forwards;
 }
 
-/* ---------- Banner ---------- */
+/* ---------- Banner Card ---------- */
 .cookie-banner {
   position: relative;
-  max-width: 520px;
-  margin: 0 auto;
-  background: linear-gradient(145deg, #0a1f3f 0%, #132d5e 50%, #0e2748 100%);
+  width: 100%;
+  max-width: 540px;
+  background: #ffffff;
   border-radius: 20px;
-  padding: 28px 24px;
-  box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(212, 160, 23, 0.2),
-    0 0 40px rgba(212, 160, 23, 0.08);
-  overflow: hidden;
+  padding: 28px 28px 24px;
   pointer-events: all;
+
+  /* Clean white card shadow */
+  box-shadow:
+    0 10px 40px rgba(10, 31, 63, 0.15),
+    0 2px 8px rgba(10, 31, 63, 0.08),
+    0 0 0 1px rgba(10, 31, 63, 0.06);
+
+  /* Subtle top border accent */
+  border-top: 4px solid #D4A017;
 }
 
-/* Animated gradient border glow */
-.cookie-banner::before {
-  content: "";
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  border-radius: 22px;
-  background: linear-gradient(
-    45deg,
-    #D4A017,
-    #0a1f3f,
-    #D4A017,
-    #0a1f3f,
-    #D4A017
-  );
-  background-size: 400% 400%;
-  z-index: -1;
-  animation: borderGlow 4s ease-in-out infinite;
+/* ---------- Header Row ---------- */
+.cookie-banner__header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
 }
 
-.cookie-banner::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-radius: 20px;
-  background: linear-gradient(145deg, #0a1f3f 0%, #132d5e 50%, #0e2748 100%);
-  z-index: -1;
-}
-
-/* ---------- Icon ---------- */
-.cookie-banner__icon {
-  text-align: center;
-  margin-bottom: 12px;
-  animation: cookieBounce 2s ease-in-out infinite;
-}
-
-/* ---------- Content ---------- */
-.cookie-banner__content {
-  text-align: center;
-  margin-bottom: 20px;
+.cookie-banner__emoji {
+  font-size: 42px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12));
+  animation: cookieBounce 2.5s ease-in-out infinite;
+  flex-shrink: 0;
 }
 
 .cookie-banner__title {
   font-size: 20px;
-  font-weight: 700;
-  color: #D4A017;
-  margin: 0 0 10px 0;
-  letter-spacing: 0.5px;
+  font-weight: 800;
+  color: #0a1f3f;
+  margin: 0 0 2px 0;
+  letter-spacing: -0.3px;
 }
 
+.cookie-banner__subtitle {
+  font-size: 12.5px;
+  color: #6b7a99;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* ---------- Divider ---------- */
+.cookie-banner__divider {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    #e8ecf3,
+    #D4A017,
+    #e8ecf3,
+    transparent
+  );
+  margin-bottom: 16px;
+}
+
+/* ---------- Body Text ---------- */
 .cookie-banner__text {
   font-size: 13.5px;
-  line-height: 1.6;
-  color: #c5d0e0;
-  margin: 0 0 12px 0;
+  line-height: 1.65;
+  color: #4a5568;
+  margin: 0 0 14px 0;
 }
 
 .cookie-banner__text strong {
-  color: #D4A017;
+  color: #0a1f3f;
+  font-weight: 700;
 }
 
+/* ---------- Policy Link ---------- */
 .cookie-banner__link {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 12.5px;
-  color: #D4A017;
+  color: #0a1f3f;
   text-decoration: none;
   font-weight: 600;
-  transition: all 0.3s ease;
-  border-bottom: 1px dashed rgba(212, 160, 23, 0.4);
-  padding-bottom: 2px;
+  margin-bottom: 22px;
+  padding: 6px 12px;
+  background: #f0f4ff;
+  border-radius: 8px;
+  border: 1px solid #d8e1f5;
+  transition: all 0.25s ease;
 }
 
 .cookie-banner__link:hover {
-  color: #f0c040;
-  border-bottom-color: #f0c040;
-  transform: translateX(4px);
+  background: #e0eaff;
+  border-color: #0a1f3f;
+  color: #0a1f3f;
+  transform: translateX(3px);
 }
 
-/* ---------- Buttons ---------- */
+/* ---------- Action Buttons ---------- */
 .cookie-banner__actions {
   display: flex;
   gap: 12px;
-  justify-content: center;
+  align-items: center;
 }
 
 .cookie-btn {
@@ -140,39 +152,21 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  letter-spacing: 0.3px;
+  letter-spacing: 0.2px;
   position: relative;
   overflow: hidden;
 }
 
-.cookie-btn__icon {
-  font-size: 15px;
-  font-weight: 800;
-}
-
-/* Accept Button */
+/* ✅ Accept Button — Deep Yellow */
 .cookie-btn--accept {
   background: linear-gradient(135deg, #D4A017 0%, #b8880f 100%);
   color: #0a1f3f;
   box-shadow:
-    0 4px 15px rgba(212, 160, 23, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    0 4px 14px rgba(212, 160, 23, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  flex: 1.6;
 }
 
-.cookie-btn--accept:hover {
-  background: linear-gradient(135deg, #e8b41e 0%, #D4A017 100%);
-  transform: translateY(-2px);
-  box-shadow:
-    0 8px 25px rgba(212, 160, 23, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-.cookie-btn--accept:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(212, 160, 23, 0.3);
-}
-
-/* Shimmer effect on accept button */
 .cookie-btn--accept::after {
   content: "";
   position: absolute;
@@ -183,59 +177,43 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 255, 255, 0.25),
+    rgba(255, 255, 255, 0.3),
     transparent
   );
   transform: skewX(-20deg);
   animation: shimmer 3s ease-in-out infinite;
 }
 
-/* Reject Button */
+.cookie-btn--accept:hover {
+  background: linear-gradient(135deg, #e8b41e 0%, #D4A017 100%);
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 22px rgba(212, 160, 23, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.cookie-btn--accept:active {
+  transform: translateY(0px);
+  box-shadow: 0 2px 8px rgba(212, 160, 23, 0.3);
+}
+
+/* ✅ Reject Button — Deep Blue Outline */
 .cookie-btn--reject {
   background: transparent;
-  color: #8899b3;
-  border: 1.5px solid rgba(136, 153, 179, 0.3);
-  box-shadow: none;
+  color: #0a1f3f;
+  border: 2px solid #0a1f3f;
+  flex: 1;
 }
 
 .cookie-btn--reject:hover {
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.05);
+  background: #0a1f3f;
+  color: #ffffff;
   transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(10, 31, 63, 0.25);
 }
 
 .cookie-btn--reject:active {
-  transform: translateY(0);
-}
-
-/* ---------- Sparkle Decorations ---------- */
-.cookie-banner__sparkle {
-  position: absolute;
-  color: #D4A017;
-  opacity: 0.3;
-  font-size: 14px;
-  animation: sparkle 3s ease-in-out infinite;
-}
-
-.cookie-banner__sparkle--1 {
-  top: 12px;
-  right: 20px;
-  animation-delay: 0s;
-}
-
-.cookie-banner__sparkle--2 {
-  top: 50%;
-  left: 12px;
-  font-size: 10px;
-  animation-delay: 1s;
-}
-
-.cookie-banner__sparkle--3 {
-  bottom: 15px;
-  right: 35px;
-  font-size: 12px;
-  animation-delay: 2s;
+  transform: translateY(0px);
 }
 
 /* ============================================
@@ -244,7 +222,7 @@
 
 @keyframes slideUp {
   from {
-    transform: translateY(100%);
+    transform: translateY(110%);
     opacity: 0;
   }
   to {
@@ -264,16 +242,16 @@
   }
 }
 
-@keyframes borderGlow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
 @keyframes cookieBounce {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  25% { transform: translateY(-5px) rotate(-5deg); }
-  75% { transform: translateY(-3px) rotate(5deg); }
+  0%, 100% {
+    transform: translateY(0) rotate(-3deg);
+  }
+  40% {
+    transform: translateY(-6px) rotate(3deg);
+  }
+  70% {
+    transform: translateY(-3px) rotate(-2deg);
+  }
 }
 
 @keyframes shimmer {
@@ -281,23 +259,18 @@
   40%, 100% { left: 120%; }
 }
 
-@keyframes sparkle {
-  0%, 100% { opacity: 0.2; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.4); }
-}
-
 /* ============================================
    RESPONSIVE
    ============================================ */
 
-/* Tablets */
+/* Tablet */
 @media (max-width: 768px) {
   .cookie-overlay {
-    padding: 12px;
+    padding: 16px 12px;
   }
 
   .cookie-banner {
-    padding: 24px 20px;
+    padding: 24px 22px 20px;
     border-radius: 16px;
   }
 
@@ -305,25 +278,63 @@
     font-size: 18px;
   }
 
-  .cookie-banner__text {
-    font-size: 13px;
+  .cookie-banner__emoji {
+    font-size: 36px;
   }
 }
 
 /* Mobile */
 @media (max-width: 480px) {
   .cookie-overlay {
-    padding: 8px;
+    padding: 12px 10px;
   }
 
   .cookie-banner {
-    padding: 20px 16px;
+    padding: 20px 18px 18px;
     border-radius: 14px;
+    border-top-width: 3px;
   }
 
-  .cookie-banner__icon svg {
-    width: 40px;
-    height: 40px;
+  .cookie-banner__header {
+    gap: 12px;
+  }
+
+  .cookie-banner__emoji {
+    font-size: 32px;
+  }
+
+  .cookie-banner__title {
+    font-size: 17px;
+  }
+
+  .cookie-banner__subtitle {
+    font-size: 11.5px;
+  }
+
+  .cookie-banner__text {
+    font-size: 13px;
+  }
+
+  .cookie-banner__actions {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+
+  .cookie-btn {
+    flex: unset;
+    width: 100%;
+    padding: 14px;
+  }
+
+  .cookie-btn--accept {
+    flex: unset;
+  }
+}
+
+/* Very small phones */
+@media (max-width: 360px) {
+  .cookie-banner {
+    padding: 18px 14px 16px;
   }
 
   .cookie-banner__title {
@@ -331,32 +342,11 @@
   }
 
   .cookie-banner__text {
-    font-size: 12.5px;
-    line-height: 1.5;
-  }
-
-  .cookie-banner__actions {
-    flex-direction: column;
-    gap: 10px;
+    font-size: 12px;
   }
 
   .cookie-btn {
-    padding: 13px 16px;
     font-size: 13.5px;
-  }
-}
-
-/* Very small phones */
-@media (max-width: 360px) {
-  .cookie-banner {
-    padding: 16px 14px;
-  }
-
-  .cookie-banner__title {
-    font-size: 15px;
-  }
-
-  .cookie-banner__text {
-    font-size: 12px;
+    padding: 13px;
   }
 }

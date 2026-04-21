@@ -169,7 +169,7 @@ const NotificationCard = ({ notification, onMarkAsRead, onDelete }) => {
             onClick={handleRead}
             title="Mark as read"
           >
-            <FiCheck size={15} />
+            ✓
           </button>
         )}
         <button
@@ -177,10 +177,11 @@ const NotificationCard = ({ notification, onMarkAsRead, onDelete }) => {
           onClick={handleDelete}
           title="Delete"
         >
-          <FiTrash2 size={15} />
+          ✕
         </button>
       </div>
-    </div>
+      </div>
+    
   );
 };
 

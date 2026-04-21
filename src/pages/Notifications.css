@@ -459,29 +459,37 @@
 }
 
 .nc__btn--read {
-  background: rgba(16,185,129,0.1);
+  background: rgba(16, 185, 129, 0.1);
   color: var(--np-green);
-  border: 1.5px solid rgba(16,185,129,0.25);
+  border: 1.5px solid rgba(16, 185, 129, 0.25);
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1;
+  font-family: Arial, sans-serif;
 }
 
 .nc__btn--read:hover {
   background: var(--np-green);
   color: #fff;
   border-color: var(--np-green);
-  transform: scale(1.08);
+  transform: scale(1.1);
 }
 
 .nc__btn--delete {
-  background: rgba(239,68,68,0.08);
+  background: rgba(239, 68, 68, 0.08);
   color: var(--np-red);
-  border: 1.5px solid rgba(239,68,68,0.2);
+  border: 1.5px solid rgba(239, 68, 68, 0.2);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  font-family: Arial, sans-serif;
 }
 
 .nc__btn--delete:hover {
   background: var(--np-red);
   color: #fff;
   border-color: var(--np-red);
-  transform: scale(1.08);
+  transform: scale(1.1);
 }
 
 /* ── Empty State ──────────────────────────────────────────── */

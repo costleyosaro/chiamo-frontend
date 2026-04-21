@@ -315,7 +315,7 @@ const OrderCard = ({
               {currentStatus}
             </span>
           </div>
-          <div className="ord-card-meta">
+                    <div className="ord-card-meta">
             <span className="ord-card-date">
               <FiCalendar />
               {formatDate(order.created_at || order.createdAt)}
@@ -324,23 +324,25 @@ const OrderCard = ({
               <FiClock />
               {formatTime(order.created_at || order.createdAt)}
             </span>
+
+            {/* ✅ See Invoice Button - same line as date & time */}
+            <button
+              className="ord-see-invoice-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/invoice/${order.id}`, { state: { order } });
+              }}
+              title="See Invoice"
+            >
+              <FiExternalLink size={12} />
+              <span>Invoice</span>
+            </button>
           </div>
         </div>
 
         {/* ✅ NEW: See Invoice Button + Dropdown side by side */}
         <div className="ord-card-header-right">
-          {/* See Invoice Button */}
-          <button
-            className="ord-see-invoice-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/invoice/${order.id}`, { state: { order } });
-            }}
-            title="See Invoice"
-          >
-            <FiExternalLink size={13} />
-            <span>Invoice</span>
-          </button>
+          
 
           {/* Dropdown Menu Button */}
           <button

@@ -1559,3 +1559,71 @@
   width: 18px;
   height: 18px;
 }
+
+/* ============ SEE INVOICE BUTTON ============ */
+.ord-card-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.ord-see-invoice-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 12px;
+  background: #0a1f3f;
+  border: none;
+  border-radius: 8px;
+  color: #D4A017;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+  letter-spacing: 0.2px;
+}
+
+.ord-see-invoice-btn:hover {
+  background: #D4A017;
+  color: #0a1f3f;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(212, 160, 23, 0.35);
+}
+
+.ord-see-invoice-btn:active {
+  transform: translateY(0px);
+  box-shadow: none;
+}
+
+/* Dark mode */
+[data-theme="dark"] .ord-see-invoice-btn {
+  background: rgba(212, 160, 23, 0.15);
+  color: #D4A017;
+  border: 1px solid rgba(212, 160, 23, 0.3);
+}
+
+[data-theme="dark"] .ord-see-invoice-btn:hover {
+  background: #D4A017;
+  color: #0a1f3f;
+  border-color: #D4A017;
+}
+
+/* Mobile */
+@media (max-width: 400px) {
+  .ord-see-invoice-btn {
+    padding: 6px 9px;
+    font-size: 11px;
+  }
+
+  .ord-see-invoice-btn span {
+    display: none;
+  }
+
+  .ord-see-invoice-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+}

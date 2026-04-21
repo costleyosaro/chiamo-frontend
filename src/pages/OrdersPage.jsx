@@ -306,7 +306,7 @@ const OrderCard = ({
         </div>
       )}
 
-      {/* Card Header */}
+            {/* Card Header */}
       <div className="ord-card-header">
         <div className="ord-card-info">
           <div className="ord-card-id-row">
@@ -326,44 +326,78 @@ const OrderCard = ({
             </span>
           </div>
         </div>
-        
-        {/* ✅ FIXED: Dropdown Button - Now visible arrow instead of hidden circle */}
-        <button
-          className="ord-card-menu-btn"
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowActions(!showActions);
-          }}
-          aria-label="More options"
-        >
-          <span className="ord-dropdown-arrow">›</span>
-        </button>
 
-        {/* Dropdown Actions */}
-        {showActions && (
-          <>
-            <div className="ord-menu-overlay" onClick={() => setShowActions(false)} />
-            <div className="ord-dropdown">
-              <button className="ord-dropdown-item" onClick={() => { onView(order); setShowActions(false); }}>
-                <FiExternalLink />
-                View Details
-              </button>
-              {activeTab === "closed" && (
-                <button className="ord-dropdown-item" onClick={() => { onReorder(order); setShowActions(false); }}>
-                  <FiRefreshCw />
-                  Reorder
+        {/* ✅ NEW: See Invoice Button + Dropdown side by side */}
+        <div className="ord-card-header-right">
+          {/* See Invoice Button */}
+          <button
+            className="ord-see-invoice-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/invoice/${order.id}`, { state: { order } });
+            }}
+            title="See Invoice"
+          >
+            <FiExternalLink size={13} />
+            <span>Invoice</span>
+          </button>
+
+          {/* Dropdown Menu Button */}
+          <button
+            className="ord-card-menu-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowActions(!showActions);
+            }}
+            aria-label="More options"
+          >
+            <span className="ord-dropdown-arrow">›</span>
+          </button>
+
+          {/* Dropdown Actions */}
+          {showActions && (
+            <>
+              <div
+                className="ord-menu-overlay"
+                onClick={() => setShowActions(false)}
+              />
+              <div className="ord-dropdown">
+                <button
+                  className="ord-dropdown-item"
+                  onClick={() => {
+                    onView(order);
+                    setShowActions(false);
+                  }}
+                >
+                  <FiExternalLink />
+                  View Details
                 </button>
-              )}
-              <button
-                className="ord-dropdown-item danger"
-                onClick={() => { onDelete(order.id); setShowActions(false); }}
-              >
-                <FiTrash2 />
-                Delete Order
-              </button>
-            </div>
-          </>
-        )}
+                {activeTab === "closed" && (
+                  <button
+                    className="ord-dropdown-item"
+                    onClick={() => {
+                      onReorder(order);
+                      setShowActions(false);
+                    }}
+                  >
+                    <FiRefreshCw />
+                    Reorder
+                  </button>
+                )}
+                <button
+                  className="ord-dropdown-item danger"
+                  onClick={() => {
+                    onDelete(order.id);
+                    setShowActions(false);
+                  }}
+                >
+                  <FiTrash2 />
+                  Delete Order
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Order Summary — clickable to invoice */}

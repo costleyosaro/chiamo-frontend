@@ -2,372 +2,372 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../context/NotificationContext";
-import { 
-  FiBell, 
-  FiPackage, 
-  FiShoppingCart, 
-  FiTruck, 
+import {
+  FiBell,
+  FiPackage,
+  FiShoppingCart,
+  FiTruck,
   FiAlertCircle,
   FiCheckCircle,
   FiClock,
   FiGift,
-  FiInfo
+  FiInfo,
+  FiChevronLeft,
+  FiTrash2,
+  FiCheck,
 } from "react-icons/fi";
 import { HiOutlineSparkles } from "react-icons/hi";
 import "./Notifications.css";
 
-// Get notification icon based on Django backend type
+// ─── Notification Icon ───────────────────────────────────────────────────────
 const getNotificationIcon = (type) => {
-  switch (type) {
-    case 'order':
-      return <FiShoppingCart className="notif-icon order" />;
-    case 'delivery':
-      return <FiTruck className="notif-icon delivery" />;
-    case 'payment':
-      return <FiCheckCircle className="notif-icon payment" />;
-    case 'support':
-      return <FiAlertCircle className="notif-icon support" />;
-    case 'promo':
-      return <FiGift className="notif-icon promo" />;
-    case 'system':
-    default:
-      return <FiBell className="notif-icon default" />;
-  }
+  const icons = {
+    order:    { icon: <FiShoppingCart />, cls: "order"    },
+    delivery: { icon: <FiTruck />,        cls: "delivery" },
+    payment:  { icon: <FiCheckCircle />,  cls: "payment"  },
+    support:  { icon: <FiAlertCircle />,  cls: "support"  },
+    promo:    { icon: <FiGift />,         cls: "promo"    },
+  };
+  const match = icons[type] || { icon: <FiBell />, cls: "default" };
+  return (
+    <span className={`notif-icon-inner ${match.cls}`}>
+      {match.icon}
+    </span>
+  );
 };
 
-// Format notification time
-const formatNotificationTime = (timestamp) => {
-  const now = new Date();
-  const notifTime = new Date(timestamp);
-  const diffInMinutes = Math.floor((now - notifTime) / (1000 * 60));
-  
-  if (diffInMinutes < 1) return "Just now";
-  if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-  
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  if (diffInHours < 24) return `${diffInHours}h ago`;
-  
-  const diffInDays = Math.floor(diffInHours / 24);
-  if (diffInDays < 7) return `${diffInDays}d ago`;
-  
-  return notifTime.toLocaleDateString();
+// ─── Time Formatter ──────────────────────────────────────────────────────────
+const formatTime = (timestamp) => {
+  const diff = Math.floor((new Date() - new Date(timestamp)) / 60000);
+  if (diff < 1)  return "Just now";
+  if (diff < 60) return `${diff}m ago`;
+  const h = Math.floor(diff / 60);
+  if (h < 24)    return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  if (d < 7)     return `${d}d ago`;
+  return new Date(timestamp).toLocaleDateString();
 };
 
-// Extract order ID from notification message
+// ─── Extract Order ID ────────────────────────────────────────────────────────
 const extractOrderId = (message) => {
-  const match = message.match(/#(\d+)/);
+  const match = message?.match(/#(\d+)/);
   return match ? match[1] : null;
 };
 
-// ✅ Enhanced NotificationCard component - BOLD ACTION BUTTONS
+// ─── Type Label ─────────────────────────────────────────────────────────────
+const typeLabel = {
+  order:    "Order",
+  delivery: "Delivery",
+  payment:  "Payment",
+  support:  "Support",
+  promo:    "Promo",
+  system:   "System",
+};
+
+// ─── Notification Card ───────────────────────────────────────────────────────
 const NotificationCard = ({ notification, onMarkAsRead, onDelete }) => {
-  const [isRemoving, setIsRemoving] = useState(false);
+  const [removing, setRemoving] = useState(false);
   const navigate = useNavigate();
 
-  const handleDelete = () => {
-    setIsRemoving(true);
-    setTimeout(() => {
-      onDelete(notification.id);
-    }, 300);
+  const handleDelete = (e) => {
+    e.stopPropagation();
+    setRemoving(true);
+    setTimeout(() => onDelete(notification.id), 350);
   };
 
-  const handleMarkAsRead = () => {
-    if (!notification.is_read) {
-      onMarkAsRead(notification.id);
-    }
+  const handleRead = (e) => {
+    e?.stopPropagation();
+    if (!notification.is_read) onMarkAsRead(notification.id);
   };
 
   const handleCardClick = () => {
-    handleMarkAsRead();
-    
-    const orderId = notification.order_id || extractOrderId(notification.message);
-    
-    if (orderId && (notification.type === 'order' || notification.type === 'delivery')) {
+    handleRead();
+    const orderId =
+      notification.order_id || extractOrderId(notification.message);
+    if (orderId && ["order", "delivery"].includes(notification.type))
       navigate(`/orders?highlight=${orderId}`);
-    } else if (notification.type === 'promo') {
-      navigate('/all-products');
-    } else if (notification.type === 'support') {
-      navigate('/support');
-    }
+    else if (notification.type === "promo") navigate("/all-products");
+    else if (notification.type === "support") navigate("/support");
   };
 
-  const isClickable = notification.type === 'order' || 
-                     notification.type === 'delivery' || 
-                     notification.type === 'promo' || 
-                     notification.type === 'support';
+  const isClickable = ["order", "delivery", "promo", "support"].includes(
+    notification.type
+  );
 
   return (
-    <div 
-      className={`notification-card ${!notification.is_read ? 'unread' : 'read'} ${isRemoving ? 'removing' : ''} ${isClickable ? 'clickable' : ''}`}
-      onClick={isClickable ? handleCardClick : handleMarkAsRead}
+    <div
+      className={`nc ${!notification.is_read ? "nc--unread" : ""} ${
+        removing ? "nc--removing" : ""
+      } ${isClickable ? "nc--clickable" : ""}`}
+      onClick={isClickable ? handleCardClick : handleRead}
     >
-      <div className="notif-icon-wrapper">
+      {/* Unread indicator bar */}
+      {!notification.is_read && <div className="nc__bar" />}
+
+      {/* Icon */}
+      <div className="nc__icon-wrap">
         {getNotificationIcon(notification.type)}
-        {!notification.is_read && <div className="unread-dot"></div>}
+        {!notification.is_read && <span className="nc__dot" />}
       </div>
-      
-      <div className="notif-content">
-        <div className="notif-header">
-          <h3 className="notif-title">{notification.title}</h3>
-          <span className="notif-time">
-            <FiClock />
-            {formatNotificationTime(notification.created_at)}
+
+      {/* Body */}
+      <div className="nc__body">
+        {/* Top row */}
+        <div className="nc__top">
+          <span className={`nc__tag nc__tag--${notification.type || "system"}`}>
+            {typeLabel[notification.type] || "System"}
+          </span>
+          <span className="nc__time">
+            <FiClock size={11} />
+            {formatTime(notification.created_at)}
           </span>
         </div>
-        
-        <p className="notif-message">{notification.message}</p>
-        
-        {(notification.type === 'order' || notification.type === 'delivery') && (
-          <div className="notif-order-info">
-            <FiPackage />
-            <span>Order #{notification.order_id || extractOrderId(notification.message)}</span>
-            {isClickable && <span className="notif-view-order">Tap to view order</span>}
+
+        {/* Title */}
+        <h3 className="nc__title">{notification.title}</h3>
+
+        {/* Message */}
+        <p className="nc__message">{notification.message}</p>
+
+        {/* Order chip */}
+        {["order", "delivery"].includes(notification.type) && (
+          <div className="nc__chip nc__chip--order">
+            <FiPackage size={13} />
+            <span>
+              Order #
+              {notification.order_id ||
+                extractOrderId(notification.message)}
+            </span>
+            {isClickable && (
+              <span className="nc__chip-cta">View →</span>
+            )}
           </div>
         )}
 
-        {notification.type === 'promo' && (
-          <div className="notif-action-info">
-            <FiGift />
-            <span className="notif-action-text">Tap to view offers</span>
+        {/* Promo chip */}
+        {notification.type === "promo" && (
+          <div className="nc__chip nc__chip--promo">
+            <FiGift size={13} />
+            <span>Shop the offer →</span>
           </div>
         )}
 
-        {notification.type === 'support' && (
-          <div className="notif-action-info">
-            <FiInfo />
-            <span className="notif-action-text">Tap for support</span>
+        {/* Support chip */}
+        {notification.type === "support" && (
+          <div className="nc__chip nc__chip--support">
+            <FiInfo size={13} />
+            <span>Go to support →</span>
           </div>
         )}
       </div>
-      
-      {/* ✅ FIXED: Bold action buttons with symbols instead of tiny icons */}
-      <div className="notif-actions">
+
+      {/* Actions */}
+      <div className="nc__actions" onClick={(e) => e.stopPropagation()}>
         {!notification.is_read && (
-          <button 
-            className="notif-action-btn mark-read"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleMarkAsRead();
-            }}
+          <button
+            className="nc__btn nc__btn--read"
+            onClick={handleRead}
             title="Mark as read"
-            aria-label="Mark as read"
           >
-            <span className="notif-btn-icon">✓</span>
+            <FiCheck size={15} />
           </button>
         )}
-        <button 
-          className="notif-action-btn delete"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleDelete();
-          }}
-          title="Delete notification"
-          aria-label="Delete notification"
+        <button
+          className="nc__btn nc__btn--delete"
+          onClick={handleDelete}
+          title="Delete"
         >
-          <span className="notif-btn-icon">🗑️</span>
+          <FiTrash2 size={15} />
         </button>
       </div>
     </div>
   );
 };
 
-// Empty state component
-const EmptyNotifications = () => (
-  <div className="notif-empty-state">
-    <div className="notif-empty-icon">
-      <FiBell />
-      <HiOutlineSparkles className="sparkle" />
+// ─── Empty State ─────────────────────────────────────────────────────────────
+const EmptyState = ({ filter }) => (
+  <div className="notif-empty">
+    <div className="notif-empty__icon-wrap">
+      <FiBell size={36} />
+      <HiOutlineSparkles className="notif-empty__sparkle" />
     </div>
-    <h3 className="notif-empty-title">No notifications yet</h3>
-    <p className="notif-empty-text">
-      You'll see order updates and important messages here
+    <h3 className="notif-empty__title">
+      {filter === "unread" ? "All caught up!" : "No notifications yet"}
+    </h3>
+    <p className="notif-empty__text">
+      {filter === "unread"
+        ? "You have no unread notifications right now"
+        : "Order updates and important messages will appear here"}
     </p>
   </div>
 );
 
-// Main notifications component
+// ─── Skeleton ────────────────────────────────────────────────────────────────
+const Skeleton = () => (
+  <div className="notif-skeleton">
+    {[...Array(5)].map((_, i) => (
+      <div key={i} className="ns">
+        <div className="ns__icon" />
+        <div className="ns__body">
+          <div className="ns__line ns__line--short" />
+          <div className="ns__line ns__line--long" />
+          <div className="ns__line ns__line--medium" />
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
+// ─── Main Page ───────────────────────────────────────────────────────────────
 export default function Notifications() {
   const navigate = useNavigate();
-  const [filter, setFilter] = useState('all');
-  
-  const { 
-    notifications, 
-    loading, 
-    error, 
-    unreadCount, 
-    markAsRead, 
+  const [filter, setFilter] = useState("all");
+
+  const {
+    notifications,
+    loading,
+    error,
+    markAsRead,
     markAllAsRead,
     deleteNotification,
-    loadNotifications
+    loadNotifications,
   } = useNotifications();
 
-  useEffect(() => {
-    if (notifications.length === 0 && !loading && !error) {
-      console.log("No notifications found - this is normal if backend doesn't have any");
-    }
-  }, [notifications, loading, error]);
+  const unread = notifications.filter((n) => !n.is_read).length;
+  const read   = notifications.length - unread;
 
-  const handleMarkAsRead = async (notificationId) => {
-    try {
-      await markAsRead(notificationId);
-    } catch (err) {
-      console.error("Failed to mark notification as read:", err);
-    }
-  };
-
-  const handleDeleteNotification = (notificationId) => {
-    deleteNotification(notificationId);
-  };
-
-  const handleMarkAllAsRead = async () => {
-    try {
-      await markAllAsRead();
-    } catch (err) {
-      console.error("Failed to mark all as read:", err);
-    }
-  };
-
-  const handleClearAll = () => {
-    if (window.confirm("Are you sure you want to delete all notifications?")) {
-      notifications.forEach(notification => {
-        deleteNotification(notification.id);
-      });
-    }
-  };
-
-  const filteredNotifications = notifications.filter(notification => {
-    if (filter === 'unread') return !notification.is_read;
-    if (filter === 'read') return notification.is_read;
+  const filtered = notifications.filter((n) => {
+    if (filter === "unread") return !n.is_read;
+    if (filter === "read")   return n.is_read;
     return true;
   });
 
-  const currentUnreadCount = notifications.filter(n => !n.is_read).length;
+  const handleClearAll = () => {
+    if (window.confirm("Delete all notifications?"))
+      notifications.forEach((n) => deleteNotification(n.id));
+  };
 
-  if (loading) {
-    return (
-      <div className="notifications-page">
-        <div className="notif-page-header">
-          <button className="notif-back-btn" onClick={() => navigate(-1)}>
-            <span className="notif-back-arrow">‹</span>
-          </button>
-          <h1 className="notif-page-title">Notifications</h1>
-        </div>
-        <div className="notif-loading">
-          <div className="notif-skeleton">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="notif-skeleton-item">
-                <div className="notif-skeleton-icon"></div>
-                <div className="notif-skeleton-content">
-                  <div className="notif-skeleton-title"></div>
-                  <div className="notif-skeleton-message"></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // ── Header (shared) ──────────────────────────────────────────────────────
+  const Header = () => (
+    <div className="notif-header">
+      <button className="notif-header__back" onClick={() => navigate(-1)}>
+        <FiChevronLeft size={22} />
+      </button>
 
-  if (error) {
-    return (
-      <div className="notifications-page">
-        <div className="notif-page-header">
-          <button className="notif-back-btn" onClick={() => navigate(-1)}>
-            <span className="notif-back-arrow">‹</span>
-          </button>
-          <h1 className="notif-page-title">Notifications</h1>
-        </div>
-        <div className="notif-error">
-          <FiAlertCircle />
-          <h3>Something went wrong</h3>
-          <p>{error}</p>
-          <button onClick={() => loadNotifications()}>Try Again</button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="notifications-page">
-      {/* ✅ Header - SIMPLE BACK ARROW */}
-      <div className="notif-page-header">
-        <button className="notif-back-btn" onClick={() => navigate(-1)}>
-          <span className="notif-back-arrow">‹</span>
-        </button>
-        <div className="notif-header-content">
-          <h1 className="notif-page-title">Notifications</h1>
-          {currentUnreadCount > 0 && (
-            <span className="notif-unread-badge">{currentUnreadCount}</span>
-          )}
-        </div>
-        {notifications.length > 0 && (
-          <div className="notif-header-actions">
-            <button 
-              className="notif-header-btn mark-all"
-              onClick={handleMarkAllAsRead}
-              disabled={currentUnreadCount === 0}
-              title="Mark all as read"
-            >
-              <span className="notif-header-btn-icon">✓</span>
-              <span className="notif-header-btn-text">Mark all</span>
-            </button>
-            <button 
-              className="notif-header-btn clear-all"
-              onClick={handleClearAll}
-              title="Clear all notifications"
-            >
-              <span className="notif-header-btn-icon">🗑️</span>
-              <span className="notif-header-btn-text">Clear all</span>
-            </button>
-          </div>
+      <div className="notif-header__center">
+        <h1 className="notif-header__title">Notifications</h1>
+        {unread > 0 && (
+          <span className="notif-header__badge">{unread}</span>
         )}
       </div>
 
-      {/* Filter tabs */}
       {notifications.length > 0 && (
-        <div className="notif-filters">
-          <button 
-            className={`notif-filter-btn ${filter === 'all' ? 'active' : ''}`}
-            onClick={() => setFilter('all')}
+        <div className="notif-header__right">
+          <button
+            className="notif-header__action notif-header__action--read"
+            onClick={markAllAsRead}
+            disabled={unread === 0}
+            title="Mark all read"
           >
-            All ({notifications.length})
+            <FiCheck size={14} />
+            <span>Read all</span>
           </button>
-          <button 
-            className={`notif-filter-btn ${filter === 'unread' ? 'active' : ''}`}
-            onClick={() => setFilter('unread')}
+          <button
+            className="notif-header__action notif-header__action--clear"
+            onClick={handleClearAll}
+            title="Clear all"
           >
-            Unread ({currentUnreadCount})
-          </button>
-          <button 
-            className={`notif-filter-btn ${filter === 'read' ? 'active' : ''}`}
-            onClick={() => setFilter('read')}
-          >
-            Read ({notifications.length - currentUnreadCount})
+            <FiTrash2 size={14} />
+            <span>Clear</span>
           </button>
         </div>
       )}
+    </div>
+  );
 
-      {/* Content */}
-      <div className="notif-content-area">
-        {filteredNotifications.length === 0 ? (
-          <EmptyNotifications />
+  // ── Loading ──────────────────────────────────────────────────────────────
+  if (loading)
+    return (
+      <div className="notifications-page">
+        <Header />
+        <Skeleton />
+      </div>
+    );
+
+  // ── Error ────────────────────────────────────────────────────────────────
+  if (error)
+    return (
+      <div className="notifications-page">
+        <Header />
+        <div className="notif-error">
+          <FiAlertCircle size={52} />
+          <h3>Something went wrong</h3>
+          <p>{error}</p>
+          <button onClick={loadNotifications}>Try Again</button>
+        </div>
+      </div>
+    );
+
+  // ── Main ─────────────────────────────────────────────────────────────────
+  return (
+    <div className="notifications-page">
+      <Header />
+
+      {/* Summary strip */}
+      {notifications.length > 0 && (
+        <div className="notif-summary">
+          <span className="notif-summary__text">
+            {unread > 0 ? (
+              <>
+                <strong>{unread}</strong> unread of{" "}
+                <strong>{notifications.length}</strong> notifications
+              </>
+            ) : (
+              <>All <strong>{notifications.length}</strong> notifications read</>
+            )}
+          </span>
+        </div>
+      )}
+
+      {/* Filter pills */}
+      {notifications.length > 0 && (
+        <div className="notif-pills">
+          {[
+            { key: "all",    label: "All",    count: notifications.length },
+            { key: "unread", label: "Unread", count: unread },
+            { key: "read",   label: "Read",   count: read   },
+          ].map(({ key, label, count }) => (
+            <button
+              key={key}
+              className={`notif-pill ${filter === key ? "notif-pill--active" : ""}`}
+              onClick={() => setFilter(key)}
+            >
+              {label}
+              <span className="notif-pill__count">{count}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* List */}
+      <div className="notif-body">
+        {filtered.length === 0 ? (
+          <EmptyState filter={filter} />
         ) : (
           <div className="notif-list">
-            {filteredNotifications.map((notification) => (
+            {filtered.map((n) => (
               <NotificationCard
-                key={notification.id}
-                notification={notification}
-                onMarkAsRead={handleMarkAsRead}
-                onDelete={handleDeleteNotification}
+                key={n.id}
+                notification={n}
+                onMarkAsRead={markAsRead}
+                onDelete={deleteNotification}
               />
             ))}
           </div>
         )}
       </div>
 
-      {/* Bottom spacer */}
-      <div className="notif-bottom-spacer"></div>
+      <div className="notif-spacer" />
     </div>
   );
 }

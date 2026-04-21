@@ -185,7 +185,7 @@
 }
 
 .cookie-btn--accept:hover {
-  background: linear-gradient(135deg, #e8b41e 0%, #D4A017 100%);
+  background: linear-gradient(135deg, #fcbe04 0%, #D4A017 100%);
   transform: translateY(-2px);
   box-shadow:
     0 8px 22px rgba(212, 160, 23, 0.45),

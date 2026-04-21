@@ -35,6 +35,7 @@ import ProfilePage from "./pages/ProfilePage";
 import AllProducts from "./pages/AllProducts";
 import OrderHistoryPage from "./pages/OrderHistoryPage";
 import ProductGalleryPage from "./pages/ProductGalleryPage";
+import CookieConsent from "./components/CookieConsent";
 
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 import CookiePolicyPage from "./pages/CookiePolicyPage";
@@ -115,6 +116,7 @@ function MainApp() {
           },
         }}
       />
+      <CookieConsent />
       <Routes>
         {/* 🌐 Public Routes */}
         <Route path="/" element={<PreHomePage />} />

@@ -1159,10 +1159,24 @@
   left: 0;
   right: 0;
   z-index: 1000;
-  background: var(--hp-bg-card);
-  border-top: 1px solid var(--hp-border);
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+
+  /* ✅ SOLID — never transparent, never see-through */
+  background: #ffffff;
+  
+  /* ✅ Remove backdrop-filter if it exists anywhere */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+
+  border-top: 2px solid #e8ecf5;
+  box-shadow: 0 -4px 24px rgba(10, 31, 63, 0.10);
   padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* ✅ Dark mode stays solid too */
+[data-theme="dark"] .bottom-nav {
+  background: #0f1a2e;
+  border-top: 2px solid #1e2d4a;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
 }
 
 .nav-container {

@@ -451,21 +451,6 @@ export default function ProfilePage() {
           />
         </MenuSection>
 
-        <MenuSection title="Preferences">
-          <MenuItem
-            icon={FiBell}
-            label="Notifications"
-            onClick={() => navigate("/notifications")}
-          />
-          <MenuItem
-            icon={theme === "dark" ? FiSun : FiMoon}
-            label={theme === "dark" ? "Light Mode" : "Dark Mode"}
-            toggle
-            isActive={theme === "dark"}
-            onClick={toggleTheme}
-          />
-        </MenuSection>
-
         <MenuSection title="Support">
           <MenuItem
             icon={FiHelpCircle}

@@ -326,7 +326,7 @@ const Navbar = ({ onScanClick, navigate }) => {
         <div className="navbar-container">
           <div className="navbar-logo" onClick={() => handleNavClick("#home")}>
             <img
-              src="https://ik.imagekit.io/ljwnlcbqyu/CHIAMO-ORDER-LOGO2.png?tr=w-200,f-auto,q-80"
+              src="https://ik.imagekit.io/ljwnlcbqyu/chiamoorderlogo.png"
               alt="ChiamoOrder Logo"
               className="logo-image"
               loading="lazy"
@@ -404,7 +404,7 @@ const Navbar = ({ onScanClick, navigate }) => {
           <div className="mobile-menu-header">
             <div className="navbar-logo">
               <img
-                src="https://ik.imagekit.io/ljwnlcbqyu/CHIAMO-ORDER-LOGO2.png?tr=w-200,f-auto,q-80"
+                src="https://ik.imagekit.io/ljwnlcbqyu/chiamoorderlogo.png"
                 alt="ChiamoOrder Logo"
                 className="logo-image"
               />
@@ -919,7 +919,7 @@ const Footer = ({ navigate, onComingSoon }) => (
         <div className="footer-brand">
           <div className="footer-logo">
             <img
-              src="https://ik.imagekit.io/ljwnlcbqyu/CHIAMO-ORDER-LOGO2.png?tr=w-200,f-auto,q-80"
+              src="https://ik.imagekit.io/ljwnlcbqyu/chiamoorderlogo.png"
               alt="ChiamoOrder Logo"
               className="logo-image"
               loading="lazy"

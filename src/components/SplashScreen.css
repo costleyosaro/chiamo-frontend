@@ -5,7 +5,7 @@
 
 @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700;1,800&family=Sora:wght@600;700;800&display=swap");
 @import url('https://fonts.googleapis.com/css2?family=Righteous&display=swap');
-
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&family=Righteous&display=swap");
 /* ============ VARIABLES ============ */
 :root {
   --sp-white: #ffffff;
@@ -94,12 +94,13 @@
 
 .sp-letter {
   display: inline-block;
-  font-family: "Righteous", sans-serif;
-  font-size: clamp(2.6rem, 9vw, 4rem);
+  font-family: "Righteous", cursive;
+  font-weight: 500;
+  font-size: clamp(2.6rem, 12vw, 4rem);
   font-weight: 400;
   font-style: normal;
   letter-spacing: 0.5px;
-  line-height: 1.1;
+  line-height: 1.2;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
@@ -163,7 +164,7 @@
 .sp-hill-svg {
   display: block;
   width: 100%;
-  height: clamp(60px, 12vw, 100px);
+  height: clamp(35px, 7vw, 55px);
 }
 
 /* ============ BOTTOM DARK BLUE SECTION ============ */
@@ -208,18 +209,16 @@
   justify-content: center;
   width: clamp(65px, 18vw, 90px);
   height: clamp(65px, 18vw, 90px);
-  background: rgba(255, 255, 255, 0.95);
-  border: 2px solid rgba(255, 255, 255, 1);
-  border-radius: 16px;
-  padding: 12px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 8px;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: none;
 }
 
 .sp-partner-card:hover {
-  border-color: var(--sp-yellow);
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(245, 166, 35, 0.25);
+  transform: translateY(-3px) scale(1.05);
 }
 
 .sp-partner-img {
@@ -316,8 +315,7 @@
   .sp-partner-card {
     width: clamp(58px, 16vw, 75px);
     height: clamp(58px, 16vw, 75px);
-    padding: 10px;
-    border-radius: 14px;
+    padding: 6px;
   }
 
   .sp-powered {
@@ -374,8 +372,7 @@
   .sp-partner-card {
     width: 52px;
     height: 52px;
-    padding: 8px;
-    border-radius: 12px;
+    padding: 5px;
   }
 
   .sp-powered {
@@ -403,7 +400,7 @@
   .sp-partner-card {
     width: clamp(70px, 18vw, 95px);
     height: clamp(70px, 18vw, 95px);
-    padding: 14px;
+    padding: 10px;
   }
 }
 
@@ -464,8 +461,7 @@
   .sp-partner-card {
     width: 40px;
     height: 40px;
-    padding: 6px;
-    border-radius: 10px;
+    padding: 5px;
   }
 
   .sp-skip {

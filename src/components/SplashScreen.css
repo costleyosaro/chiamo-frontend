@@ -1,10 +1,11 @@
 /* ============================================
    CHIAMO ORDER — SPLASH SCREEN REDESIGN
-   White top + Wave + Dark blue bottom
+   White top + Hill slope + Dark blue bottom
    ============================================ */
 
 @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700;1,800&family=Sora:wght@600;700;800&display=swap");
-@import url('https://fonts.googleapis.com/css2?family=Rubik+Storm&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Righteous&display=swap');
+
 /* ============ VARIABLES ============ */
 :root {
   --sp-white: #ffffff;
@@ -28,7 +29,7 @@
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   overflow: hidden;
-  background: var(--sp-blue);
+  background: var(--sp-blue-dark);
 }
 
 /* ============ TOP WHITE SECTION ============ */
@@ -60,7 +61,7 @@
   right: -100px;
   background: radial-gradient(
     circle,
-    rgba(27, 75, 140, 0.04) 0%,
+    rgba(20, 58, 110, 0.04) 0%,
     transparent 70%
   );
 }
@@ -72,12 +73,12 @@
   left: -80px;
   background: radial-gradient(
     circle,
-    rgba(212, 160, 23, 0.04) 0%,
+    rgba(245, 166, 35, 0.04) 0%,
     transparent 70%
   );
 }
 
-/* ============ TITLE ============ */
+/* ============ TITLE — RIGHTEOUS FONT ============ */
 .sp-title-area {
   position: relative;
   z-index: 1;
@@ -93,19 +94,21 @@
 
 .sp-letter {
   display: inline-block;
-  font-family: "Rubik Storm", system-ui;
-  font-size: clamp(2.2rem, 8vw, 3.5rem);
+  font-family: "Righteous", sans-serif;
+  font-size: clamp(2.6rem, 9vw, 4rem);
   font-weight: 400;
   font-style: normal;
-  letter-spacing: -0.5px;
+  letter-spacing: 0.5px;
   line-height: 1.1;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
-/* "Chiamo" — deep blue italic */
+/* "Chiamo" — deep blue */
 .sp-letter--primary {
   color: #143a6e;
 }
 
+/* "Order" — golden accent */
 .sp-letter--accent {
   color: #f5a623;
 }
@@ -132,7 +135,7 @@
   position: relative;
   z-index: 1;
   font-family: "Sora", -apple-system, sans-serif;
-  font-size: clamp(0.85rem, 2.8vw, 1.05rem);
+  font-size: clamp(1rem, 3.5vw, 1.25rem);
   font-weight: 700;
   text-align: center;
   margin: 0;
@@ -148,7 +151,6 @@
   color: #143a6e;
 }
 
-/* ============ WAVE DIVIDER ============ */
 /* ============ HILL / SLOPE DIVIDER ============ */
 .sp-hill-wrap {
   position: relative;
@@ -168,6 +170,13 @@
 .sp-bottom {
   position: relative;
   background: #0a1f3f;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 2rem 2.5rem;
+  min-height: 180px;
+  z-index: 1;
 }
 
 /* ============ POWERED BY ============ */
@@ -185,31 +194,32 @@
 /* ============ PARTNER LOGOS ============ */
 .sp-partners {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-  gap: clamp(16px, 5vw, 28px);
+  width: 100%;
+  max-width: 360px;
   margin-bottom: 1.5rem;
+  padding: 0 8px;
 }
 
 .sp-partner-card {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: clamp(60px, 16vw, 80px);
-  height: clamp(60px, 16vw, 80px);
+  width: clamp(65px, 18vw, 90px);
+  height: clamp(65px, 18vw, 90px);
   background: rgba(255, 255, 255, 0.95);
   border: 2px solid rgba(255, 255, 255, 1);
   border-radius: 16px;
-  padding: 10px;
+  padding: 12px;
   transition: all 0.3s ease;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 .sp-partner-card:hover {
-  background: rgba(255, 255, 255, 0.18);
   border-color: var(--sp-yellow);
   transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(212, 160, 23, 0.2);
+  box-shadow: 0 8px 24px rgba(245, 166, 35, 0.25);
 }
 
 .sp-partner-img {
@@ -254,6 +264,10 @@
     padding: 0 1.5rem 2rem;
   }
 
+  .sp-partners {
+    max-width: 320px;
+  }
+
   .sp-bg-glow--1 {
     width: 300px;
     height: 300px;
@@ -274,6 +288,10 @@
     padding: 1.25rem 1rem 0.5rem;
   }
 
+  .sp-letter {
+    font-size: clamp(2.2rem, 8.5vw, 3.2rem);
+  }
+
   .sp-animation-wrap {
     width: clamp(160px, 42vw, 220px);
     height: clamp(160px, 42vw, 220px);
@@ -281,7 +299,7 @@
   }
 
   .sp-tagline {
-    font-size: 0.82rem;
+    font-size: clamp(0.92rem, 3.2vw, 1.1rem);
     padding: 0 0.5rem;
   }
 
@@ -290,10 +308,15 @@
     padding: 0 1.25rem 1.75rem;
   }
 
+  .sp-partners {
+    max-width: 290px;
+    padding: 0 4px;
+  }
+
   .sp-partner-card {
-    width: clamp(55px, 15vw, 70px);
-    height: clamp(55px, 15vw, 70px);
-    padding: 8px;
+    width: clamp(58px, 16vw, 75px);
+    height: clamp(58px, 16vw, 75px);
+    padding: 10px;
     border-radius: 14px;
   }
 
@@ -327,7 +350,7 @@
   }
 
   .sp-letter {
-    font-size: clamp(1.8rem, 7vw, 2.6rem);
+    font-size: clamp(1.9rem, 7.5vw, 2.8rem);
   }
 
   .sp-animation-wrap {
@@ -336,7 +359,7 @@
   }
 
   .sp-tagline {
-    font-size: 0.78rem;
+    font-size: 0.88rem;
   }
 
   .sp-bottom {
@@ -344,10 +367,14 @@
     padding: 0 1rem 1.5rem;
   }
 
+  .sp-partners {
+    max-width: 260px;
+  }
+
   .sp-partner-card {
-    width: 50px;
-    height: 50px;
-    padding: 7px;
+    width: 52px;
+    height: 52px;
+    padding: 8px;
     border-radius: 12px;
   }
 
@@ -367,6 +394,16 @@
 
   .sp-tagline {
     margin-top: 0.5rem;
+  }
+
+  .sp-partners {
+    max-width: 380px;
+  }
+
+  .sp-partner-card {
+    width: clamp(70px, 18vw, 95px);
+    height: clamp(70px, 18vw, 95px);
+    padding: 14px;
   }
 }
 
@@ -396,8 +433,8 @@
   }
 
   .sp-hill-wrap {
-  display: none;
-}
+    display: none;
+  }
 
   .sp-bottom {
     position: absolute;
@@ -413,6 +450,15 @@
 
   .sp-powered {
     display: none;
+  }
+
+  .sp-partners {
+    max-width: none;
+    width: auto;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    justify-content: center;
   }
 
   .sp-partner-card {
@@ -445,7 +491,7 @@
 
 /* ============ DARK MODE (keep same design) ============ */
 [data-theme="dark"] .sp-screen {
-  background: var(--sp-blue);
+  background: var(--sp-blue-dark);
 }
 
 [data-theme="dark"] .sp-top {
@@ -453,9 +499,9 @@
 }
 
 [data-theme="dark"] .sp-letter--primary {
-  color: var(--sp-blue);
+  color: #143a6e;
 }
 
 [data-theme="dark"] .sp-letter--accent {
-  color: var(--sp-yellow);
+  color: #f5a623;
 }

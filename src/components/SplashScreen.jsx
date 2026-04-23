@@ -1,6 +1,8 @@
-// src/pages/SplashScreen.jsx
+// src/components/SplashScreen.jsx
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Lottie from "lottie-react";
+import cartAnimation from "../assets/animations/Cartitem.json";
 import "./SplashScreen.css";
 
 // ============ CONFIGURATION ============
@@ -8,12 +10,11 @@ const CONFIG = {
   title: "ChiamoOrder",
   tagline: "Shop smarter, Order faster.",
   splashDuration: 5000,
-  letterDelay: 0.06,
+  letterDelay: 0.05,
 };
 
 // ============ IMAGE URLS ============
 const IMAGES = {
-  mainLogo: "https://ik.imagekit.io/ljwnlcbqyu/CHIAMO-ORDER-LOGO2.png",
   chiamoLogo: "https://ik.imagekit.io/ljwnlcbqyu/CHIAMO_MULTITRADE_LOGO.png",
   ghadcoLogo: "https://ik.imagekit.io/ljwnlcbqyu/GHADCO_LOGO.png",
   mamudaLogo: "https://ik.imagekit.io/ljwnlcbqyu/mamuda-logo.png",
@@ -29,18 +30,18 @@ const AnimatedTitle = ({ text }) => {
     str.split("").map((char, i) => (
       <motion.span
         key={`${className}-${i}`}
-        className={`title-letter ${className}`}
+        className={`sp-letter ${className}`}
         variants={{
-          hidden: { opacity: 0, y: 30, scale: 0.85, rotateX: -40 },
+          hidden: { opacity: 0, y: 25, rotateZ: -8, scale: 0.8 },
           visible: {
             opacity: 1,
             y: 0,
+            rotateZ: 0,
             scale: 1,
-            rotateX: 0,
             transition: {
               type: "spring",
-              stiffness: 300,
-              damping: 20,
+              stiffness: 280,
+              damping: 18,
             },
           },
         }}
@@ -51,7 +52,7 @@ const AnimatedTitle = ({ text }) => {
 
   return (
     <motion.div
-      className="title-container"
+      className="sp-title-wrap"
       initial="hidden"
       animate="visible"
       variants={{
@@ -65,32 +66,26 @@ const AnimatedTitle = ({ text }) => {
         },
       }}
     >
-      {renderLetters(part1, "title-primary")}
-      {renderLetters(part2, "title-accent")}
+      {renderLetters(part1, "sp-letter--primary")}
+      {renderLetters(part2, "sp-letter--accent")}
     </motion.div>
   );
 };
 
-// ============ ✅ BOUNCING DOTS LOADER ============
-const LoadingDots = () => (
-  <div className="loading-dots">
-    {[0, 1, 2, 3].map((i) => (
-      <motion.span
-        key={i}
-        className={`dot dot-${i}`}
-        animate={{
-          y: [0, -14, 0],
-          scale: [1, 1.25, 1],
-          opacity: [0.6, 1, 0.6],
-        }}
-        transition={{
-          duration: 0.7,
-          repeat: Infinity,
-          delay: i * 0.12,
-          ease: "easeInOut",
-        }}
+// ============ WAVE DIVIDER SVG ============
+const WaveDivider = () => (
+  <div className="sp-wave-wrap">
+    <svg
+      className="sp-wave-svg"
+      viewBox="0 0 1440 120"
+      preserveAspectRatio="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M0,60 C240,120 480,0 720,60 C960,120 1200,0 1440,60 L1440,120 L0,120 Z"
+        fill="#0a1f3f"
       />
-    ))}
+    </svg>
   </div>
 );
 
@@ -139,70 +134,58 @@ const SplashScreen = ({ onFinish }) => {
     <AnimatePresence>
       {show && (
         <motion.div
-          className="splash-screen"
+          className="sp-screen"
           initial={{ opacity: 1 }}
           exit={{ opacity: 0, scale: 1.03 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
           onClick={handleSkip}
         >
-          {/* Background decoration */}
-          <div className="splash-bg-accent splash-bg-accent-1" />
-          <div className="splash-bg-accent splash-bg-accent-2" />
-          <div className="splash-bg-ring splash-bg-ring-1" />
-          <div className="splash-bg-ring splash-bg-ring-2" />
+          {/* ===== WHITE SECTION (Top) ===== */}
+          <div className="sp-top">
+            {/* Background decorations */}
+            <div className="sp-bg-glow sp-bg-glow--1" />
+            <div className="sp-bg-glow sp-bg-glow--2" />
 
-          {/* Main Content */}
-          <div className="splash-main">
-            {/* Logo with animated ring */}
+            {/* Title */}
             <motion.div
-              className="logo-wrapper"
-              initial={{ scale: 0.5, opacity: 0 }}
+              className="sp-title-area"
+              initial={{ opacity: 0, y: -20 }}
               animate={
                 showContent
-                  ? { scale: 1, opacity: 1 }
-                  : { scale: 0.5, opacity: 0 }
+                  ? { opacity: 1, y: 0 }
+                  : { opacity: 0, y: -20 }
+              }
+              transition={{ duration: 0.6, ease: "easeOut" }}
+            >
+              <AnimatedTitle text={CONFIG.title} />
+            </motion.div>
+
+            {/* Cart Animation */}
+            <motion.div
+              className="sp-animation-wrap"
+              initial={{ opacity: 0, scale: 0.7 }}
+              animate={
+                showContent
+                  ? { opacity: 1, scale: 1 }
+                  : { opacity: 0, scale: 0.7 }
               }
               transition={{
                 duration: 0.8,
+                delay: 0.4,
                 ease: [0.16, 1, 0.3, 1],
               }}
             >
-              <div className="logo-glow" />
-              {/* Spinning ring around logo */}
-              <motion.div
-                className="logo-ring"
-                animate={{ rotate: 360 }}
-                transition={{
-                  duration: 12,
-                  repeat: Infinity,
-                  ease: "linear",
-                }}
-              />
-              <img
-                src={IMAGES.mainLogo}
-                alt="Chiamo Order"
-                className="splash-logo"
+              <Lottie
+                animationData={cartAnimation}
+                loop
+                autoplay
+                className="sp-cart-lottie"
               />
             </motion.div>
 
-            {/* Title */}
-            {showContent && <AnimatedTitle text={CONFIG.title} />}
-
-            {/* Divider */}
-            <motion.div
-              className="splash-divider"
-              initial={{ scaleX: 0, opacity: 0 }}
-              animate={
-                showTagline
-                  ? { scaleX: 1, opacity: 1 }
-                  : { scaleX: 0, opacity: 0 }
-              }
-              transition={{ duration: 0.5, ease: "easeOut" }}
-            />
-
             {/* Tagline */}
             <motion.p
-              className="splash-tagline"
+              className="sp-tagline"
               initial={{ opacity: 0, y: 12 }}
               animate={
                 showTagline
@@ -213,65 +196,62 @@ const SplashScreen = ({ onFinish }) => {
             >
               {CONFIG.tagline}
             </motion.p>
-
-            {/* ✅ Bouncing Dots Loader */}
-            <motion.div
-              className="loading-wrapper"
-              initial={{ opacity: 0 }}
-              animate={showTagline ? { opacity: 1 } : { opacity: 0 }}
-              transition={{ duration: 0.4, delay: 0.3 }}
-            >
-              <LoadingDots />
-            </motion.div>
           </div>
 
-          {/* Footer */}
-          <motion.footer
-            className="splash-footer"
-            initial={{ opacity: 0, y: 20 }}
-            animate={
-              showFooter
-                ? { opacity: 1, y: 0 }
-                : { opacity: 0, y: 20 }
-            }
-            transition={{ duration: 0.5, ease: "easeOut" }}
-          >
-            {/* ✅ Deep blue "Powered by" text */}
-            <p className="powered-by">Powered by</p>
+          {/* ===== WAVE DIVIDER ===== */}
+          <WaveDivider />
 
-            {/* ✅ Full color partner logos */}
-            <div className="partner-logos">
+          {/* ===== DARK BLUE SECTION (Bottom) ===== */}
+          <motion.div
+            className="sp-bottom"
+            initial={{ opacity: 0 }}
+            animate={
+              showFooter ? { opacity: 1 } : { opacity: 0 }
+            }
+            transition={{ duration: 0.6, ease: "easeOut" }}
+          >
+            {/* Powered By */}
+            <p className="sp-powered">POWERED BY</p>
+
+            {/* Partner Logos */}
+            <div className="sp-partners">
               {partnerLogos.map((logo, index) => (
-                <motion.img
+                <motion.div
                   key={index}
-                  src={logo.src}
-                  alt={logo.alt}
-                  className="partner-logo"
-                  initial={{ opacity: 0, y: 10 }}
+                  className="sp-partner-card"
+                  initial={{ opacity: 0, y: 15, scale: 0.9 }}
                   animate={
                     showFooter
-                      ? { opacity: 1, y: 0 }
-                      : { opacity: 0, y: 10 }
+                      ? { opacity: 1, y: 0, scale: 1 }
+                      : { opacity: 0, y: 15, scale: 0.9 }
                   }
                   transition={{
-                    duration: 0.4,
-                    delay: index * 0.12,
+                    duration: 0.5,
+                    delay: 0.2 + index * 0.15,
                     ease: "easeOut",
                   }}
-                />
+                >
+                  <img
+                    src={logo.src}
+                    alt={logo.alt}
+                    className="sp-partner-img"
+                  />
+                </motion.div>
               ))}
             </div>
-          </motion.footer>
 
-          {/* Skip Hint */}
-          <motion.span
-            className="skip-hint"
-            initial={{ opacity: 0 }}
-            animate={showFooter ? { opacity: 1 } : { opacity: 0 }}
-            transition={{ duration: 0.3, delay: 0.5 }}
-          >
-            Tap anywhere to continue
-          </motion.span>
+            {/* Skip Hint */}
+            <motion.span
+              className="sp-skip"
+              initial={{ opacity: 0 }}
+              animate={
+                showFooter ? { opacity: 1 } : { opacity: 0 }
+              }
+              transition={{ duration: 0.3, delay: 0.8 }}
+            >
+              Tap anywhere to continue
+            </motion.span>
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>

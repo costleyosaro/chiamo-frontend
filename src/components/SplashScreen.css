@@ -1,564 +1,461 @@
 /* ============================================
-   CHIAMO ORDER - WHITE PROFESSIONAL SPLASH
-   Clean, Sleek, Premium Design
+   CHIAMO ORDER — SPLASH SCREEN REDESIGN
+   White top + Wave + Dark blue bottom
    ============================================ */
 
-/* ✅ Premium font import — Sora (geometric, modern, eye-catching) */
-@import url("https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700;1,800&family=Sora:wght@600;700;800&display=swap");
 
 /* ============ VARIABLES ============ */
 :root {
-  --splash-bg: #ffffff;
-  --splash-primary: #1b4b8c;
-  --splash-primary-deep: #0f2d5a;
-  --splash-accent: #f5a623;
-  --splash-accent-warm: #e89500;
-  --splash-text: #1a1a2e;
-  --splash-text-muted: #5a6577;
-  --splash-text-dim: #9ca3af;
-  --splash-border: #e5e7eb;
-  --splash-glow-primary: rgba(27, 75, 140, 0.08);
-  --splash-glow-accent: rgba(245, 166, 35, 0.06);
+  --sp-white: #ffffff;
+  --sp-blue: #0a1f3f;
+  --sp-blue-mid: #1b4b8c;
+  --sp-yellow: #D4A017;
+  --sp-yellow-warm: #f0c14b;
+  --sp-text-dark: #1a1a2e;
+  --sp-text-muted: #5a6577;
 }
 
 /* ============ MAIN CONTAINER ============ */
-.splash-screen {
+.sp-screen {
   position: fixed;
   inset: 0;
-  background-color: var(--splash-bg);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
   z-index: 99999;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   overflow: hidden;
+  background: var(--sp-blue);
 }
 
-/* ============ BACKGROUND DECORATIONS ============ */
-.splash-bg-accent {
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.splash-bg-accent-1 {
-  width: 550px;
-  height: 550px;
-  top: -180px;
-  right: -180px;
-  background: radial-gradient(
-    circle,
-    rgba(27, 75, 140, 0.035) 0%,
-    transparent 70%
-  );
-}
-
-.splash-bg-accent-2 {
-  width: 450px;
-  height: 450px;
-  bottom: -120px;
-  left: -120px;
-  background: radial-gradient(
-    circle,
-    rgba(245, 166, 35, 0.035) 0%,
-    transparent 70%
-  );
-}
-
-/* ✅ Decorative rings for depth */
-.splash-bg-ring {
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.splash-bg-ring-1 {
-  width: 300px;
-  height: 300px;
-  top: 15%;
-  left: -80px;
-  border: 1px solid rgba(27, 75, 140, 0.04);
-}
-
-.splash-bg-ring-2 {
-  width: 200px;
-  height: 200px;
-  bottom: 20%;
-  right: -50px;
-  border: 1px solid rgba(245, 166, 35, 0.04);
-}
-
-/* ============ MAIN CONTENT ============ */
-.splash-main {
+/* ============ TOP WHITE SECTION ============ */
+.sp-top {
+  position: relative;
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  flex: 1;
-  padding: 2rem;
-  width: 100%;
-  max-width: 500px;
-  position: relative;
-  z-index: 1;
+  background: var(--sp-white);
+  padding: 2rem 1.5rem 1rem;
+  overflow: hidden;
+  z-index: 2;
 }
 
-/* ============ LOGO ============ */
-.logo-wrapper {
-  margin-bottom: 2rem;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Soft multi-layered glow */
-.logo-glow {
+/* Background glows */
+.sp-bg-glow {
   position: absolute;
-  width: 220px;
-  height: 220px;
   border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.sp-bg-glow--1 {
+  width: 400px;
+  height: 400px;
+  top: -120px;
+  right: -100px;
   background: radial-gradient(
     circle,
-    var(--splash-glow-primary) 0%,
-    var(--splash-glow-accent) 50%,
-    transparent 75%
+    rgba(27, 75, 140, 0.04) 0%,
+    transparent 70%
   );
-  z-index: 0;
-  pointer-events: none;
 }
 
-/* ✅ Spinning dashed ring around logo */
-.logo-ring {
-  position: absolute;
-  width: 180px;
-  height: 180px;
-  border-radius: 50%;
-  border: 2px dashed rgba(27, 75, 140, 0.1);
-  z-index: 0;
-  pointer-events: none;
+.sp-bg-glow--2 {
+  width: 300px;
+  height: 300px;
+  bottom: 0;
+  left: -80px;
+  background: radial-gradient(
+    circle,
+    rgba(212, 160, 23, 0.04) 0%,
+    transparent 70%
+  );
 }
 
-.splash-logo {
-  width: clamp(115px, 28vw, 155px);
-  height: clamp(115px, 28vw, 155px);
-  object-fit: contain;
+/* ============ TITLE ============ */
+.sp-title-area {
   position: relative;
   z-index: 1;
-  filter: drop-shadow(0 6px 24px rgba(27, 75, 140, 0.12));
+  margin-bottom: 0.5rem;
 }
 
-/* ============ ✅ TITLE — SORA FONT ============ */
-.title-container {
+.sp-title-wrap {
   display: flex;
   justify-content: center;
   align-items: baseline;
   flex-wrap: wrap;
-  margin-bottom: 1rem;
-  perspective: 600px;
 }
 
-.title-letter {
+.sp-letter {
   display: inline-block;
-  font-family: "Sora", -apple-system, sans-serif;
-  font-size: clamp(2rem, 7vw, 3.2rem);
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(2.2rem, 8vw, 3.5rem);
   font-weight: 800;
+  font-style: italic;
   letter-spacing: -0.5px;
   line-height: 1.1;
 }
 
-/* "Chiamo" — deep blue */
-.title-letter.title-primary {
-  color: var(--splash-primary);
+/* "Chiamo" — deep blue italic */
+.sp-letter--primary {
+  color: var(--sp-blue);
 }
 
-/* "Order" — golden accent */
-.title-letter.title-accent {
-  color: var(--splash-accent);
+/* "Order" — golden accent italic */
+.sp-letter--accent {
+  color: var(--sp-yellow);
 }
 
-/* ============ DIVIDER ============ */
-.splash-divider {
-  width: 55px;
-  height: 3.5px;
-  background: linear-gradient(
-    90deg,
-    var(--splash-primary),
-    var(--splash-accent)
-  );
-  border-radius: 4px;
-  margin-bottom: 1rem;
-  transform-origin: center;
+/* ============ CART ANIMATION ============ */
+.sp-animation-wrap {
+  position: relative;
+  z-index: 1;
+  width: clamp(180px, 45vw, 260px);
+  height: clamp(180px, 45vw, 260px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0.5rem 0;
+}
+
+.sp-cart-lottie {
+  width: 100%;
+  height: 100%;
 }
 
 /* ============ TAGLINE ============ */
-.splash-tagline {
-  font-family: "Inter", -apple-system, sans-serif;
-  font-size: clamp(0.9rem, 2.8vw, 1.1rem);
-  font-weight: 500;
-  color: var(--splash-text-muted);
+.sp-tagline {
+  position: relative;
+  z-index: 1;
+  font-family: "Sora", -apple-system, sans-serif;
+  font-size: clamp(0.85rem, 2.8vw, 1.05rem);
+  font-weight: 600;
+  color: var(--sp-text-muted);
   text-align: center;
-  margin: 0 0 2.5rem 0;
-  letter-spacing: 0.3px;
+  margin: 0;
+  letter-spacing: 0.5px;
   line-height: 1.5;
 }
 
-/* ============ ✅ BOUNCING DOTS LOADER ============ */
-.loading-wrapper {
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* ============ WAVE DIVIDER ============ */
+.sp-wave-wrap {
+  position: relative;
+  z-index: 3;
+  margin-top: -2px;
+  line-height: 0;
+  overflow: hidden;
 }
 
-.loading-dots {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.dot {
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-}
-
-/* ✅ Multi-color dots for a premium look */
-.dot-0 {
-  background-color: var(--splash-primary);
-}
-
-.dot-1 {
-  background-color: var(--splash-accent);
-}
-
-.dot-2 {
-  background-color: var(--splash-primary);
-  opacity: 0.65;
-}
-
-.dot-3 {
-  background-color: var(--splash-accent);
-  opacity: 0.65;
-}
-
-/* ============ FOOTER ============ */
-.splash-footer {
+.sp-wave-svg {
+  display: block;
   width: 100%;
-  padding: 1.5rem 2rem 2.5rem;
+  height: clamp(50px, 10vw, 80px);
+}
+
+/* ============ BOTTOM DARK BLUE SECTION ============ */
+.sp-bottom {
+  position: relative;
+  background: var(--sp-blue);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
-  position: relative;
+  justify-content: center;
+  padding: 0 2rem 2.5rem;
+  min-height: 180px;
   z-index: 1;
 }
 
-/* ✅ Deep blue "Powered by" text */
-.powered-by {
-  font-family: "Sora", "Inter", -apple-system, sans-serif;
-  font-size: 0.72rem;
+/* ============ POWERED BY ============ */
+.sp-powered {
+  font-family: "Sora", -apple-system, sans-serif;
+  font-size: 0.7rem;
   font-weight: 700;
-  color: var(--splash-primary-deep);
+  color: var(--sp-yellow);
   text-transform: uppercase;
-  letter-spacing: 2.5px;
-  margin: 0;
+  letter-spacing: 3px;
+  margin: 0 0 1.2rem 0;
+  text-align: center;
 }
 
-.partner-logos {
+/* ============ PARTNER LOGOS ============ */
+.sp-partners {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: clamp(1.5rem, 5vw, 2.5rem);
+  gap: clamp(16px, 5vw, 28px);
+  margin-bottom: 1.5rem;
 }
 
-/* ✅ Full original color — NO grayscale, NO opacity reduction */
-.partner-logo {
-  width: clamp(42px, 12vw, 62px);
-  height: auto;
+.sp-partner-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(60px, 16vw, 80px);
+  height: clamp(60px, 16vw, 80px);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 10px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(4px);
+}
+
+.sp-partner-card:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: var(--sp-yellow);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(212, 160, 23, 0.2);
+}
+
+.sp-partner-img {
+  width: 100%;
+  height: 100%;
   object-fit: contain;
+  filter: brightness(0) invert(1);
+  opacity: 0.95;
+  transition: all 0.3s ease;
+}
+
+.sp-partner-card:hover .sp-partner-img {
   filter: none;
   opacity: 1;
-  transition: transform 0.3s ease;
-}
-
-.partner-logo:hover {
-  transform: scale(1.08);
 }
 
 /* ============ SKIP HINT ============ */
-.skip-hint {
-  position: absolute;
-  bottom: 1rem;
-  left: 50%;
-  transform: translateX(-50%);
-  font-family: "Inter", -apple-system, sans-serif;
-  font-size: 0.7rem;
+.sp-skip {
+  font-family: "Sora", -apple-system, sans-serif;
+  font-size: 0.68rem;
   font-weight: 500;
-  color: var(--splash-text-dim);
+  color: rgba(255, 255, 255, 0.4);
   letter-spacing: 0.5px;
-  z-index: 1;
-  animation: pulseHint 2.5s ease-in-out infinite;
+  text-align: center;
+  animation: spPulse 2.5s ease-in-out infinite;
 }
 
-@keyframes pulseHint {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
+@keyframes spPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
 }
 
 /* ============ RESPONSIVE ============ */
 
 /* Tablets */
 @media (max-width: 768px) {
-  .splash-main {
-    padding: 1.5rem;
+  .sp-top {
+    padding: 1.5rem 1.25rem 0.75rem;
   }
 
-  .splash-footer {
-    padding: 1.25rem 1.5rem 2rem;
+  .sp-bottom {
+    min-height: 160px;
+    padding: 0 1.5rem 2rem;
   }
 
-  .logo-glow {
-    width: 180px;
-    height: 180px;
-  }
-
-  .logo-ring {
-    width: 150px;
-    height: 150px;
-  }
-
-  .splash-bg-accent-1 {
-    width: 350px;
-    height: 350px;
-    top: -100px;
-    right: -100px;
-  }
-
-  .splash-bg-accent-2 {
+  .sp-bg-glow--1 {
     width: 300px;
     height: 300px;
-    bottom: -80px;
-    left: -80px;
+    top: -80px;
+    right: -80px;
   }
 
-  .splash-bg-ring-1 {
+  .sp-bg-glow--2 {
     width: 220px;
     height: 220px;
     left: -60px;
-  }
-
-  .splash-bg-ring-2 {
-    width: 150px;
-    height: 150px;
-    right: -40px;
   }
 }
 
 /* Mobile */
 @media (max-width: 480px) {
-  .logo-wrapper {
-    margin-bottom: 1.5rem;
+  .sp-top {
+    padding: 1.25rem 1rem 0.5rem;
   }
 
-  .logo-glow {
+  .sp-animation-wrap {
+    width: clamp(160px, 42vw, 220px);
+    height: clamp(160px, 42vw, 220px);
+    margin: 0.25rem 0;
+  }
+
+  .sp-tagline {
+    font-size: 0.82rem;
+    padding: 0 0.5rem;
+  }
+
+  .sp-bottom {
+    min-height: 150px;
+    padding: 0 1.25rem 1.75rem;
+  }
+
+  .sp-partner-card {
+    width: clamp(55px, 15vw, 70px);
+    height: clamp(55px, 15vw, 70px);
+    padding: 8px;
+    border-radius: 14px;
+  }
+
+  .sp-powered {
+    font-size: 0.65rem;
+    letter-spacing: 2.5px;
+  }
+
+  .sp-skip {
+    font-size: 0.62rem;
+  }
+
+  .sp-bg-glow--1 {
+    width: 220px;
+    height: 220px;
+    top: -60px;
+    right: -60px;
+  }
+
+  .sp-bg-glow--2 {
+    width: 180px;
+    height: 180px;
+    left: -50px;
+  }
+}
+
+/* Small Phones */
+@media (max-width: 360px) {
+  .sp-top {
+    padding: 1rem 0.75rem 0.5rem;
+  }
+
+  .sp-letter {
+    font-size: clamp(1.8rem, 7vw, 2.6rem);
+  }
+
+  .sp-animation-wrap {
     width: 150px;
     height: 150px;
   }
 
-  .logo-ring {
-    width: 130px;
-    height: 130px;
+  .sp-tagline {
+    font-size: 0.78rem;
   }
 
-  .splash-tagline {
-    margin-bottom: 2rem;
-    padding: 0 1rem;
+  .sp-bottom {
+    min-height: 140px;
+    padding: 0 1rem 1.5rem;
   }
 
-  .loading-dots {
-    gap: 8px;
+  .sp-partner-card {
+    width: 50px;
+    height: 50px;
+    padding: 7px;
+    border-radius: 12px;
   }
 
-  .dot {
-    width: 9px;
-    height: 9px;
-  }
-
-  .partner-logos {
-    gap: 1.25rem;
-  }
-
-  .skip-hint {
-    bottom: 0.75rem;
-    font-size: 0.65rem;
-  }
-
-  .splash-bg-accent-1 {
-    width: 250px;
-    height: 250px;
-    top: -80px;
-    right: -80px;
-  }
-
-  .splash-bg-accent-2 {
-    width: 200px;
-    height: 200px;
-    bottom: -60px;
-    left: -60px;
-  }
-
-  .splash-bg-ring {
-    display: none;
+  .sp-powered {
+    font-size: 0.6rem;
+    margin-bottom: 1rem;
   }
 }
 
-/* Small Mobile */
-@media (max-width: 360px) {
-  .splash-main {
-    padding: 1rem;
+/* Tall Phones (extra space) */
+@media (min-height: 800px) {
+  .sp-animation-wrap {
+    width: clamp(200px, 45vw, 280px);
+    height: clamp(200px, 45vw, 280px);
+    margin: 1rem 0;
   }
 
-  .splash-footer {
-    padding: 1rem;
-  }
-
-  .splash-logo {
-    width: 95px;
-    height: 95px;
-  }
-
-  .logo-glow {
-    width: 120px;
-    height: 120px;
-  }
-
-  .logo-ring {
-    width: 110px;
-    height: 110px;
-  }
-
-  .partner-logo {
-    width: 38px;
-  }
-
-  .splash-divider {
-    width: 40px;
-  }
-
-  .title-letter {
-    font-size: clamp(1.6rem, 6vw, 2.4rem);
-  }
-
-  .dot {
-    width: 8px;
-    height: 8px;
-  }
-
-  .loading-dots {
-    gap: 7px;
+  .sp-tagline {
+    margin-top: 0.5rem;
   }
 }
 
 /* Landscape */
 @media (max-height: 500px) and (orientation: landscape) {
-  .splash-main {
+  .sp-top {
     flex-direction: row;
     flex-wrap: wrap;
-    gap: 1.5rem;
+    gap: 1rem;
     justify-content: center;
     align-items: center;
-    padding: 1rem;
-  }
-
-  .logo-wrapper {
-    margin-bottom: 0;
-  }
-
-  .splash-logo {
-    width: 75px;
-    height: 75px;
-  }
-
-  .logo-glow {
-    width: 90px;
-    height: 90px;
-  }
-
-  .logo-ring {
-    width: 85px;
-    height: 85px;
-  }
-
-  .title-container {
-    margin-bottom: 0;
-  }
-
-  .splash-divider,
-  .splash-tagline,
-  .loading-wrapper {
-    display: none;
-  }
-
-  .splash-footer {
-    position: absolute;
-    bottom: 0;
     padding: 0.75rem;
   }
 
-  .powered-by {
+  .sp-title-area {
+    margin-bottom: 0;
+  }
+
+  .sp-animation-wrap {
+    width: 100px;
+    height: 100px;
+    margin: 0;
+  }
+
+  .sp-tagline {
     display: none;
   }
 
-  .partner-logo {
-    width: 36px;
+  .sp-wave-wrap {
+    display: none;
   }
 
-  .skip-hint,
-  .splash-bg-accent,
-  .splash-bg-ring {
+  .sp-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    min-height: auto;
+    padding: 0.5rem;
+    flex-direction: row;
+    gap: 12px;
+    background: rgba(10, 31, 63, 0.95);
+  }
+
+  .sp-powered {
     display: none;
+  }
+
+  .sp-partner-card {
+    width: 40px;
+    height: 40px;
+    padding: 6px;
+    border-radius: 10px;
+  }
+
+  .sp-skip {
+    display: none;
+  }
+
+  .sp-letter {
+    font-size: clamp(1.4rem, 5vw, 2rem);
   }
 }
 
 /* ============ REDUCED MOTION ============ */
 @media (prefers-reduced-motion: reduce) {
-  .dot {
+  .sp-skip {
     animation: none;
-    opacity: 1;
+    opacity: 0.5;
   }
 
-  .partner-logo {
+  .sp-partner-card {
     transition: none;
   }
-
-  .skip-hint {
-    animation: none;
-    opacity: 0.6;
-  }
 }
 
-/* ============ DARK MODE (keeps white splash) ============ */
-[data-theme="dark"] .splash-screen {
-  background-color: var(--splash-bg);
+/* ============ DARK MODE (keep same design) ============ */
+[data-theme="dark"] .sp-screen {
+  background: var(--sp-blue);
 }
 
-[data-theme="dark"] .title-letter.title-primary {
-  color: var(--splash-primary);
+[data-theme="dark"] .sp-top {
+  background: var(--sp-white);
 }
 
-[data-theme="dark"] .title-letter.title-accent {
-  color: var(--splash-accent);
+[data-theme="dark"] .sp-letter--primary {
+  color: var(--sp-blue);
 }
 
-[data-theme="dark"] .splash-tagline {
-  color: var(--splash-text-muted);
-}
-
-[data-theme="dark"] .powered-by {
-  color: var(--splash-primary-deep);
+[data-theme="dark"] .sp-letter--accent {
+  color: var(--sp-yellow);
 }

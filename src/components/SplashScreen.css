@@ -4,13 +4,14 @@
    ============================================ */
 
 @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700;1,800&family=Sora:wght@600;700;800&display=swap");
-
+@import url('https://fonts.googleapis.com/css2?family=Rubik+Storm&display=swap');
 /* ============ VARIABLES ============ */
 :root {
   --sp-white: #ffffff;
-  --sp-blue: #0a1f3f;
+  --sp-blue: #143a6e;
+  --sp-blue-dark: #0a1f3f;
   --sp-blue-mid: #1b4b8c;
-  --sp-yellow: #D4A017;
+  --sp-yellow: #f5a623;
   --sp-yellow-warm: #f0c14b;
   --sp-text-dark: #1a1a2e;
   --sp-text-muted: #5a6577;
@@ -92,22 +93,21 @@
 
 .sp-letter {
   display: inline-block;
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: "Rubik Storm", system-ui;
   font-size: clamp(2.2rem, 8vw, 3.5rem);
-  font-weight: 800;
-  font-style: italic;
+  font-weight: 400;
+  font-style: normal;
   letter-spacing: -0.5px;
   line-height: 1.1;
 }
 
 /* "Chiamo" — deep blue italic */
 .sp-letter--primary {
-  color: var(--sp-blue);
+  color: #143a6e;
 }
 
-/* "Order" — golden accent italic */
 .sp-letter--accent {
-  color: var(--sp-yellow);
+  color: #f5a623;
 }
 
 /* ============ CART ANIMATION ============ */
@@ -133,16 +133,24 @@
   z-index: 1;
   font-family: "Sora", -apple-system, sans-serif;
   font-size: clamp(0.85rem, 2.8vw, 1.05rem);
-  font-weight: 600;
-  color: var(--sp-text-muted);
+  font-weight: 700;
   text-align: center;
   margin: 0;
   letter-spacing: 0.5px;
   line-height: 1.5;
 }
 
+.sp-tagline--yellow {
+  color: #f5a623;
+}
+
+.sp-tagline--blue {
+  color: #143a6e;
+}
+
 /* ============ WAVE DIVIDER ============ */
-.sp-wave-wrap {
+/* ============ HILL / SLOPE DIVIDER ============ */
+.sp-hill-wrap {
   position: relative;
   z-index: 3;
   margin-top: -2px;
@@ -150,23 +158,16 @@
   overflow: hidden;
 }
 
-.sp-wave-svg {
+.sp-hill-svg {
   display: block;
   width: 100%;
-  height: clamp(50px, 10vw, 80px);
+  height: clamp(60px, 12vw, 100px);
 }
 
 /* ============ BOTTOM DARK BLUE SECTION ============ */
 .sp-bottom {
   position: relative;
-  background: var(--sp-blue);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 0 2rem 2.5rem;
-  min-height: 180px;
-  z-index: 1;
+  background: #0a1f3f;
 }
 
 /* ============ POWERED BY ============ */
@@ -196,12 +197,12 @@
   justify-content: center;
   width: clamp(60px, 16vw, 80px);
   height: clamp(60px, 16vw, 80px);
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid rgba(255, 255, 255, 1);
   border-radius: 16px;
   padding: 10px;
   transition: all 0.3s ease;
-  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 .sp-partner-card:hover {
@@ -215,14 +216,13 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  filter: brightness(0) invert(1);
-  opacity: 0.95;
+  filter: none;
+  opacity: 1;
   transition: all 0.3s ease;
 }
 
 .sp-partner-card:hover .sp-partner-img {
-  filter: none;
-  opacity: 1;
+  transform: scale(1.05);
 }
 
 /* ============ SKIP HINT ============ */
@@ -395,9 +395,9 @@
     display: none;
   }
 
-  .sp-wave-wrap {
-    display: none;
-  }
+  .sp-hill-wrap {
+  display: none;
+}
 
   .sp-bottom {
     position: absolute;

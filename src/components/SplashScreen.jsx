@@ -8,7 +8,7 @@ import "./SplashScreen.css";
 // ============ CONFIGURATION ============
 const CONFIG = {
   title: "ChiamoOrder",
-  tagline: "Shop smarter, Order faster.",
+  tagline: { part1: "Shop smarter, ", part2: "Order faster." },
   splashDuration: 5000,
   letterDelay: 0.05,
 };
@@ -72,22 +72,7 @@ const AnimatedTitle = ({ text }) => {
   );
 };
 
-// ============ WAVE DIVIDER SVG ============
-const WaveDivider = () => (
-  <div className="sp-wave-wrap">
-    <svg
-      className="sp-wave-svg"
-      viewBox="0 0 1440 120"
-      preserveAspectRatio="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        d="M0,60 C240,120 480,0 720,60 C960,120 1200,0 1440,60 L1440,120 L0,120 Z"
-        fill="#0a1f3f"
-      />
-    </svg>
-  </div>
-);
+
 
 // ============ MAIN SPLASH SCREEN ============
 const SplashScreen = ({ onFinish }) => {
@@ -183,7 +168,7 @@ const SplashScreen = ({ onFinish }) => {
               />
             </motion.div>
 
-            {/* Tagline */}
+            {/* Tagline - Two colors */}
             <motion.p
               className="sp-tagline"
               initial={{ opacity: 0, y: 12 }}
@@ -194,12 +179,25 @@ const SplashScreen = ({ onFinish }) => {
               }
               transition={{ duration: 0.5, ease: "easeOut" }}
             >
-              {CONFIG.tagline}
+              <span className="sp-tagline--yellow">{CONFIG.tagline.part1}</span>
+              <span className="sp-tagline--blue">{CONFIG.tagline.part2}</span>
             </motion.p>
           </div>
 
-          {/* ===== WAVE DIVIDER ===== */}
-          <WaveDivider />
+                    {/* ===== HILL/SLOPE DIVIDER ===== */}
+          <div className="sp-hill-wrap">
+            <svg
+              className="sp-hill-svg"
+              viewBox="0 0 1440 160"
+              preserveAspectRatio="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M0,160 L0,100 Q360,0 720,80 Q1080,160 1440,60 L1440,160 Z"
+                fill="#0a1f3f"
+              />
+            </svg>
+          </div>
 
           {/* ===== DARK BLUE SECTION (Bottom) ===== */}
           <motion.div

@@ -1,0 +1,409 @@
+/* ============================================
+   PROMO MODAL — ChiamoOrder
+   Congratulatory popup with balloons & confetti
+   ============================================ */
+
+/* ── Overlay ─────────────────────────────── */
+.promo-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 31, 63, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 99999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  backdrop-filter: blur(4px);
+}
+
+.promo-overlay--in {
+  opacity: 1;
+}
+
+/* ── Confetti ─────────────────────────────── */
+.promo-confetti {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 99998;
+}
+
+.promo-confetti-piece {
+  position: absolute;
+  top: -20px;
+  animation: confettiFall linear infinite;
+}
+
+@keyframes confettiFall {
+  0% {
+    transform: translateY(-20px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* ── Modal Card ───────────────────────────── */
+.promo-modal {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 28px 24px 24px;
+  text-align: center;
+  overflow: hidden;
+  transform: scale(0.7) translateY(40px);
+  opacity: 0;
+  transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow:
+    0 20px 60px rgba(10, 31, 63, 0.3),
+    0 0 0 1px rgba(245, 166, 35, 0.2);
+}
+
+.promo-modal--in {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+/* Gold top border */
+.promo-modal::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, #143a6e, #f5a623, #143a6e);
+  border-radius: 24px 24px 0 0;
+}
+
+/* ── Close Button ─────────────────────────── */
+.promo-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  border: none;
+  border-radius: 50%;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.promo-close:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+/* ── Balloons ─────────────────────────────── */
+.promo-balloons {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: -10px;
+  position: relative;
+  z-index: 1;
+}
+
+.promo-balloon {
+  font-size: 32px;
+  animation: balloonFloat 3s ease-in-out infinite;
+  display: inline-block;
+}
+
+.promo-balloon--1 { animation-delay: 0s;    }
+.promo-balloon--2 { animation-delay: 0.5s;  font-size: 40px; }
+.promo-balloon--3 { animation-delay: 1s;    }
+
+@keyframes balloonFloat {
+  0%, 100% { transform: translateY(0) rotate(-5deg);  }
+  50%       { transform: translateY(-12px) rotate(5deg); }
+}
+
+/* ── Trophy Emoji ─────────────────────────── */
+.promo-trophy {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 12px auto 8px;
+  width: 90px;
+  height: 90px;
+}
+
+.promo-trophy-emoji {
+  font-size: 52px;
+  position: relative;
+  z-index: 2;
+  animation: trophyBounce 1.5s ease-in-out infinite;
+}
+
+@keyframes trophyBounce {
+  0%, 100% { transform: scale(1) rotate(-3deg);   }
+  50%       { transform: scale(1.12) rotate(3deg); }
+}
+
+.promo-trophy-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid rgba(245, 166, 35, 0.3);
+  animation: ringPulse 2s ease-in-out infinite;
+}
+
+.promo-trophy-ring--1 {
+  width: 70px;
+  height: 70px;
+  animation-delay: 0s;
+}
+
+.promo-trophy-ring--2 {
+  width: 90px;
+  height: 90px;
+  border-color: rgba(20, 58, 110, 0.15);
+  animation-delay: 0.5s;
+}
+
+@keyframes ringPulse {
+  0%, 100% { transform: scale(1);    opacity: 0.6; }
+  50%       { transform: scale(1.08); opacity: 1;   }
+}
+
+/* ── Sparkles ─────────────────────────────── */
+.promo-sparkles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.promo-sparkle {
+  position: absolute;
+  color: #f5a623;
+  animation: sparkleAnim 2s ease-in-out infinite;
+}
+
+.promo-sparkle--1 {
+  top: 20%;
+  left: 8%;
+  font-size: 18px;
+  animation-delay: 0s;
+}
+
+.promo-sparkle--2 {
+  top: 15%;
+  right: 8%;
+  font-size: 14px;
+  animation-delay: 0.7s;
+}
+
+.promo-sparkle--3 {
+  bottom: 30%;
+  right: 6%;
+  font-size: 16px;
+  animation-delay: 1.4s;
+}
+
+@keyframes sparkleAnim {
+  0%, 100% { transform: scale(1) rotate(0deg);   opacity: 0.5; }
+  50%       { transform: scale(1.4) rotate(180deg); opacity: 1; }
+}
+
+/* ── Content ──────────────────────────────── */
+.promo-content {
+  position: relative;
+  z-index: 2;
+}
+
+.promo-congrats-tag {
+  display: inline-block;
+  padding: 5px 14px;
+  background: linear-gradient(135deg, #f5a623, #e89500);
+  color: #0a1f3f;
+  font-size: 12px;
+  font-weight: 800;
+  border-radius: 20px;
+  margin-bottom: 12px;
+  letter-spacing: 0.3px;
+}
+
+.promo-title {
+  font-family: "Poppins", sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  color: #143a6e;
+  margin: 0 0 8px 0;
+  line-height: 1.25;
+}
+
+.promo-description {
+  font-size: 13.5px;
+  color: #4a5578;
+  line-height: 1.55;
+  margin: 0 0 16px 0;
+}
+
+/* ── Reward Card ──────────────────────────── */
+.promo-detail-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #f0f7ff, #e8f4ff);
+  border: 1.5px solid rgba(20, 58, 110, 0.15);
+  border-radius: 14px;
+  margin-bottom: 12px;
+  text-align: left;
+}
+
+.promo-detail-icon {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #143a6e;
+  border-radius: 12px;
+  color: #f5a623;
+  flex-shrink: 0;
+}
+
+.promo-detail-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.promo-detail-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #6b7a99;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.promo-detail-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #143a6e;
+  line-height: 1.3;
+}
+
+/* ── Expiry Note ──────────────────────────── */
+.promo-expiry {
+  font-size: 11.5px;
+  color: #8a95b0;
+  margin: 0 0 20px 0;
+}
+
+.promo-expiry strong {
+  color: #143a6e;
+}
+
+/* ── Action Buttons ───────────────────────── */
+.promo-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.promo-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 13px 16px;
+  border: none;
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-family: inherit;
+}
+
+.promo-btn--reject {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1.5px solid #e2e8f0;
+}
+
+.promo-btn--reject:hover {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.promo-btn--accept {
+  background: linear-gradient(135deg, #f5a623, #e89500);
+  color: #0a1f3f;
+  box-shadow: 0 4px 14px rgba(245, 166, 35, 0.4);
+  flex: 1.4;
+  position: relative;
+  overflow: hidden;
+}
+
+.promo-btn--accept::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -60%;
+  width: 40%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transform: skewX(-20deg);
+  animation: btnShimmer 2.5s ease-in-out infinite;
+}
+
+@keyframes btnShimmer {
+  0%       { left: -60%; }
+  40%, 100% { left: 120%; }
+}
+
+.promo-btn--accept:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(245, 166, 35, 0.5);
+}
+
+.promo-btn--accept:active {
+  transform: translateY(0);
+}
+
+/* ── Responsive ───────────────────────────── */
+@media (max-width: 400px) {
+  .promo-modal {
+    padding: 24px 18px 20px;
+    border-radius: 20px;
+  }
+
+  .promo-title {
+    font-size: 18px;
+  }
+
+  .promo-trophy-emoji {
+    font-size: 44px;
+  }
+
+  .promo-balloon--2 {
+    font-size: 34px;
+  }
+
+  .promo-btn {
+    padding: 12px 12px;
+    font-size: 12.5px;
+  }
+}

@@ -521,7 +521,7 @@ export default function InvoicePage() {
           {/* Logo */}
           <div className="inv-logo-section">
             <img
-              src="https://ik.imagekit.io/ljwnlcbqyu/CHIAMO-ORDER-LOGO2.png?tr=w-200,f-auto,q-80"
+              src="https://ik.imagekit.io/ljwnlcbqyu/chiamoorderlogo.png"
               alt="ChiamoOrder"
               className="inv-logo"
               crossOrigin="anonymous"

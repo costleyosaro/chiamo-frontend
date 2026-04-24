@@ -270,7 +270,7 @@ const PromoBanner = () => {
             <span>Limited Offer</span>
           </div>
           <h2 className="hp-promo-title">
-            50% Off <br />
+            5% Off <br />
             <span>First Order!</span>
           </h2>
           <p className="hp-promo-text">
@@ -518,12 +518,14 @@ const FlashSaleSection = ({ addToCart }) => {
 
       <div className="hp-products-scroll">
         {products.map((product) => {
-          const price = Number(product.price);
-          const oldPrice = product.old_price || Math.round(price * 1.2);
-          const discount =
-            oldPrice > price
-              ? Math.round(((oldPrice - price) / oldPrice) * 100)
-              : null;
+          const originalPrice = Number(product.price);
+          const flashPrice = product.flash_sale_price
+            ? Number(product.flash_sale_price)
+            : null;
+          const displayPrice = flashPrice || originalPrice;
+          const discount = flashPrice
+            ? Math.round(((originalPrice - flashPrice) / originalPrice) * 100)
+            : null;
 
           return (
             <Link
@@ -559,11 +561,11 @@ const FlashSaleSection = ({ addToCart }) => {
                 <h3 className="hp-product-name">{product.name}</h3>
                 <div className="hp-product-price-row">
                   <span className="hp-product-price">
-                    ₦{price.toLocaleString()}
+                    ₦{displayPrice.toLocaleString()}
                   </span>
-                  {oldPrice > price && (
+                  {flashPrice && (
                     <span className="hp-product-old-price">
-                      ₦{oldPrice.toLocaleString()}
+                      ₦{originalPrice.toLocaleString()}
                     </span>
                   )}
                 </div>

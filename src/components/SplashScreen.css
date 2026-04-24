@@ -3,9 +3,10 @@
    White top + Hill slope + Dark blue bottom
    ============================================ */
 
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700;1,800&family=Sora:wght@600;700;800&display=swap");
-@import url('https://fonts.googleapis.com/css2?family=Righteous&display=swap');
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&family=Righteous&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Righteous&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
 /* ============ VARIABLES ============ */
 :root {
   --sp-white: #ffffff;
@@ -61,7 +62,7 @@
   right: -100px;
   background: radial-gradient(
     circle,
-    rgba(20, 58, 110, 0.04) 0%,
+    rgba(20, 58, 110, 0.05) 0%,
     transparent 70%
   );
 }
@@ -73,35 +74,56 @@
   left: -80px;
   background: radial-gradient(
     circle,
-    rgba(245, 166, 35, 0.04) 0%,
+    rgba(245, 166, 35, 0.05) 0%,
     transparent 70%
   );
 }
 
-/* ============ TITLE — RIGHTEOUS FONT ============ */
+/* ============ BRAND ROW (Logo + Title) ============ */
+.sp-brand-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  position: relative;
+  z-index: 1;
+  margin-bottom: 0.4rem;
+}
+
+/* ✅ Logo image next to text */
+.sp-brand-logo {
+  width: clamp(52px, 12vw, 72px);
+  height: clamp(52px, 12vw, 72px);
+  object-fit: contain;
+  filter: drop-shadow(0 4px 12px rgba(20, 58, 110, 0.2));
+  flex-shrink: 0;
+}
+
+/* ============ TITLE AREA ============ */
 .sp-title-area {
   position: relative;
   z-index: 1;
-  margin-bottom: 0.5rem;
 }
 
 .sp-title-wrap {
   display: flex;
   justify-content: center;
   align-items: baseline;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .sp-letter {
   display: inline-block;
   font-family: "Righteous", cursive;
-  font-weight: 500;
-  font-size: clamp(2.6rem, 12vw, 4rem);
+  font-size: clamp(2.8rem, 11vw, 4.2rem);
   font-weight: 400;
   font-style: normal;
-  letter-spacing: 0.5px;
-  line-height: 1.2;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  letter-spacing: 1px;
+  line-height: 1.1;
+  text-shadow:
+    0 2px 0px rgba(0, 0, 0, 0.08),
+    0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
 /* "Chiamo" — deep blue */
@@ -118,12 +140,12 @@
 .sp-animation-wrap {
   position: relative;
   z-index: 1;
-  width: clamp(180px, 45vw, 260px);
-  height: clamp(180px, 45vw, 260px);
+  width: clamp(170px, 44vw, 250px);
+  height: clamp(170px, 44vw, 250px);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0.5rem 0;
+  margin: 0.3rem 0;
 }
 
 .sp-cart-lottie {
@@ -136,12 +158,13 @@
   position: relative;
   z-index: 1;
   font-family: "Sora", -apple-system, sans-serif;
-  font-size: clamp(1rem, 3.5vw, 1.25rem);
-  font-weight: 700;
+  font-size: clamp(1.15rem, 4.5vw, 1.45rem);
+  font-weight: 800;
   text-align: center;
   margin: 0;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
   line-height: 1.5;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
 }
 
 .sp-tagline--yellow {
@@ -175,21 +198,22 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0 2rem 2.5rem;
-  min-height: 180px;
+  padding: 0.5rem 2rem 2rem;
+  min-height: 190px;
   z-index: 1;
 }
 
 /* ============ POWERED BY ============ */
 .sp-powered {
   font-family: "Sora", -apple-system, sans-serif;
-  font-size: 0.7rem;
+  font-size: 0.78rem;
   font-weight: 700;
   color: var(--sp-yellow);
   text-transform: uppercase;
   letter-spacing: 3px;
-  margin: 0 0 1.2rem 0;
+  margin: 0 0 1rem 0;
   text-align: center;
+  opacity: 0.9;
 }
 
 /* ============ PARTNER LOGOS ============ */
@@ -198,56 +222,70 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  max-width: 360px;
-  margin-bottom: 1.5rem;
-  padding: 0 8px;
+  max-width: 380px;
+  margin-bottom: 1.2rem;
+  padding: 0 4px;
+  gap: 0;
 }
 
+/* ✅ Each partner card — transparent, logo floats clean */
 .sp-partner-card {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: clamp(65px, 18vw, 90px);
-  height: clamp(65px, 18vw, 90px);
+  gap: 6px;
+  flex: 1;
+  padding: 8px 4px;
   background: transparent;
   border: none;
-  border-radius: 0;
-  padding: 8px;
   transition: all 0.3s ease;
-  box-shadow: none;
 }
 
 .sp-partner-card:hover {
-  transform: translateY(-3px) scale(1.05);
+  transform: translateY(-4px) scale(1.06);
 }
 
+/* ✅ Logo image — bigger, brighter, no filter */
 .sp-partner-img {
-  width: 100%;
-  height: 100%;
+  width: clamp(60px, 17vw, 85px);
+  height: clamp(60px, 17vw, 85px);
   object-fit: contain;
-  filter: none;
+  filter: brightness(1.15) drop-shadow(0 3px 10px rgba(255,255,255,0.15));
   opacity: 1;
   transition: all 0.3s ease;
 }
 
 .sp-partner-card:hover .sp-partner-img {
-  transform: scale(1.05);
+  filter: brightness(1.3) drop-shadow(0 4px 14px rgba(245, 166, 35, 0.35));
+}
+
+/* ✅ Partner name label below logo */
+.sp-partner-name {
+  font-family: "Sora", sans-serif;
+  font-size: clamp(0.6rem, 1.8vw, 0.72rem);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.65);
+  text-align: center;
+  letter-spacing: 0.3px;
+  line-height: 1.2;
+  max-width: 80px;
 }
 
 /* ============ SKIP HINT ============ */
 .sp-skip {
   font-family: "Sora", -apple-system, sans-serif;
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.35);
   letter-spacing: 0.5px;
   text-align: center;
   animation: spPulse 2.5s ease-in-out infinite;
 }
 
 @keyframes spPulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.8; }
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.75; }
 }
 
 /* ============ RESPONSIVE ============ */
@@ -259,12 +297,12 @@
   }
 
   .sp-bottom {
-    min-height: 160px;
-    padding: 0 1.5rem 2rem;
+    min-height: 170px;
+    padding: 0.5rem 1.5rem 2rem;
   }
 
   .sp-partners {
-    max-width: 320px;
+    max-width: 340px;
   }
 
   .sp-bg-glow--1 {
@@ -287,44 +325,51 @@
     padding: 1.25rem 1rem 0.5rem;
   }
 
+  .sp-brand-row {
+    gap: 10px;
+  }
+
+  .sp-brand-logo {
+    width: clamp(46px, 11vw, 60px);
+    height: clamp(46px, 11vw, 60px);
+  }
+
   .sp-letter {
-    font-size: clamp(2.2rem, 8.5vw, 3.2rem);
+    font-size: clamp(2.5rem, 10.5vw, 3.4rem);
   }
 
   .sp-animation-wrap {
-    width: clamp(160px, 42vw, 220px);
-    height: clamp(160px, 42vw, 220px);
-    margin: 0.25rem 0;
+    width: clamp(155px, 42vw, 210px);
+    height: clamp(155px, 42vw, 210px);
+    margin: 0.2rem 0;
   }
 
   .sp-tagline {
-    font-size: clamp(0.92rem, 3.2vw, 1.1rem);
+    font-size: clamp(1.05rem, 4.2vw, 1.25rem);
     padding: 0 0.5rem;
   }
 
   .sp-bottom {
-    min-height: 150px;
-    padding: 0 1.25rem 1.75rem;
+    min-height: 155px;
+    padding: 0.4rem 1rem 1.75rem;
   }
 
   .sp-partners {
-    max-width: 290px;
-    padding: 0 4px;
+    max-width: 310px;
   }
 
-  .sp-partner-card {
-    width: clamp(58px, 16vw, 75px);
-    height: clamp(58px, 16vw, 75px);
-    padding: 6px;
+  .sp-partner-img {
+    width: clamp(55px, 15vw, 72px);
+    height: clamp(55px, 15vw, 72px);
   }
 
   .sp-powered {
-    font-size: 0.65rem;
+    font-size: 0.68rem;
     letter-spacing: 2.5px;
   }
 
   .sp-skip {
-    font-size: 0.62rem;
+    font-size: 0.64rem;
   }
 
   .sp-bg-glow--1 {
@@ -344,63 +389,80 @@
 /* Small Phones */
 @media (max-width: 360px) {
   .sp-top {
-    padding: 1rem 0.75rem 0.5rem;
+    padding: 1rem 0.75rem 0.4rem;
+  }
+
+  .sp-brand-row {
+    gap: 8px;
+  }
+
+  .sp-brand-logo {
+    width: 44px;
+    height: 44px;
   }
 
   .sp-letter {
-    font-size: clamp(1.9rem, 7.5vw, 2.8rem);
+    font-size: clamp(2.2rem, 10vw, 3rem);
   }
 
   .sp-animation-wrap {
-    width: 150px;
-    height: 150px;
+    width: 145px;
+    height: 145px;
   }
 
   .sp-tagline {
-    font-size: 0.88rem;
+    font-size: 1rem;
   }
 
   .sp-bottom {
-    min-height: 140px;
-    padding: 0 1rem 1.5rem;
+    min-height: 145px;
+    padding: 0.4rem 0.75rem 1.5rem;
   }
 
   .sp-partners {
-    max-width: 260px;
+    max-width: 280px;
   }
 
-  .sp-partner-card {
+  .sp-partner-img {
     width: 52px;
     height: 52px;
-    padding: 5px;
+  }
+
+  .sp-partner-name {
+    font-size: 0.58rem;
+    max-width: 65px;
   }
 
   .sp-powered {
-    font-size: 0.6rem;
-    margin-bottom: 1rem;
+    font-size: 0.62rem;
+    margin-bottom: 0.8rem;
   }
 }
 
 /* Tall Phones (extra space) */
 @media (min-height: 800px) {
   .sp-animation-wrap {
-    width: clamp(200px, 45vw, 280px);
-    height: clamp(200px, 45vw, 280px);
-    margin: 1rem 0;
+    width: clamp(200px, 45vw, 270px);
+    height: clamp(200px, 45vw, 270px);
+    margin: 0.8rem 0;
   }
 
   .sp-tagline {
-    margin-top: 0.5rem;
+    margin-top: 0.3rem;
   }
 
   .sp-partners {
-    max-width: 380px;
+    max-width: 400px;
   }
 
-  .sp-partner-card {
+  .sp-partner-img {
     width: clamp(70px, 18vw, 95px);
     height: clamp(70px, 18vw, 95px);
-    padding: 10px;
+  }
+
+  .sp-bottom {
+    min-height: 200px;
+    padding: 0.8rem 2rem 2.5rem;
   }
 }
 
@@ -415,13 +477,20 @@
     padding: 0.75rem;
   }
 
-  .sp-title-area {
+  .sp-brand-row {
+    flex-direction: row;
+    gap: 10px;
     margin-bottom: 0;
   }
 
+  .sp-brand-logo {
+    width: 36px;
+    height: 36px;
+  }
+
   .sp-animation-wrap {
-    width: 100px;
-    height: 100px;
+    width: 90px;
+    height: 90px;
     margin: 0;
   }
 
@@ -439,7 +508,7 @@
     left: 0;
     right: 0;
     min-height: auto;
-    padding: 0.5rem;
+    padding: 0.4rem;
     flex-direction: row;
     gap: 12px;
     background: rgba(10, 31, 63, 0.95);
@@ -452,16 +521,25 @@
   .sp-partners {
     max-width: none;
     width: auto;
-    gap: 12px;
+    gap: 16px;
     margin: 0;
     padding: 0;
     justify-content: center;
   }
 
   .sp-partner-card {
-    width: 40px;
-    height: 40px;
-    padding: 5px;
+    flex: unset;
+    gap: 4px;
+  }
+
+  .sp-partner-img {
+    width: 36px;
+    height: 36px;
+  }
+
+  .sp-partner-name {
+    font-size: 0.5rem;
+    max-width: 50px;
   }
 
   .sp-skip {
@@ -469,7 +547,7 @@
   }
 
   .sp-letter {
-    font-size: clamp(1.4rem, 5vw, 2rem);
+    font-size: clamp(1.4rem, 7vw, 2rem);
   }
 }
 

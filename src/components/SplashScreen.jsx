@@ -8,13 +8,14 @@ import "./SplashScreen.css";
 // ============ CONFIGURATION ============
 const CONFIG = {
   title: "ChiamoOrder",
-  tagline: { part1: "Shop smarter, ", part2: "Order faster." },
+  tagline: { part1: "Shop Smarter, ", part2: "Order Faster." },
   splashDuration: 5000,
   letterDelay: 0.05,
 };
 
 // ============ IMAGE URLS ============
 const IMAGES = {
+  mainLogo: "https://ik.imagekit.io/ljwnlcbqyu/chiamoorderlogo.png",
   chiamoLogo: "https://ik.imagekit.io/ljwnlcbqyu/CHIAMO_MULTITRADE_LOGO.png",
   ghadcoLogo: "https://ik.imagekit.io/ljwnlcbqyu/GHADCO_LOGO.png",
   mamudaLogo: "https://ik.imagekit.io/ljwnlcbqyu/mamuda-logo.png",
@@ -72,8 +73,6 @@ const AnimatedTitle = ({ text }) => {
   );
 };
 
-
-
 // ============ MAIN SPLASH SCREEN ============
 const SplashScreen = ({ onFinish }) => {
   const [show, setShow] = useState(true);
@@ -127,13 +126,12 @@ const SplashScreen = ({ onFinish }) => {
         >
           {/* ===== WHITE SECTION (Top) ===== */}
           <div className="sp-top">
-            {/* Background decorations */}
             <div className="sp-bg-glow sp-bg-glow--1" />
             <div className="sp-bg-glow sp-bg-glow--2" />
 
-            {/* Title */}
+            {/* ✅ Logo Image + Animated Title together */}
             <motion.div
-              className="sp-title-area"
+              className="sp-brand-row"
               initial={{ opacity: 0, y: -20 }}
               animate={
                 showContent
@@ -142,7 +140,17 @@ const SplashScreen = ({ onFinish }) => {
               }
               transition={{ duration: 0.6, ease: "easeOut" }}
             >
-              <AnimatedTitle text={CONFIG.title} />
+              {/* Logo Image */}
+              <img
+                src={IMAGES.mainLogo}
+                alt="ChiamoOrder Logo"
+                className="sp-brand-logo"
+              />
+
+              {/* Animated Text */}
+              <div className="sp-title-area">
+                <AnimatedTitle text={CONFIG.title} />
+              </div>
             </motion.div>
 
             {/* Cart Animation */}
@@ -168,7 +176,7 @@ const SplashScreen = ({ onFinish }) => {
               />
             </motion.div>
 
-            {/* Tagline - Two colors */}
+            {/* Tagline */}
             <motion.p
               className="sp-tagline"
               initial={{ opacity: 0, y: 12 }}
@@ -179,12 +187,16 @@ const SplashScreen = ({ onFinish }) => {
               }
               transition={{ duration: 0.5, ease: "easeOut" }}
             >
-              <span className="sp-tagline--yellow">{CONFIG.tagline.part1}</span>
-              <span className="sp-tagline--blue">{CONFIG.tagline.part2}</span>
+              <span className="sp-tagline--yellow">
+                {CONFIG.tagline.part1}
+              </span>
+              <span className="sp-tagline--blue">
+                {CONFIG.tagline.part2}
+              </span>
             </motion.p>
           </div>
 
-                    {/* ===== HILL/SLOPE DIVIDER ===== */}
+          {/* ===== HILL/SLOPE DIVIDER ===== */}
           <div className="sp-hill-wrap">
             <svg
               className="sp-hill-svg"
@@ -203,13 +215,10 @@ const SplashScreen = ({ onFinish }) => {
           <motion.div
             className="sp-bottom"
             initial={{ opacity: 0 }}
-            animate={
-              showFooter ? { opacity: 1 } : { opacity: 0 }
-            }
+            animate={showFooter ? { opacity: 1 } : { opacity: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
           >
-            {/* Powered By */}
-            <p className="sp-powered">POWERED BY</p>
+            <p className="sp-powered">✦ Powered By ✦</p>
 
             {/* Partner Logos */}
             <div className="sp-partners">
@@ -217,11 +226,11 @@ const SplashScreen = ({ onFinish }) => {
                 <motion.div
                   key={index}
                   className="sp-partner-card"
-                  initial={{ opacity: 0, y: 15, scale: 0.9 }}
+                  initial={{ opacity: 0, y: 15, scale: 0.85 }}
                   animate={
                     showFooter
                       ? { opacity: 1, y: 0, scale: 1 }
-                      : { opacity: 0, y: 15, scale: 0.9 }
+                      : { opacity: 0, y: 15, scale: 0.85 }
                   }
                   transition={{
                     duration: 0.5,
@@ -234,6 +243,7 @@ const SplashScreen = ({ onFinish }) => {
                     alt={logo.alt}
                     className="sp-partner-img"
                   />
+                  <span className="sp-partner-name">{logo.alt}</span>
                 </motion.div>
               ))}
             </div>
@@ -242,9 +252,7 @@ const SplashScreen = ({ onFinish }) => {
             <motion.span
               className="sp-skip"
               initial={{ opacity: 0 }}
-              animate={
-                showFooter ? { opacity: 1 } : { opacity: 0 }
-              }
+              animate={showFooter ? { opacity: 1 } : { opacity: 0 }}
               transition={{ duration: 0.3, delay: 0.8 }}
             >
               Tap anywhere to continue

@@ -163,9 +163,7 @@ const useCountdown = (endTime) => {
   return timeLeft;
 };
 
-const [promoQueue, setPromoQueue] = useState([]);
-const [activePromo, setActivePromo] = useState(null);
-const [shownPromos, setShownPromos] = useState(new Set());
+
 // ============ HOME HEADER COMPONENT ============
 const HomeHeader = ({ businessName, cartCount, smartListCount, navigate }) => {
   const { unreadCount } = useNotifications();
@@ -591,40 +589,10 @@ const FlashSaleSection = ({ addToCart }) => {
   );
 };
 
-// ✅ Check promos whenever cart changes
-useEffect(() => {
-  if (!cart || cart.length === 0) return;
 
-  const triggered = checkPromos(cart);
 
-  const newPromos = triggered.filter(
-    (p) => !shownPromos.has(p.key)
-  );
 
-  if (newPromos.length > 0 && !activePromo) {
-    setActivePromo(newPromos[0]);
-    setShownPromos((prev) => new Set([...prev, newPromos[0].key]));
-  }
-}, [cart]);
 
-// ✅ Handle promo accept
-const handlePromoAccept = (promo) => {
-  if (promo.freeItem) {
-    // Add free item to cart
-    addToCart(
-      promo.freeItem.slug || promo.freeItem.productId,
-      1,
-      promo.freeItem.name
-    ).then(() => {
-      toast.success(
-        `🎁 FREE ${promo.freeItem.name} added to your cart!`,
-        { duration: 4000, position: "bottom-center" }
-      );
-    }).catch(() => {
-      toast.error("Could not add promo item. Please contact support.");
-    });
-  }
-};
 // ============ FEATURES SECTION ============
 const FeaturesSection = () => {
   const navigate = useNavigate();
@@ -692,13 +660,44 @@ export default function HomePage() {
   const navigate = useNavigate();
   const { cartCount, addToCart, cart } = useCart();
 
-  let totalSmartListCount = 0;
-  try {
-    const smartListContext = useSmartLists();
-    totalSmartListCount = smartListContext?.totalSmartListCount || 0;
-  } catch (error) {
-    totalSmartListCount = 0;
+  const [promoQueue, setPromoQueue] = useState([]);
+  const [activePromo, setActivePromo] = useState(null);
+  const [shownPromos, setShownPromos] = useState(new Set());
+
+  useEffect(() => {
+  if (!cart || cart.length === 0) return;
+
+  const triggered = checkPromos(cart);
+
+  const newPromos = triggered.filter(
+    (p) => !shownPromos.has(p.key)
+  );
+
+  if (newPromos.length > 0 && !activePromo) {
+    setActivePromo(newPromos[0]);
+    setShownPromos((prev) => new Set([...prev, newPromos[0].key]));
   }
+}, [cart]);
+  // ✅ Handle promo accept
+  const handlePromoAccept = (promo) => {
+    if (promo.freeItem) {
+      // Add free item to cart
+      addToCart(
+        promo.freeItem.slug || promo.freeItem.productId,
+        1,
+        promo.freeItem.name
+      ).then(() => {
+        toast.success(
+          `🎁 FREE ${promo.freeItem.name} added to your cart!`,
+          { duration: 4000, position: "bottom-center" }
+        );
+      }).catch(() => {
+        toast.error("Could not add promo item. Please contact support.");
+      });
+    }
+  };
+  const smartListContext = useSmartLists();
+  const totalSmartListCount = smartListContext?.totalSmartListCount || 0;
 
   const { unreadCount } = useNotifications();
 

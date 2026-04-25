@@ -565,100 +565,21 @@ export default function Cart() {
   const [showSetPinModal, setShowSetPinModal] = useState(false);
   const [deliveryMethod, setDeliveryMethod] = useState("delivery");
   const [showClearConfirm, setShowClearConfirm] = useState(false);
-  
 
   // ✅ PROMO STATE
   const [activePromo, setActivePromo] = useState(null);
   const [shownPromos, setShownPromos] = useState(new Set());
   const [claimedPromos, setClaimedPromos] = useState([]);
 
-  // ✅ PROMO CHECKER — fires when cart or pending quantities change
-  useEffect(() => {
-    if (!cart || cart.length === 0) return;
-
-    // Build cart with pending quantities applied
-    const cartWithPending = cart.map((item) => {
-      const productId = item.productId || item.id;
-      return {
-        ...item,
-        quantity:
-          pendingQuantities[productId] !== undefined
-            ? pendingQuantities[productId]
-            : Number(item.quantity) || 1,
-      };
-    });
-
-    const triggered = checkPromos(cartWithPending);
-
-    // Only show promos not already shown
-    const newPromos = triggered.filter(
-      (p) => !shownPromos.has(p.key) &&
-            !claimedPromos.includes(p.key)
-    );
-
-    if (newPromos.length > 0 && !activePromo) {
-      setActivePromo(newPromos[0]);
-      setShownPromos((prev) => new Set([...prev, newPromos[0].key]));
-    }
-  }, [cart, pendingQuantities]);
-
-  // ✅ HANDLE PROMO ACCEPT — adds free item to cart
-const handlePromoAccept = async (promo) => {
-  if (!promo?.freeItem) return;
-
-  try {
-    const identifier =
-      promo.freeItem.slug ||
-      promo.freeItem.productId;
-
-    if (!identifier) {
-      toast.error("Could not add promo item.");
-      return;
-    }
-
-    // Add 1 free item to cart
-    await updateQty(identifier, 1);
-
-    // Mark as claimed so it doesn't re-trigger
-    setClaimedPromos((prev) => [...prev, promo.key]);
-
-    // Add notification
-    const notification = {
-      id: Date.now(),
-      type: "promo",
-      title: "🎁 Promo Item Unlocked!",
-      message: `You just won a FREE ${promo.freeItem.name}! It has been added to your cart as a promo item.`,
-      is_read: false,
-      created_at: new Date().toISOString(),
-    };
-    addNotification(notification);
-
-    toast.success(
-      `🎁 FREE ${promo.freeItem.name} added to your cart!`,
-      {
-        duration: 5000,
-        position: "bottom-center",
-        style: {
-          background: "#7c3aed",
-          color: "#fff",
-          fontWeight: "700",
-        },
-      }
-    );
-  } catch (err) {
-    console.error("Failed to add promo item:", err);
-    toast.error("Could not add promo item. Contact support.");
-  }
-};
-  
-  // ✅ OPTIMISTIC QUANTITY STATE - Stores pending quantity changes
+  // ✅ OPTIMISTIC QUANTITY STATE — must be declared BEFORE any useEffect that uses it
   const [pendingQuantities, setPendingQuantities] = useState({});
-  
-  // ✅ DEBOUNCE TIMERS - One per product for independent debouncing
+
+  // ✅ DEBOUNCE TIMERS
   const debounceTimers = useRef({});
-  
-  // ✅ DEBOUNCE DELAY (ms) - How long to wait after user stops clicking
   const DEBOUNCE_DELAY = 800;
+
+  // ✅ Other refs
+  const itemOrderRef = useRef([]);
 
   const storedUser = JSON.parse(localStorage.getItem("auth_user") || "{}");
   const customerId =
@@ -669,9 +590,7 @@ const handlePromoAccept = async (promo) => {
     storedUser?.profile?.id ||
     null;
 
-  // ✅ Track original item order so items don't jump when qty changes
-  const itemOrderRef = useRef([]);
-
+  // ✅ Track original item order
   useEffect(() => {
     const currentIds = cart.map((item) => item.productId || item.id);
     const existingOrder = itemOrderRef.current.filter((id) =>
@@ -688,7 +607,80 @@ const handlePromoAccept = async (promo) => {
     };
   }, []);
 
-  // ✅ Stable-sorted cart that never reorders on qty change
+  // ✅ PROMO CHECKER — pendingQuantities is now declared above
+  useEffect(() => {
+    if (!cart || cart.length === 0) return;
+
+    const cartWithPending = cart.map((item) => {
+      const productId = item.productId || item.id;
+      return {
+        ...item,
+        quantity:
+          pendingQuantities[productId] !== undefined
+            ? pendingQuantities[productId]
+            : Number(item.quantity) || 1,
+      };
+    });
+
+    const triggered = checkPromos(cartWithPending);
+
+    const newPromos = triggered.filter(
+      (p) =>
+        !shownPromos.has(p.key) &&
+        !claimedPromos.includes(p.key)
+    );
+
+    if (newPromos.length > 0 && !activePromo) {
+      setActivePromo(newPromos[0]);
+      setShownPromos((prev) => new Set([...prev, newPromos[0].key]));
+    }
+  }, [cart, pendingQuantities]);
+
+  // ✅ HANDLE PROMO ACCEPT
+  const handlePromoAccept = async (promo) => {
+    if (!promo?.freeItem) return;
+
+    try {
+      const identifier = promo.freeItem.slug || promo.freeItem.productId;
+
+      if (!identifier) {
+        toast.error("Could not add promo item.");
+        return;
+      }
+
+      await updateQty(identifier, 1);
+
+      setClaimedPromos((prev) => [...prev, promo.key]);
+
+      const notification = {
+        id: Date.now(),
+        type: "promo",
+        title: "🎁 Promo Item Unlocked!",
+        message: `You just won a FREE ${promo.freeItem.name}! Added to your cart as a promo item.`,
+        is_read: false,
+        created_at: new Date().toISOString(),
+      };
+      addNotification(notification);
+
+      toast.success(
+        `🎁 FREE ${promo.freeItem.name} added to your cart!`,
+        {
+          duration: 5000,
+          position: "bottom-center",
+          style: {
+            background: "#7c3aed",
+            color: "#fff",
+            fontWeight: "700",
+          },
+        }
+      );
+    } catch (err) {
+      console.error("Failed to add promo item:", err);
+      toast.error("Could not add promo item. Contact support.");
+    }
+  };
+
+  // ✅ Stable-sorted cart
   const stableCart = useMemo(() => {
     const order = itemOrderRef.current;
     return [...cart].sort((a, b) => {
@@ -704,58 +696,47 @@ const handlePromoAccept = async (promo) => {
   }, [cart]);
 
   // ✅ OPTIMISTIC QUANTITY UPDATE HANDLER
-  const handleOptimisticQtyUpdate = useCallback((productId, newQty) => {
-    // 1️⃣ IMMEDIATELY update local state (optimistic update)
-    setPendingQuantities(prev => ({
-      ...prev,
-      [productId]: newQty
-    }));
+  const handleOptimisticQtyUpdate = useCallback(
+    (productId, newQty) => {
+      setPendingQuantities((prev) => ({ ...prev, [productId]: newQty }));
 
-    // 2️⃣ Clear existing debounce timer for this product
-    if (debounceTimers.current[productId]) {
-      clearTimeout(debounceTimers.current[productId]);
-    }
-
-    // 3️⃣ Set new debounce timer to sync with backend
-    debounceTimers.current[productId] = setTimeout(async () => {
-      try {
-        // Sync to backend
-        await updateQty(productId, newQty);
-        
-        // Clear pending state after successful sync
-        setPendingQuantities(prev => {
-          const updated = { ...prev };
-          delete updated[productId];
-          return updated;
-        });
-        
-        console.log(`✅ Synced qty for ${productId}: ${newQty}`);
-      } catch (error) {
-        console.error(`❌ Failed to sync qty for ${productId}:`, error);
-        
-        // Revert to original quantity on error
-        setPendingQuantities(prev => {
-          const updated = { ...prev };
-          delete updated[productId];
-          return updated;
-        });
-        
-        toast.error("Failed to update quantity. Please try again.", {
-          position: 'bottom-center',
-        });
+      if (debounceTimers.current[productId]) {
+        clearTimeout(debounceTimers.current[productId]);
       }
-    }, DEBOUNCE_DELAY);
-  }, [updateQty]);
 
-  // ✅ Calculate totals using PENDING quantities where available
+      debounceTimers.current[productId] = setTimeout(async () => {
+        try {
+          await updateQty(productId, newQty);
+          setPendingQuantities((prev) => {
+            const updated = { ...prev };
+            delete updated[productId];
+            return updated;
+          });
+        } catch (error) {
+          console.error(`❌ Failed to sync qty:`, error);
+          setPendingQuantities((prev) => {
+            const updated = { ...prev };
+            delete updated[productId];
+            return updated;
+          });
+          toast.error("Failed to update quantity. Please try again.", {
+            position: "bottom-center",
+          });
+        }
+      }, DEBOUNCE_DELAY);
+    },
+    [updateQty]
+  );
+
+  // ✅ Subtotal with pending quantities
   const subtotal = useMemo(() => {
     return cart.reduce((sum, item) => {
       const price = parsePrice(item.price);
       const productId = item.productId || item.id;
-      // Use pending quantity if available, otherwise use cart quantity
-      const qty = pendingQuantities[productId] !== undefined 
-        ? pendingQuantities[productId] 
-        : (Number(item.quantity) || 1);
+      const qty =
+        pendingQuantities[productId] !== undefined
+          ? pendingQuantities[productId]
+          : Number(item.quantity) || 1;
       return sum + price * qty;
     }, 0);
   }, [cart, pendingQuantities]);

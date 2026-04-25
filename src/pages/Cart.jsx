@@ -15,7 +15,7 @@ import {
   saveClaimedPromo,
 } from "../hooks/usePromoChecker";
 import PromoModal from "../components/PromoModal";
-import { checkPromos } from "../hooks/usePromoChecker";
+
 // Icons — removed FiChevronLeft (replaced with simple arrow)
 import {
   FiShoppingCart,

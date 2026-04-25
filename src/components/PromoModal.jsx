@@ -139,6 +139,12 @@ const PromoModal = ({
               <span className="promo-detail-value">
                 {promoData.rewardText}
               </span>
+              {/* ✅ Promo tag badge */}
+              {promoData.freeItem?.promoTag && (
+                <span className="promo-item-tag">
+                  {promoData.freeItem.promoTag}
+                </span>
+              )}
             </div>
           </div>
 

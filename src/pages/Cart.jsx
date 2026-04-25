@@ -11,6 +11,8 @@ import SetTransactionPinModal from "../components/SetTransactionPinModal";
 import { imageUrl, PLACEHOLDER } from "../utils/image";
 import "./Cart.css";
 
+import PromoModal from "../components/PromoModal";
+import { checkPromos } from "../hooks/usePromoChecker";
 // Icons — removed FiChevronLeft (replaced with simple arrow)
 import {
   FiShoppingCart,
@@ -564,6 +566,91 @@ export default function Cart() {
   const [deliveryMethod, setDeliveryMethod] = useState("delivery");
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   
+
+  // ✅ PROMO STATE
+  const [activePromo, setActivePromo] = useState(null);
+  const [shownPromos, setShownPromos] = useState(new Set());
+  const [claimedPromos, setClaimedPromos] = useState([]);
+
+  // ✅ PROMO CHECKER — fires when cart or pending quantities change
+  useEffect(() => {
+    if (!cart || cart.length === 0) return;
+
+    // Build cart with pending quantities applied
+    const cartWithPending = cart.map((item) => {
+      const productId = item.productId || item.id;
+      return {
+        ...item,
+        quantity:
+          pendingQuantities[productId] !== undefined
+            ? pendingQuantities[productId]
+            : Number(item.quantity) || 1,
+      };
+    });
+
+    const triggered = checkPromos(cartWithPending);
+
+    // Only show promos not already shown
+    const newPromos = triggered.filter(
+      (p) => !shownPromos.has(p.key) &&
+            !claimedPromos.includes(p.key)
+    );
+
+    if (newPromos.length > 0 && !activePromo) {
+      setActivePromo(newPromos[0]);
+      setShownPromos((prev) => new Set([...prev, newPromos[0].key]));
+    }
+  }, [cart, pendingQuantities]);
+
+  // ✅ HANDLE PROMO ACCEPT — adds free item to cart
+const handlePromoAccept = async (promo) => {
+  if (!promo?.freeItem) return;
+
+  try {
+    const identifier =
+      promo.freeItem.slug ||
+      promo.freeItem.productId;
+
+    if (!identifier) {
+      toast.error("Could not add promo item.");
+      return;
+    }
+
+    // Add 1 free item to cart
+    await updateQty(identifier, 1);
+
+    // Mark as claimed so it doesn't re-trigger
+    setClaimedPromos((prev) => [...prev, promo.key]);
+
+    // Add notification
+    const notification = {
+      id: Date.now(),
+      type: "promo",
+      title: "🎁 Promo Item Unlocked!",
+      message: `You just won a FREE ${promo.freeItem.name}! It has been added to your cart as a promo item.`,
+      is_read: false,
+      created_at: new Date().toISOString(),
+    };
+    addNotification(notification);
+
+    toast.success(
+      `🎁 FREE ${promo.freeItem.name} added to your cart!`,
+      {
+        duration: 5000,
+        position: "bottom-center",
+        style: {
+          background: "#7c3aed",
+          color: "#fff",
+          fontWeight: "700",
+        },
+      }
+    );
+  } catch (err) {
+    console.error("Failed to add promo item:", err);
+    toast.error("Could not add promo item. Contact support.");
+  }
+};
+  
   // ✅ OPTIMISTIC QUANTITY STATE - Stores pending quantity changes
   const [pendingQuantities, setPendingQuantities] = useState({});
   
@@ -962,6 +1049,15 @@ export default function Cart() {
           setShowPinModal(true);
         }}
       />
+
+      <PromoModal
+        isOpen={!!activePromo}
+        onClose={() => setActivePromo(null)}
+        onAccept={handlePromoAccept}
+        onReject={() => setActivePromo(null)}
+        promoData={activePromo}
+      />
+
 
       <div className="cart-bottom-spacer"></div>
     </div>

@@ -1,6 +1,5 @@
 /* ============================================
    PROMO SECTION — ChiamoOrder Homepage
-   Premium style with category-specific colors
    ============================================ */
 
 .ps-section {
@@ -42,8 +41,8 @@
 }
 
 @keyframes psSparkle {
-  0%, 100% { transform: scale(1) rotate(0deg);    opacity: 0.7; }
-  50%       { transform: scale(1.3) rotate(180deg); opacity: 1;  }
+  0%, 100% { transform: scale(1) rotate(0deg);     opacity: 0.7; }
+  50%       { transform: scale(1.3) rotate(180deg); opacity: 1;   }
 }
 
 /* ── Scroll Container ─────────────────────── */
@@ -60,9 +59,7 @@
   -ms-overflow-style: none;
 }
 
-.ps-scroll::-webkit-scrollbar {
-  display: none;
-}
+.ps-scroll::-webkit-scrollbar { display: none; }
 
 /* ── Promo Card ───────────────────────────── */
 .ps-card {
@@ -94,7 +91,7 @@
   margin-bottom: 12px;
 }
 
-/* ── Header — Icon + Title ────────────────── */
+/* ── Card Header ──────────────────────────── */
 .ps-card-header {
   display: flex;
   align-items: center;
@@ -128,54 +125,55 @@
 
 /* ── Description ──────────────────────────── */
 .ps-card-desc {
-  font-size: 13px;
+  font-size: 12.5px;
   color: #3d4a63;
   line-height: 1.55;
   margin: 0 0 14px 0;
-  font-weight: 450;
 }
 
-/* ── Product Image Previews ───────────────── */
-.ps-card-products {
+/* ── Sliding Images ───────────────────────── */
+.ps-images-row {
+  position: relative;
   display: flex;
-  gap: 7px;
+  align-items: center;
+  gap: 8px;
+  height: 72px;
   margin-bottom: 14px;
+  overflow: hidden;
 }
 
-.ps-card-product-img {
-  width: 48px;
-  height: 48px;
+.ps-img-item {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
   border-radius: 12px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.85);
-  border: 1.5px solid rgba(0, 0, 0, 0.06);
-  flex-shrink: 0;
-  transition: transform 0.25s ease;
+  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  opacity: 0.55;
+  transform: scale(0.88);
 }
 
-.ps-card-product-img:hover {
+/* Active image — bigger, full opacity, no border */
+.ps-img-item.ps-img-active {
+  opacity: 1;
   transform: scale(1.08);
+  z-index: 2;
 }
 
-.ps-card-product-img img {
+/* Previously active — slightly visible */
+.ps-img-item.ps-img-prev {
+  opacity: 0.75;
+  transform: scale(0.95);
+}
+
+.ps-img-item img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  padding: 5px;
-}
-
-.ps-card-product-more {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.6);
-  border: 1.5px dashed rgba(0, 0, 0, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
-  color: #64748b;
+  padding: 6px;
+  /* ✅ NO background, NO border */
+  background: transparent;
+  border: none;
 }
 
 /* ── CTA Button ───────────────────────────── */
@@ -199,7 +197,6 @@
   overflow: hidden;
 }
 
-/* Shimmer effect on button */
 .ps-card-btn::after {
   content: "";
   position: absolute;
@@ -210,7 +207,7 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 255, 255, 0.2),
+    rgba(255, 255, 255, 0.22),
     transparent
   );
   transform: skewX(-20deg);
@@ -225,19 +222,15 @@
 .ps-card-btn:hover {
   opacity: 0.92;
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
 }
 
-.ps-card-btn:active {
-  transform: translateY(0);
-}
-
-/* ── Expiry Date ──────────────────────────── */
+/* ── Expiry Row ───────────────────────────── */
 .ps-card-expiry {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 6px;
   padding: 8px 12px;
   background: rgba(0, 0, 0, 0.04);
   border-radius: 10px;
@@ -259,26 +252,28 @@
 
 /* ============ RESPONSIVE ============ */
 
-/* Tablets */
 @media (max-width: 768px) {
   .ps-card {
     flex: 0 0 245px;
     padding: 16px 14px 12px;
   }
 
-  .ps-card-title {
-    font-size: 15px;
+  .ps-card-title { font-size: 15px; }
+  .ps-card-desc  { font-size: 12.5px; }
+
+  .ps-img-item {
+    width: 60px;
+    height: 60px;
   }
 
-  .ps-card-desc {
-    font-size: 12.5px;
+  .ps-images-row {
+    height: 68px;
   }
 }
 
-/* Mobile */
 @media (max-width: 480px) {
   .ps-card {
-    flex: 0 0 235px;
+    flex: 0 0 238px;
     padding: 15px 13px 12px;
     border-radius: 16px;
   }
@@ -290,91 +285,66 @@
     border-radius: 10px;
   }
 
-  .ps-card-title {
-    font-size: 14.5px;
-  }
+  .ps-card-title   { font-size: 15px; }
+  .ps-card-desc    { font-size: 13px; line-height: 1.5; margin-bottom: 12px; }
+  .ps-card-tag     { font-size: 10px; padding: 3px 10px; }
 
-  .ps-card-desc {
-    font-size: 12.5px;
-    line-height: 1.5;
-    margin-bottom: 12px;
-  }
-
-  .ps-card-tag {
-    font-size: 9.5px;
-    padding: 3px 10px;
-  }
-
-  .ps-card-product-img {
-    width: 44px;
-    height: 44px;
+  .ps-img-item {
+    width: 58px;
+    height: 58px;
     border-radius: 10px;
   }
 
+  .ps-images-row {
+    height: 64px;
+    gap: 6px;
+  }
+
+  .ps-img-item img {
+    padding: 5px;
+  }
+
   .ps-card-btn {
-    padding: 10px;
-    font-size: 13px;
+    padding: 11px;
+    font-size: 13.5px;
     border-radius: 10px;
   }
 
   .ps-card-expiry {
-    font-size: 11px;
+    font-size: 11.5px;
     padding: 7px 10px;
     border-radius: 8px;
   }
 
-  .ps-subtitle {
-    font-size: 11px;
-  }
-
-  .ps-title-icon {
-    width: 34px;
-    height: 34px;
-    font-size: 16px;
-  }
+  .ps-subtitle    { font-size: 11.5px; }
+  .ps-title-icon  { width: 34px; height: 34px; font-size: 16px; }
 }
 
-/* Small Phones */
 @media (max-width: 360px) {
   .ps-card {
-    flex: 0 0 220px;
+    flex: 0 0 222px;
     padding: 14px 12px 10px;
   }
 
-  .ps-card-icon {
-    width: 36px;
-    height: 36px;
-    font-size: 16px;
+  .ps-card-icon   { width: 36px; height: 36px; font-size: 16px; }
+  .ps-card-title  { font-size: 14.5px; }
+  .ps-card-desc   { font-size: 12.5px; }
+
+  .ps-img-item {
+    width: 52px;
+    height: 52px;
   }
 
-  .ps-card-title {
-    font-size: 14px;
+  .ps-images-row {
+    height: 58px;
+    gap: 5px;
   }
 
-  .ps-card-desc {
-    font-size: 12px;
-  }
-
-  .ps-card-btn {
-    font-size: 12.5px;
-    padding: 9px;
-  }
-
-  .ps-card-expiry {
-    font-size: 10.5px;
-  }
-
-  .ps-card-product-img {
-    width: 40px;
-    height: 40px;
-  }
+  .ps-card-btn    { font-size: 13px; padding: 10px; }
+  .ps-card-expiry { font-size: 11px; }
 }
 
 /* ── Dark Mode ────────────────────────────── */
-[data-theme="dark"] .ps-card {
-  background-color: var(--hp-bg-card) !important;
-}
-
 [data-theme="dark"] .ps-card-desc {
   color: #94a3b8;
 }
@@ -384,15 +354,7 @@
   color: #94a3b8;
 }
 
-[data-theme="dark"] .ps-card-expiry strong {
-  color: #f5a623;
-}
-
+[data-theme="dark"] .ps-card-expiry strong,
 [data-theme="dark"] .ps-card-expiry-icon {
   color: #f5a623;
-}
-
-[data-theme="dark"] .ps-card-product-img {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.1);
 }

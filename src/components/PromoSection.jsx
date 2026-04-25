@@ -1,5 +1,5 @@
 // src/components/PromoSection.jsx
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FiGift,
@@ -16,6 +16,8 @@ import { LuCandy } from "react-icons/lu";
 import { HiOutlineSparkles } from "react-icons/hi";
 import "./PromoSection.css";
 
+const IK = "https://ik.imagekit.io/ljwnlcbqyu";
+
 // ── Promo Deals Data ──────────────────────
 const PROMO_DEALS = [
   {
@@ -24,23 +26,12 @@ const PROMO_DEALS = [
     tag: "BUY 25 GET 1 FREE",
     title: "Jelly Promo",
     description:
-      "Buy any 25 cartons of our premium jelly products and get 1 FREE carton of that same jelly!",
-    products: [
-      {
-        name: "NOVA JELLY 125g*48",
-        image:
-          "https://ik.imagekit.io/ljwnlcbqyu/beauty/NOVA_JELLY125g-48pcs.png",
-      },
-      {
-        name: "CLASSY JELLY 100g*48",
-        image:
-          "https://ik.imagekit.io/ljwnlcbqyu/beauty/CLASSY_JELLY_48PCS-100g.png",
-      },
-      {
-        name: "MAMA'S LOVE JELLY 150g*48",
-        image:
-          "https://ik.imagekit.io/ljwnlcbqyu/beauty/MAMA_S_LOVE_JELLY_48pcs-150g.png",
-      },
+      "Buy any 25 cartons of our premium jelly and get 1 FREE carton of the same jelly!",
+    images: [
+      `${IK}/beauty/NOVA_JELLY125g-48pcs.png`,
+      `${IK}/beauty/CLASSY_JELLY_48PCS-100g.png`,
+      `${IK}/beauty/MAMA_S_LOVE_JELLY_48pcs-150g.png`,
+      `${IK}/beauty/NOVA_JELLY_450g-12PCS.png`,
     ],
     btnColor: "#7c3aed",
     btnHover: "#6d28d9",
@@ -49,7 +40,9 @@ const PROMO_DEALS = [
     iconBg: "rgba(124, 58, 237, 0.12)",
     iconColor: "#7c3aed",
     titleColor: "#6d28d9",
-    category: "beauty",
+    // Redirect to beauty filtered by jelly search
+    shopUrl: "/all-products?category=beauty&search=jelly",
+    promoMode: "jelly",
   },
   {
     id: 2,
@@ -57,13 +50,12 @@ const PROMO_DEALS = [
     tag: "BUY 25 GET 1 FREE",
     title: "Power Mint Promo",
     description:
-      "Stock up on Power Mint! Buy 25 cartons and receive 1 FREE carton added automatically.",
-    products: [
-      {
-        name: "POWER MINT",
-        image:
-          "https://ik.imagekit.io/ljwnlcbqyu/food/Food23-sweet.png?updatedAt=1771851133865",
-      },
+      "Buy 25 cartons of Power Mint and receive 1 FREE carton added automatically!",
+    images: [
+      `${IK}/food/Food23-sweet.png?updatedAt=1771851133865`,
+      `${IK}/food/Food23-sweet.png?updatedAt=1771851133865`,
+      `${IK}/food/Food23-sweet.png?updatedAt=1771851133865`,
+      `${IK}/food/Food23-sweet.png?updatedAt=1771851133865`,
     ],
     btnColor: "#d4a017",
     btnHover: "#b8880f",
@@ -73,7 +65,8 @@ const PROMO_DEALS = [
     iconBg: "rgba(212, 160, 23, 0.15)",
     iconColor: "#d4a017",
     titleColor: "#9a7010",
-    category: "food",
+    shopUrl: "/all-products?category=food&search=power+mint",
+    promoMode: "powermint",
   },
   {
     id: 3,
@@ -81,16 +74,22 @@ const PROMO_DEALS = [
     tag: "500 PACKS = 5% FREE",
     title: "Beverage Bonus",
     description:
-      "Order 500 packs of any beverage products and get 5% FREE stock to choose from our range!",
-    products: [],
-    btnColor: "#dc2626",
-    btnHover: "#b91c1c",
-    bgColor: "rgba(220, 38, 38, 0.05)",
-    borderColor: "rgba(220, 38, 38, 0.2)",
-    iconBg: "rgba(220, 38, 38, 0.1)",
-    iconColor: "#dc2626",
-    titleColor: "#b91c1c",
-    category: "beverage",
+      "Order 500 packs of any beverage and get 5% FREE stock to choose from!",
+    images: [
+      `${IK}/beverages/Bev4.png`,
+      `${IK}/beverages/Bev8.png`,
+      `${IK}/beverages/Bev1.png`,
+      `${IK}/beverages/Bev15.png`,
+    ],
+    btnColor: "#8b0000",
+    btnHover: "#6b0000",
+    bgColor: "rgba(139, 0, 0, 0.05)",
+    borderColor: "rgba(139, 0, 0, 0.2)",
+    iconBg: "rgba(139, 0, 0, 0.1)",
+    iconColor: "#8b0000",
+    titleColor: "#6b0000",
+    shopUrl: "/all-products?category=beverage&promo=beverage_500",
+    promoMode: "beverage",
   },
   {
     id: 4,
@@ -99,17 +98,57 @@ const PROMO_DEALS = [
     title: "Care Products Deal",
     description:
       "Purchase 300 units of any care products and get 3% FREE to select from our care range!",
-    products: [],
-    btnColor: "#047857",
-    btnHover: "#065f46",
-    bgColor: "rgba(4, 120, 87, 0.05)",
-    borderColor: "rgba(4, 120, 87, 0.2)",
-    iconBg: "rgba(4, 120, 87, 0.1)",
-    iconColor: "#047857",
+    images: [
+      `${IK}/care/care10.png`,
+      `${IK}/care/TOO_CLEAN_CLASSIC_180g.png`,
+      `${IK}/care/MAMA_JOY_140g.png`,
+      `${IK}/care/MAMA_JOY_ORANGE_85g.png`,
+    ],
+    btnColor: "#064e3b",
+    btnHover: "#022c22",
+    bgColor: "rgba(6, 78, 59, 0.05)",
+    borderColor: "rgba(6, 78, 59, 0.2)",
+    iconBg: "rgba(6, 78, 59, 0.1)",
+    iconColor: "#064e3b",
     titleColor: "#065f46",
-    category: "care",
+    shopUrl: "/all-products?category=care&promo=care_300",
+    promoMode: "care",
   },
 ];
+
+// ── Auto Sliding Images ───────────────────
+const SlidingImages = ({ images, color }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [direction, setDirection] = useState("right");
+  const intervalRef = useRef(null);
+
+  useEffect(() => {
+    intervalRef.current = setInterval(() => {
+      setDirection("right");
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    }, 1800);
+    return () => clearInterval(intervalRef.current);
+  }, [images.length]);
+
+  return (
+    <div className="ps-images-row">
+      {images.map((src, i) => (
+        <div
+          key={i}
+          className={`ps-img-item ${
+            i === currentIndex ? "ps-img-active" : ""
+          } ${
+            i === (currentIndex - 1 + images.length) % images.length
+              ? "ps-img-prev"
+              : ""
+          }`}
+        >
+          <img src={src} alt={`promo-product-${i}`} />
+        </div>
+      ))}
+    </div>
+  );
+};
 
 // ── Promo Card ─────────────────────────────
 const PromoCard = ({ deal }) => {
@@ -154,21 +193,11 @@ const PromoCard = ({ deal }) => {
       {/* Description */}
       <p className="ps-card-desc">{deal.description}</p>
 
-      {/* Product Previews */}
-      {deal.products.length > 0 && (
-        <div className="ps-card-products">
-          {deal.products.slice(0, 3).map((p, i) => (
-            <div key={i} className="ps-card-product-img">
-              <img src={p.image} alt={p.name} />
-            </div>
-          ))}
-          {deal.products.length > 3 && (
-            <div className="ps-card-product-more">
-              +{deal.products.length - 3}
-            </div>
-          )}
-        </div>
-      )}
+      {/* ✅ Sliding Images — no border, no white bg */}
+      <SlidingImages
+        images={deal.images}
+        color={deal.btnColor}
+      />
 
       {/* CTA */}
       <button
@@ -177,9 +206,7 @@ const PromoCard = ({ deal }) => {
           background: deal.btnColor,
           color: deal.btnTextColor || "#ffffff",
         }}
-        onClick={() =>
-          navigate(`/all-products?category=${deal.category}`)
-        }
+        onClick={() => navigate(deal.shopUrl)}
       >
         <FiShoppingCart size={14} />
         Shop Now

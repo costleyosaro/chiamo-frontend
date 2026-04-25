@@ -908,6 +908,33 @@ export default function AllProducts() {
 
   // Handle add to cart with optimistic local update
   const handleAddToCart = async (e, product, quantity = 1) => {
+
+    // ✅ PROMO AUTO-QUANTITY LOGIC
+    const urlParams = new URLSearchParams(location.search);
+    const promoParam = urlParams.get("promo");
+    const searchParam = urlParams.get("search");
+    const categoryParam = urlParams.get("category");
+
+    const isJellyPromo =
+      categoryParam === "beauty" &&
+      searchParam?.toLowerCase().includes("jelly");
+
+    const isPowerMintPromo =
+      searchParam?.toLowerCase().includes("power") &&
+      searchParam?.toLowerCase().includes("mint");
+
+    const isBeveragePromo = promoParam === "beverage_500";
+    const isCarePromo = promoParam === "care_300";
+
+    if (isJellyPromo || isPowerMintPromo) {
+      quantity = 25;
+    } else if (isBeveragePromo) {
+      quantity = 500;
+    } else if (isCarePromo) {
+      quantity = 300;
+    }
+
+    // ✅ REST OF YOUR EXISTING CODE — unchanged
     const stock = Number(product.stock) || 0;
     
     if (stock === 0) {
@@ -931,7 +958,7 @@ export default function AllProducts() {
         return;
       }
 
-      // Optimistic local stock update (immediate feedback)
+      // Optimistic local stock update
       setProducts((prev) =>
         prev.map((p) =>
           p.id === product.id
@@ -940,7 +967,6 @@ export default function AllProducts() {
         )
       );
 
-      // Update quick view product if open
       if (quickViewProduct && quickViewProduct.id === product.id) {
         setQuickViewProduct((prev) => ({
           ...prev,
@@ -948,10 +974,8 @@ export default function AllProducts() {
         }));
       }
 
-      // Add to cart (this syncs with backend)
       await addToCartContext(identifier, quantity);
       
-      // Add to smart list if active
       if (activeList) {
         addToActiveList(product);
       }
@@ -992,17 +1016,18 @@ export default function AllProducts() {
         });
 
         setTimeout(() => {
-          if (imgClone.parentNode) {
-            imgClone.remove();
-          }
+          if (imgClone.parentNode) imgClone.remove();
         }, 1000);
       }
 
-      toast.success(`Added ${quantity > 1 ? `${quantity}x ` : ""}${product.name} to cart!`);
+      toast.success(
+        `Added ${quantity > 1 ? `${quantity}x ` : ""}${product.name} to cart!`
+      );
+
     } catch (err) {
       console.error("Add to cart failed:", err);
       
-      // Rollback optimistic update on error
+      // Rollback optimistic update
       setProducts((prev) =>
         prev.map((p) =>
           p.id === product.id
@@ -1010,7 +1035,7 @@ export default function AllProducts() {
             : p
         )
       );
-      
+
       toast.error("Failed to add to cart");
     }
   };

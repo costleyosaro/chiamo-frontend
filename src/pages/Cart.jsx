@@ -10,7 +10,10 @@ import TransactionPinModal from "../components/TransactionPinModal";
 import SetTransactionPinModal from "../components/SetTransactionPinModal";
 import { imageUrl, PLACEHOLDER } from "../utils/image";
 import "./Cart.css";
-
+import {
+  checkPromos,
+  saveClaimedPromo,
+} from "../hooks/usePromoChecker";
 import PromoModal from "../components/PromoModal";
 import { checkPromos } from "../hooks/usePromoChecker";
 // Icons — removed FiChevronLeft (replaced with simple arrow)
@@ -558,7 +561,7 @@ export default function Cart() {
   const { cart, updateQty, removeFromCart, clearCart } = useCart();
   const smartListsContext = useSmartLists();
   const setOrders = smartListsContext?.setOrders;
-  const { addNotification, playNotificationSound } = useNotifications();
+  const { addNotification, playNotificationSound,createPromoNotification, } = useNotifications();
 
   const [processing, setProcessing] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
@@ -608,40 +611,58 @@ export default function Cart() {
   }, []);
 
   // ✅ PROMO CHECKER — pendingQuantities is now declared above
-  useEffect(() => {
-    if (!cart || cart.length === 0) return;
+  // ✅ PROMO CHECKER — shows once, saved in localStorage
+useEffect(() => {
+  if (!cart || cart.length === 0) return;
 
-    const cartWithPending = cart.map((item) => {
-      const productId = item.productId || item.id;
-      return {
-        ...item,
-        quantity:
-          pendingQuantities[productId] !== undefined
-            ? pendingQuantities[productId]
-            : Number(item.quantity) || 1,
-      };
-    });
+  const cartWithPending = cart.map((item) => {
+    const productId = item.productId || item.id;
+    return {
+      ...item,
+      quantity:
+        pendingQuantities[productId] !== undefined
+          ? pendingQuantities[productId]
+          : Number(item.quantity) || 1,
+    };
+  });
 
-    const triggered = checkPromos(cartWithPending);
+  const triggered = checkPromos(cartWithPending);
 
-    const newPromos = triggered.filter(
-      (p) =>
-        !shownPromos.has(p.key) &&
-        !claimedPromos.includes(p.key)
-    );
+  // Show first untriggered promo
+  const nextPromo = triggered.find(
+    (p) =>
+      !shownPromos.has(p.key) &&
+      !claimedPromos.includes(p.key)
+  );
 
-    if (newPromos.length > 0 && !activePromo) {
-      setActivePromo(newPromos[0]);
-      setShownPromos((prev) => new Set([...prev, newPromos[0].key]));
-    }
-  }, [cart, pendingQuantities]);
+  if (nextPromo && !activePromo) {
+    setActivePromo(nextPromo);
+    setShownPromos((prev) => new Set([...prev, nextPromo.key]));
+  }
+}, [cart, pendingQuantities]);
 
   // ✅ HANDLE PROMO ACCEPT
   const handlePromoAccept = async (promo) => {
-    if (!promo?.freeItem) return;
+  if (!promo) return;
 
+  // ✅ Save to localStorage so it NEVER shows again
+  saveClaimedPromo(promo.key);
+  setClaimedPromos((prev) => [...prev, promo.key]);
+
+  // ✅ Send to notification system (persisted to backend)
+  await createPromoNotification(
+    `🎁 ${promo.title}`,
+    `You unlocked a promo reward: ${promo.rewardText}. Check your cart!`
+  );
+
+  // ✅ Play notification sound
+  playNotificationSound();
+
+  // ✅ For free item promos (jelly, powermint)
+  if (promo.freeItem) {
     try {
-      const identifier = promo.freeItem.slug || promo.freeItem.productId;
+      const identifier =
+        promo.freeItem.slug || promo.freeItem.productId;
 
       if (!identifier) {
         toast.error("Could not add promo item.");
@@ -649,18 +670,6 @@ export default function Cart() {
       }
 
       await updateQty(identifier, 1);
-
-      setClaimedPromos((prev) => [...prev, promo.key]);
-
-      const notification = {
-        id: Date.now(),
-        type: "promo",
-        title: "🎁 Promo Item Unlocked!",
-        message: `You just won a FREE ${promo.freeItem.name}! Added to your cart as a promo item.`,
-        is_read: false,
-        created_at: new Date().toISOString(),
-      };
-      addNotification(notification);
 
       toast.success(
         `🎁 FREE ${promo.freeItem.name} added to your cart!`,
@@ -678,7 +687,8 @@ export default function Cart() {
       console.error("Failed to add promo item:", err);
       toast.error("Could not add promo item. Contact support.");
     }
-  };
+  }
+};
 
   // ✅ Stable-sorted cart
   const stableCart = useMemo(() => {

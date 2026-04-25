@@ -1,5 +1,8 @@
 // src/hooks/usePromoChecker.js
 
+const IK = "https://ik.imagekit.io/ljwnlcbqyu";
+
+// ── Product Lists ─────────────────────────
 export const JELLY_PRODUCTS = [
   "MAMA'S LOVE COCOA 150g*48",
   "NOVA JELLY 125g*48",
@@ -12,13 +15,12 @@ export const JELLY_PRODUCTS = [
 
 export const isJellyProduct = (name) =>
   JELLY_PRODUCTS.some(
-    (j) => name?.toUpperCase() === j.toUpperCase()
+    (j) => name?.toUpperCase().trim() === j.toUpperCase().trim()
   );
 
 export const isBeverageProduct = (name) => {
   const BEVERAGE_KEYWORDS = [
-    "POP ", "INFINITE POWER", "ZIZOU",
-    "WATER", "FIZZY",
+    "POP ", "INFINITE POWER", "ZIZOU", "FIZZY",
   ];
   return BEVERAGE_KEYWORDS.some((k) =>
     name?.toUpperCase().includes(k.toUpperCase())
@@ -27,9 +29,11 @@ export const isBeverageProduct = (name) => {
 
 export const isCareProduct = (name) => {
   const CARE_KEYWORDS = [
-    "TOO CLEAN", "MAMA JOY", "MAMUDA",
+    "TOO CLEAN", "MAMA JOY", "MAMUDA BROWN",
+    "MAMUDA PINK", "MAMUDA GOLD",
     "NOVA COOL", "NOVA PINK", "NOVA BLUE",
     "NOVA PURPLE", "NOVA JASMINE", "NOVA ROYAL",
+    "NOVA AVOCADO", "NOVA PAPAYA",
     "CLASSY SOAP", "SHE SOAP", "SHE SHEA",
     "SHE ROYAL", "MAMA'S LOVE ORANGE",
     "MAMA'S LOVE PINK", "MAMA'S LOVE BLUE",
@@ -40,89 +44,127 @@ export const isCareProduct = (name) => {
   );
 };
 
+// ── LocalStorage helpers ──────────────────
+const PROMO_STORAGE_KEY = "chiamoorder_claimed_promos";
+
+export const getClaimedPromos = () => {
+  try {
+    return JSON.parse(
+      localStorage.getItem(PROMO_STORAGE_KEY) || "[]"
+    );
+  } catch {
+    return [];
+  }
+};
+
+export const saveClaimedPromo = (promoKey) => {
+  const existing = getClaimedPromos();
+  if (!existing.includes(promoKey)) {
+    localStorage.setItem(
+      PROMO_STORAGE_KEY,
+      JSON.stringify([...existing, promoKey])
+    );
+  }
+};
+
+export const isPromoClaimed = (promoKey) =>
+  getClaimedPromos().includes(promoKey);
+
+// ── Main checker ──────────────────────────
 export const checkPromos = (cartItems) => {
   const triggered = [];
-  const IK = "https://ik.imagekit.io/ljwnlcbqyu";
 
   cartItems.forEach((item) => {
     const name = item.name || "";
     const qty = item.quantity || 0;
 
-    // ── PROMO 1: Jelly — buy 25 get 1 free ──
+    // ── PROMO 1: Any Jelly → 25 = 1 FREE ──
     if (isJellyProduct(name) && qty >= 25) {
-      triggered.push({
-        key: `jelly_${name}`,
-        type: "jelly_promo",
-        emoji: "🍯",
-        title: "Jelly Promo Unlocked!",
-        description: `You've added ${qty} cartons of ${name}. Qualify for Buy 25 Get 1 FREE!`,
-        rewardText: `1 FREE carton of ${name}`,
-        freeItem: {
-          name: item.name,
-          image: item.image,
-          price: 0,
-          quantity: 1,
-          productId: item.productId,
-          slug: item.slug,
-          isPromo: true,
-          promoTag: "🎁 FREE - Jelly Promo",
-        },
-      });
+      const key = `jelly_${name.replace(/\s+/g, "_")}`;
+      if (!isPromoClaimed(key)) {
+        triggered.push({
+          key,
+          type: "jelly_promo",
+          emoji: "🍯",
+          title: "Jelly Promo Unlocked!",
+          description: `You've added ${qty} cartons of ${name}. You qualify for Buy 25 Get 1 FREE!`,
+          rewardText: `1 FREE carton of ${name}`,
+          freeItem: {
+            name: item.name,
+            image: item.image,
+            price: 0,
+            quantity: 1,
+            productId: item.productId,
+            slug: item.slug,
+            isPromo: true,
+            promoTag: "🎁 FREE - Jelly Promo",
+          },
+        });
+      }
     }
 
-    // ── PROMO 2: Power Mint — buy 25 get 1 free ──
+    // ── PROMO 2: Power Mint → 25 = 1 FREE ──
     if (
       name?.toUpperCase().includes("POWER MINT") &&
       qty >= 25
     ) {
-      triggered.push({
-        key: "power_mint_promo",
-        type: "power_mint_promo",
-        emoji: "🌿",
-        title: "Power Mint Promo Unlocked!",
-        description: `Amazing! ${qty} cartons of Power Mint added. You qualify for 1 FREE carton!`,
-        rewardText: "1 FREE carton of POWER MINT",
-        freeItem: {
-          name: item.name,
-          image: `${IK}/food/Food23-sweet.png?updatedAt=1771851133865`,
-          price: 0,
-          quantity: 1,
-          productId: item.productId,
-          slug: item.slug,
-          isPromo: true,
-          promoTag: "🎁 FREE - Power Mint Promo",
-        },
-      });
+      const key = "power_mint_promo";
+      if (!isPromoClaimed(key)) {
+        triggered.push({
+          key,
+          type: "power_mint_promo",
+          emoji: "🌿",
+          title: "Power Mint Promo Unlocked!",
+          description: `You've added ${qty} cartons of Power Mint. You qualify for 1 FREE carton!`,
+          rewardText: "1 FREE carton of POWER MINT",
+          freeItem: {
+            name: item.name,
+            image: `${IK}/food/Food23-sweet.png?updatedAt=1771851133865`,
+            price: 0,
+            quantity: 1,
+            productId: item.productId,
+            slug: item.slug,
+            isPromo: true,
+            promoTag: "🎁 FREE - Power Mint Promo",
+          },
+        });
+      }
     }
 
-    // ── PROMO 3: Beverage — 500 packs = 5% free ──
+    // ── PROMO 3: Beverage → 500 = 5% FREE ──
     if (isBeverageProduct(name) && qty >= 500) {
-      const fivePercent = Math.floor(qty * 0.05);
-      triggered.push({
-        key: `beverage_${name}`,
-        type: "beverage_promo",
-        emoji: "🥤",
-        title: "Beverage Promo Unlocked!",
-        description: `Wow! ${qty} packs of ${name} added. You qualify for 5% FREE in beverage stock!`,
-        rewardText: `${fivePercent} FREE packs — choose any beverages!`,
-        freeQty: fivePercent,
-        redirectTo: "/all-products?category=beverage&promo=beverage_500",
-      });
+      const key = `beverage_${name.replace(/\s+/g, "_")}`;
+      if (!isPromoClaimed(key)) {
+        const fivePercent = Math.floor(qty * 0.05);
+        triggered.push({
+          key,
+          type: "beverage_promo",
+          emoji: "🥤",
+          title: "Beverage Promo Unlocked!",
+          description: `You've added ${qty} packs of ${name}. You qualify for 5% FREE!`,
+          rewardText: `${fivePercent} FREE packs — choose any beverages!`,
+          freeQty: fivePercent,
+          redirectTo: "/all-products?category=beverage&promo=beverage_500",
+        });
+      }
     }
 
-    // ── PROMO 4: Care — 300 units = 3% free ──
+    // ── PROMO 4: Care → 300 = 3% FREE ──
     if (isCareProduct(name) && qty >= 300) {
-      const threePercent = Math.floor(qty * 0.03);
-      triggered.push({
-        key: `care_${name}`,
-        type: "care_promo",
-        emoji: "🧴",
-        title: "Care Products Promo!",
-        description: `Fantastic! ${qty} units of ${name} added. You qualify for 3% FREE care products!`,
-        rewardText: `${threePercent} FREE units — choose any care products!`,
-        freeQty: threePercent,
-        redirectTo: "/all-products?category=care&promo=care_300",
-      });
+      const key = `care_${name.replace(/\s+/g, "_")}`;
+      if (!isPromoClaimed(key)) {
+        const threePercent = Math.floor(qty * 0.03);
+        triggered.push({
+          key,
+          type: "care_promo",
+          emoji: "🧴",
+          title: "Care Products Promo!",
+          description: `You've added ${qty} units of ${name}. You qualify for 3% FREE care products!`,
+          rewardText: `${threePercent} FREE units — choose any care products!`,
+          freeQty: threePercent,
+          redirectTo: "/all-products?category=care&promo=care_300",
+        });
+      }
     }
   });
 

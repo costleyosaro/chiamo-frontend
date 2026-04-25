@@ -820,6 +820,14 @@ export default function AllProducts() {
     }
   }, [urlCategory]);
 
+  useEffect(() => {
+  const urlParams = new URLSearchParams(location.search);
+  const urlSearch = urlParams.get("search");
+  if (urlSearch) {
+    setQuery(urlSearch.replace(/\+/g, " "));
+  }
+}, [location.search]);
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -838,6 +846,7 @@ export default function AllProducts() {
   const filteredProducts = useMemo(() => {
     let result = [...products];
 
+    const searchParam = query.trim().toLowerCase();
     // Filter by category
     if (selectedCategory && selectedCategory !== "all") {
       result = result.filter((p) => {
@@ -848,6 +857,28 @@ export default function AllProducts() {
         return catName.toLowerCase() === selectedCategory.toLowerCase();
       });
     }
+
+    // ✅ Strict filter: if searching for promo products
+    if (searchParam === "power mint" || searchParam === "power+mint") {
+      result = result.filter((p) =>
+        p.name?.toLowerCase().includes("power mint")
+      );
+    } else if (searchParam === "jelly") {
+      result = result.filter((p) =>
+        p.name?.toLowerCase().includes("jelly")
+      );
+    } else if (query.trim()) {
+      const q = query.trim().toLowerCase();
+      result = result.filter((p) => {
+        const name = String(p.name || "").toLowerCase();
+        const cat =
+          typeof p.category === "string"
+            ? p.category.toLowerCase()
+            : (p.category?.name || "").toLowerCase();
+        return name.includes(q) || cat.includes(q);
+      });
+    }
+
 
     // Filter by search query
     if (query.trim()) {
@@ -911,10 +942,12 @@ export default function AllProducts() {
 
     // ✅ PROMO AUTO-QUANTITY LOGIC
     const urlParams = new URLSearchParams(location.search);
+      
     const promoParam = urlParams.get("promo");
     const searchParam = urlParams.get("search");
     const categoryParam = urlParams.get("category");
-
+    const urlSearch = urlParams.get("search");
+  
     const isJellyPromo =
       categoryParam === "beauty" &&
       searchParam?.toLowerCase().includes("jelly");

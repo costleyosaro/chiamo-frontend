@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import "./PromoModal.css";
 
 // ── Promo Theme Colors ────────────────────
+// ── Promo Theme Colors ────────────────────
 const PROMO_THEMES = {
   jelly_promo: {
     primary: "#7c3aed",
@@ -14,6 +15,8 @@ const PROMO_THEMES = {
     tag: "#7c3aed",
     btn: "linear-gradient(135deg, #7c3aed, #6d28d9)",
     btnShadow: "rgba(124,58,237,0.4)",
+    btnText: "#ffffff",       // ✅ WHITE - dark purple bg
+    titleColor: "#7c3aed",    // ✅ Clear purple title
     topBar: "linear-gradient(90deg, #7c3aed, #a78bfa, #7c3aed)",
   },
   power_mint_promo: {
@@ -23,7 +26,8 @@ const PROMO_THEMES = {
     tag: "#d4a017",
     btn: "linear-gradient(135deg, #d4a017, #b8880f)",
     btnShadow: "rgba(212,160,23,0.4)",
-    btnText: "#000",
+    btnText: "#000000",       // ✅ BLACK - gold/yellow bg needs dark text
+    titleColor: "#b8880f",    // ✅ Darker gold for title readability
     topBar: "linear-gradient(90deg, #d4a017, #f0c14b, #d4a017)",
   },
   beverage_promo: {
@@ -33,6 +37,8 @@ const PROMO_THEMES = {
     tag: "#8b0000",
     btn: "linear-gradient(135deg, #8b0000, #6b0000)",
     btnShadow: "rgba(139,0,0,0.4)",
+    btnText: "#ffffff",       // ✅ WHITE - dark red bg
+    titleColor: "#8b0000",    // ✅ Clear dark red title
     topBar: "linear-gradient(90deg, #8b0000, #c41e1e, #8b0000)",
   },
   care_promo: {
@@ -42,6 +48,8 @@ const PROMO_THEMES = {
     tag: "#064e3b",
     btn: "linear-gradient(135deg, #064e3b, #022c22)",
     btnShadow: "rgba(6,78,59,0.4)",
+    btnText: "#ffffff",       // ✅ WHITE - dark green bg
+    titleColor: "#064e3b",    // ✅ Clear dark green title
     topBar: "linear-gradient(90deg, #064e3b, #10b981, #064e3b)",
   },
   default: {
@@ -51,6 +59,8 @@ const PROMO_THEMES = {
     tag: "#143a6e",
     btn: "linear-gradient(135deg, #143a6e, #0a1f3f)",
     btnShadow: "rgba(20,58,110,0.4)",
+    btnText: "#ffffff",       // ✅ WHITE - dark navy bg
+    titleColor: "#143a6e",    // ✅ Clear navy title
     topBar: "linear-gradient(90deg, #143a6e, #f5a623, #143a6e)",
   },
 };
@@ -130,10 +140,15 @@ const PromoModal = ({
   };
 
   const handleRedirect = () => {
-    onAccept(promoData);
-    onClose();
-    navigate(promoData.redirectTo);
-  };
+  onAccept(promoData);
+  onClose();
+  // ✅ Add promobag=true to URL so AllProducts knows it's selection mode
+  // NOT trigger mode
+  const baseUrl = promoData.redirectTo;
+  // baseUrl is like "/all-products?category=beverage&promo=beverage_500"
+  // We add &promobag=true to it
+  navigate(`${baseUrl}&promobag=true`);
+};
 
   return (
     <div
@@ -211,17 +226,22 @@ const PromoModal = ({
             className="promo-congrats-tag"
             style={{ background: theme.tag }}
           >
-            🎉 Congratulations!
+            {/* ✅ FIXED: Always white text on colored tag */}
+            <span style={{ color: "#ffffff", fontWeight: 800 }}>
+              🎉 Congratulations!
+            </span>
           </div>
 
+          {/* ✅ FIXED: Use titleColor for better contrast */}
           <h2
             className="promo-title"
-            style={{ color: theme.primary }}
+            style={{ color: theme.titleColor || theme.primary }}
           >
             {promoData.title}
           </h2>
 
-          <p className="promo-description">
+          {/* ✅ Description always readable */}
+          <p className="promo-description" style={{ color: "#374151" }}>
             {promoData.description}
           </p>
 
@@ -237,7 +257,8 @@ const PromoModal = ({
               className="promo-detail-icon"
               style={{ background: theme.primary }}
             >
-              <FiGift size={20} />
+              {/* ✅ Icon always white */}
+              <FiGift size={20} color="#ffffff" />
             </div>
             <div className="promo-detail-text">
               <span className="promo-detail-label">
@@ -245,14 +266,17 @@ const PromoModal = ({
               </span>
               <span
                 className="promo-detail-value"
-                style={{ color: theme.primary }}
+                style={{ color: theme.titleColor || theme.primary }}
               >
                 {promoData.rewardText}
               </span>
               {promoData.freeItem?.promoTag && (
                 <span
                   className="promo-item-tag"
-                  style={{ background: theme.primary }}
+                  style={{ 
+                    background: theme.primary,
+                    color: "#ffffff"  // ✅ Always white on colored tag
+                  }}
                 >
                   {promoData.freeItem.promoTag}
                 </span>
@@ -263,7 +287,7 @@ const PromoModal = ({
           {/* Expiry */}
           <p className="promo-expiry">
             ⏰ Offer valid until{" "}
-            <strong style={{ color: theme.primary }}>
+            <strong style={{ color: theme.titleColor || theme.primary }}>
               July 14, 2025
             </strong>
           </p>
@@ -284,7 +308,11 @@ const PromoModal = ({
               style={{
                 background: theme.btn,
                 boxShadow: `0 4px 14px ${theme.btnShadow}`,
-                color: theme.btnText || "#fff",
+                color: theme.btnText,          // ✅ Always explicit color
+                textShadow: theme.btnText === "#000000" 
+                  ? "none"                      // ✅ No shadow on dark text
+                  : "0 1px 3px rgba(0,0,0,0.4)", // ✅ Shadow only on white text
+                fontWeight: "800",
               }}
               onClick={handleRedirect}
             >
@@ -298,7 +326,11 @@ const PromoModal = ({
               style={{
                 background: theme.btn,
                 boxShadow: `0 4px 14px ${theme.btnShadow}`,
-                color: theme.btnText || "#fff",
+                color: theme.btnText,          // ✅ Always explicit color
+                textShadow: theme.btnText === "#000000"
+                  ? "none"
+                  : "0 1px 3px rgba(0,0,0,0.4)",
+                fontWeight: "800",
               }}
               onClick={handleAccept}
             >

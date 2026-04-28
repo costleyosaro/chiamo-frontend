@@ -228,13 +228,13 @@
 .promo-congrats-tag {
   display: inline-block;
   padding: 5px 14px;
-  background: linear-gradient(135deg, #f5a623, #e89500);
-  color: #0a1f3f;
+  /* ✅ background now controlled by JSX theme.tag */
   font-size: 12px;
   font-weight: 800;
   border-radius: 20px;
   margin-bottom: 12px;
   letter-spacing: 0.3px;
+  /* ✅ REMOVED hardcoded color - controlled inline */
 }
 
 .promo-title {
@@ -310,7 +310,6 @@
   color: #143a6e;
 }
 
-/* ── Action Buttons ───────────────────────── */
 .promo-actions {
   display: flex;
   gap: 10px;
@@ -356,13 +355,17 @@
   letter-spacing: 0.3px;
 }
 
+/* ── FIXED: Accept button - color now controlled by inline style in JSX ── */
 .promo-btn--accept {
+  /* ✅ REMOVED hardcoded color - let JSX theme control it */
   background: linear-gradient(135deg, #f5a623, #e89500);
-  color: #0a1f3f;
   box-shadow: 0 4px 14px rgba(245, 166, 35, 0.4);
   flex: 1.4;
   position: relative;
   overflow: hidden;
+  /* ✅ Force text to always be visible */
+  font-weight: 800 !important;
+  letter-spacing: 0.2px;
 }
 
 .promo-btn--accept::after {
@@ -395,6 +398,7 @@
 .promo-btn--accept:active {
   transform: translateY(0);
 }
+
 
 /* ── Responsive ───────────────────────────── */
 @media (max-width: 400px) {

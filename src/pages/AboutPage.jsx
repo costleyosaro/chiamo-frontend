@@ -139,12 +139,7 @@ const TEAM = [
     image: "https://ik.imagekit.io/ljwnlcbqyu/CHIAMO_PIC.jpeg",
     initial: "CH",
   },
-  {
-    name: "Mr. Aseeyl",
-    role: "Operations Manager",
-    image: "https://ik.imagekit.io/ljwnlcbqyu/MR_aseeyl.jpeg",
-    initial: "AS",
-  },
+  
   {
     name: "Mr. Ali",
     role: "Tech Lead",

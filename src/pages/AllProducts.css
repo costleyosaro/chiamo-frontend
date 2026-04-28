@@ -1837,3 +1837,169 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ============================================
+   PROMO SELECTION BANNER
+   ============================================ */
+.ap-promo-selection-banner {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 20px;
+  border-radius: 0;
+  backdrop-filter: blur(10px);
+  animation: promoBannerSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+@keyframes promoBannerSlideIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to   { opacity: 1; transform: translateY(0);     }
+}
+
+/* Live pulsing dot */
+.ap-promo-live-dot {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  animation: promoLivePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes promoLivePulse {
+  0%, 100% { transform: scale(1);   opacity: 1; }
+  50%       { transform: scale(1.4); opacity: 0.6; }
+}
+
+/* Left section */
+.ap-promo-banner-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.ap-promo-banner-emoji {
+  font-size: 30px;
+  flex-shrink: 0;
+  animation: promoBannerBounce 2s ease-in-out infinite;
+}
+
+@keyframes promoBannerBounce {
+  0%, 100% { transform: rotate(-5deg) scale(1);   }
+  50%       { transform: rotate(5deg)  scale(1.1); }
+}
+
+.ap-promo-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ap-promo-active-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  width: fit-content;
+}
+
+.ap-promo-banner-title {
+  font-size: 14.5px;
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.3;
+  font-family: "Poppins", sans-serif;
+}
+
+.ap-promo-banner-subtitle {
+  font-size: 12px;
+  color: #4a5568;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.ap-promo-banner-tip {
+  font-size: 11px;
+  color: #718096;
+  margin: 0;
+  font-style: italic;
+}
+
+/* Right section */
+.ap-promo-banner-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.ap-promo-free-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.ap-promo-done-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  font-family: inherit;
+}
+
+.ap-promo-done-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+
+.ap-promo-done-hint {
+  font-size: 10px;
+  color: #718096;
+  margin: 0;
+  text-align: center;
+}
+
+/* ── Responsive ──────────────────────── */
+@media (max-width: 600px) {
+  .ap-promo-selection-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px 16px;
+    gap: 10px;
+  }
+
+  .ap-promo-banner-right {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .ap-promo-done-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}

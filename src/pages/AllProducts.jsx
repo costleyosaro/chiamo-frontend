@@ -31,6 +31,7 @@ import {
   FiShield,
   FiCheck,
   FiAlertCircle,
+  FiGift,
 } from "react-icons/fi";
 import {
   FaStar,
@@ -940,138 +941,168 @@ export default function AllProducts() {
   // Handle add to cart with optimistic local update
   const handleAddToCart = async (e, product, quantity = 1) => {
 
-    // ✅ PROMO AUTO-QUANTITY LOGIC
-    const urlParams = new URLSearchParams(location.search);
-      
-    const promoParam = urlParams.get("promo");
-    const searchParam = urlParams.get("search");
-    const categoryParam = urlParams.get("category");
-    const urlSearch = urlParams.get("search");
-  
-    const isJellyPromo =
-      categoryParam === "beauty" &&
-      searchParam?.toLowerCase().includes("jelly");
+  const urlParams = new URLSearchParams(location.search);
+  const promoParam = urlParams.get("promo");
+  const searchParam = urlParams.get("search") || "";
+  const categoryParam = urlParams.get("category") || "";
+  const isPromoBagMode = urlParams.get("promobag") === "true"; 
+  // ✅ NEW: "promobag=true" = user is selecting FREE items (normal qty)
+  // NO promobag param = trigger mode (auto 300/500)
 
-    const isPowerMintPromo =
-      searchParam?.toLowerCase().includes("power") &&
-      searchParam?.toLowerCase().includes("mint");
+  // ✅ Detect which trigger mode we're in
+  const isJellyTrigger =
+    categoryParam === "beauty" &&
+    searchParam.toLowerCase().includes("jelly");
 
-    const isBeveragePromo = promoParam === "beverage_500";
-    const isCarePromo = promoParam === "care_300";
+  const isPowerMintTrigger =
+    categoryParam === "food" &&
+    searchParam.toLowerCase().includes("power") &&
+    searchParam.toLowerCase().includes("mint");
 
-    if (isJellyPromo || isPowerMintPromo) {
+  const isBeverageTrigger =
+    promoParam === "beverage_500" && !isPromoBagMode;
+
+  const isCarePromoTrigger =
+    promoParam === "care_300" && !isPromoBagMode;
+
+  // ✅ FIXED: Only force qty in TRIGGER mode, never in promo bag mode
+  if (!isPromoBagMode) {
+    if (isJellyTrigger || isPowerMintTrigger) {
       quantity = 25;
-    } else if (isBeveragePromo) {
+    } else if (isBeverageTrigger) {
       quantity = 500;
-    } else if (isCarePromo) {
+    } else if (isCarePromoTrigger) {
       quantity = 300;
     }
+  }
+  // ✅ If isPromoBagMode === true → quantity stays as passed (1 or user-selected)
 
-    // ✅ REST OF YOUR EXISTING CODE — unchanged
-    const stock = Number(product.stock) || 0;
-    
-    if (stock === 0) {
-      toast.error(`${product.name} is out of stock`);
+  // ✅ REST OF YOUR CODE UNCHANGED
+  const stock = Number(product.stock) || 0;
+
+  if (stock === 0) {
+    toast.error(`${product.name} is out of stock`);
+    return;
+  }
+
+  if (quantity > stock) {
+    toast.error(`Only ${stock} available in stock`);
+    return;
+  }
+
+  // ✅ Check if in promo bag selection mode for toast message
+  const isPromoSelectionMode = isPromoBagMode;
+
+  const card = e?.currentTarget?.closest?.(".ap-product-card, .ap-quick-view-modal");
+  const img = card?.querySelector("img");
+  const cartIcon = cartIconRef.current;
+
+  try {
+    const identifier = product.slug ?? product.slug_field ?? product.id;
+    if (!identifier) {
+      toast.error("Product cannot be added");
       return;
     }
 
-    if (quantity > stock) {
-      toast.error(`Only ${stock} available in stock`);
-      return;
+    // Optimistic local stock update
+    setProducts((prev) =>
+      prev.map((p) =>
+        p.id === product.id
+          ? { ...p, stock: Math.max((p.stock || 0) - quantity, 0) }
+          : p
+      )
+    );
+
+    if (quickViewProduct && quickViewProduct.id === product.id) {
+      setQuickViewProduct((prev) => ({
+        ...prev,
+        stock: Math.max((prev.stock || 0) - quantity, 0),
+      }));
     }
 
-    const card = e?.currentTarget?.closest?.(".ap-product-card, .ap-quick-view-modal");
-    const img = card?.querySelector("img");
-    const cartIcon = cartIconRef.current;
+    await addToCartContext(identifier, quantity);
 
-    try {
-      const identifier = product.slug ?? product.slug_field ?? product.id;
-      if (!identifier) {
-        toast.error("Product cannot be added");
-        return;
-      }
+    if (activeList) {
+      addToActiveList(product);
+    }
 
-      // Optimistic local stock update
-      setProducts((prev) =>
-        prev.map((p) =>
-          p.id === product.id
-            ? { ...p, stock: Math.max((p.stock || 0) - quantity, 0) }
-            : p
-        )
+    // Flying animation - your existing code unchanged
+    if (img && cartIcon) {
+      const imgClone = img.cloneNode(true);
+      const imgRect = img.getBoundingClientRect();
+      const cartRect = cartIcon.getBoundingClientRect();
+
+      imgClone.style.cssText = `
+        position: fixed;
+        left: ${imgRect.left}px;
+        top: ${imgRect.top}px;
+        width: ${imgRect.width}px;
+        height: ${imgRect.height}px;
+        transition: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        z-index: 9999;
+        border-radius: 12px;
+        pointer-events: none;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        object-fit: contain;
+        background: var(--card-bg);
+      `;
+      document.body.appendChild(imgClone);
+
+      requestAnimationFrame(() => {
+        imgClone.style.left = `${cartRect.left + cartRect.width / 2 - 20}px`;
+        imgClone.style.top = `${cartRect.top + cartRect.height / 2 - 20}px`;
+        imgClone.style.width = "40px";
+        imgClone.style.height = "40px";
+        imgClone.style.opacity = "0";
+        imgClone.style.transform = "scale(0.3) rotate(20deg)";
+      });
+
+      imgClone.addEventListener("transitionend", () => {
+        imgClone.remove();
+      });
+
+      setTimeout(() => {
+        if (imgClone.parentNode) imgClone.remove();
+      }, 1000);
+    }
+
+    // ✅ FIXED: Different toast for promo bag vs normal
+    if (isPromoSelectionMode) {
+      const promoColor = promoParam === "beverage_500" ? "#8b0000" : "#064e3b";
+      toast.success(
+        `🎁 ${product.name} added to your Promo Bag!`,
+        {
+          duration: 3000,
+          position: "bottom-center",
+          style: {
+            background: promoColor,
+            color: "#ffffff",
+            fontWeight: "700",
+            borderRadius: "12px",
+          },
+          icon: "🎉",
+        }
       );
-
-      if (quickViewProduct && quickViewProduct.id === product.id) {
-        setQuickViewProduct((prev) => ({
-          ...prev,
-          stock: Math.max((prev.stock || 0) - quantity, 0),
-        }));
-      }
-
-      await addToCartContext(identifier, quantity);
-      
-      if (activeList) {
-        addToActiveList(product);
-      }
-
-      // Flying animation
-      if (img && cartIcon) {
-        const imgClone = img.cloneNode(true);
-        const imgRect = img.getBoundingClientRect();
-        const cartRect = cartIcon.getBoundingClientRect();
-
-        imgClone.style.cssText = `
-          position: fixed;
-          left: ${imgRect.left}px;
-          top: ${imgRect.top}px;
-          width: ${imgRect.width}px;
-          height: ${imgRect.height}px;
-          transition: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-          z-index: 9999;
-          border-radius: 12px;
-          pointer-events: none;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-          object-fit: contain;
-          background: var(--card-bg);
-        `;
-        document.body.appendChild(imgClone);
-
-        requestAnimationFrame(() => {
-          imgClone.style.left = `${cartRect.left + cartRect.width / 2 - 20}px`;
-          imgClone.style.top = `${cartRect.top + cartRect.height / 2 - 20}px`;
-          imgClone.style.width = "40px";
-          imgClone.style.height = "40px";
-          imgClone.style.opacity = "0";
-          imgClone.style.transform = "scale(0.3) rotate(20deg)";
-        });
-
-        imgClone.addEventListener("transitionend", () => {
-          imgClone.remove();
-        });
-
-        setTimeout(() => {
-          if (imgClone.parentNode) imgClone.remove();
-        }, 1000);
-      }
-
+    } else {
       toast.success(
         `Added ${quantity > 1 ? `${quantity}x ` : ""}${product.name} to cart!`
       );
-
-    } catch (err) {
-      console.error("Add to cart failed:", err);
-      
-      // Rollback optimistic update
-      setProducts((prev) =>
-        prev.map((p) =>
-          p.id === product.id
-            ? { ...p, stock: (p.stock || 0) + quantity }
-            : p
-        )
-      );
-
-      toast.error("Failed to add to cart");
     }
-  };
+
+  } catch (err) {
+    console.error("Add to cart failed:", err);
+
+    setProducts((prev) =>
+      prev.map((p) =>
+        p.id === product.id
+          ? { ...p, stock: (p.stock || 0) + quantity }
+          : p
+      )
+    );
+
+    toast.error("Failed to add to cart");
+  }
+};  
 
   // Handle wishlist
   const handleWishlist = (product) => {
@@ -1218,6 +1249,121 @@ export default function AllProducts() {
 
       {/* ===== MAIN CONTENT ===== */}
       <main className="ap-main">
+
+        {/* ✅ PROMO SELECTION BANNER — only shows when promobag=true in URL */}
+        {(() => {
+          const urlParams = new URLSearchParams(location.search);
+          const promoParam   = urlParams.get("promo");
+          const isPromoBag   = urlParams.get("promobag") === "true";
+
+          if (!isPromoBag || !promoParam) return null;
+
+          const configs = {
+            beverage_500: {
+              label:    "Beverage Promo Active",
+              title:    "You are now filling your FREE Promo Bag",
+              subtitle: "Select any beverages below — they will be added as your free promo items",
+              tip:      "Add items one by one until you reach your 5% free allocation",
+              percent:  "5% FREE",
+              color:    "#8b0000",
+              lightBg:  "rgba(139,0,0,0.06)",
+              border:   "rgba(139,0,0,0.3)",
+            },
+            care_300: {
+              label:    "Care Promo Active",
+              title:    "You are now filling your FREE Promo Bag",
+              subtitle: "Select any care products below — they will be added as your free promo items",
+              tip:      "Add items one by one until you reach your 3% free allocation",
+              percent:  "3% FREE",
+              color:    "#064e3b",
+              lightBg:  "rgba(6,78,59,0.06)",
+              border:   "rgba(6,78,59,0.3)",
+            },
+          };
+
+          const cfg = configs[promoParam];
+          if (!cfg) return null;
+
+          return (
+            <div
+              className="ap-promo-selection-banner"
+              style={{
+                background:      cfg.lightBg,
+                border:          `1.5px solid ${cfg.border}`,
+                borderLeftWidth: "5px",
+                borderLeftColor: cfg.color,
+              }}
+            >
+              {/* Live pulse dot */}
+              <div
+                className="ap-promo-live-dot"
+                style={{ background: cfg.color }}
+              />
+
+              {/* Left */}
+              <div className="ap-promo-banner-left">
+                {/* Icon instead of emoji */}
+                <div
+                  className="ap-promo-banner-icon"
+                  style={{ background: cfg.color }}
+                >
+                  <FiGift size={20} color="#ffffff" />
+                </div>
+
+                <div className="ap-promo-banner-text">
+                  {/* Active label */}
+                  <span
+                    className="ap-promo-active-badge"
+                    style={{ background: cfg.color, color: "#ffffff" }}
+                  >
+                    {cfg.label}
+                  </span>
+
+                  {/* Title */}
+                  <h3
+                    className="ap-promo-banner-title"
+                    style={{ color: cfg.color }}
+                  >
+                    {cfg.title}
+                  </h3>
+
+                  {/* Subtitle */}
+                  <p className="ap-promo-banner-subtitle">
+                    {cfg.subtitle}
+                  </p>
+
+                  {/* Tip */}
+                  <p className="ap-promo-banner-tip">
+                    {cfg.tip}
+                  </p>
+                </div>
+              </div>
+
+              {/* Right */}
+              <div className="ap-promo-banner-right">
+                <span
+                  className="ap-promo-free-badge"
+                  style={{ background: cfg.color, color: "#ffffff" }}
+                >
+                  {cfg.percent}
+                </span>
+                <button
+                  className="ap-promo-done-btn"
+                  style={{ background: cfg.color, color: "#ffffff" }}
+                  onClick={() => navigate("/cart")}
+                >
+                  <FiShoppingCart size={14} />
+                  Done — View Cart
+                </button>
+                <p className="ap-promo-done-hint">
+                  Tap when you are done selecting
+                </p>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* ✅ THIS IS YOUR EXISTING CODE — unchanged */}
         <div className="ap-main-container">
           <SearchBar
             query={query}

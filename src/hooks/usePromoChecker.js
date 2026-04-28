@@ -44,7 +44,7 @@ export const isCareProduct = (name) => {
   );
 };
 
-// ── LocalStorage helpers ──────────────────
+// ── LocalStorage Helpers ──────────────────
 const PROMO_STORAGE_KEY = "chiamoorder_claimed_promos";
 
 export const getClaimedPromos = () => {
@@ -70,68 +70,69 @@ export const saveClaimedPromo = (promoKey) => {
 export const isPromoClaimed = (promoKey) =>
   getClaimedPromos().includes(promoKey);
 
-// ── Main checker ──────────────────────────
+// ── Main Checker ──────────────────────────
 export const checkPromos = (cartItems) => {
   const triggered = [];
 
   cartItems.forEach((item) => {
     const name = item.name || "";
-    const qty = item.quantity || 0;
+    const qty  = item.quantity || 0;
 
-    // ── PROMO 1: Any Jelly → 25 = 1 FREE ──
+    // ── PROMO 1: Any Jelly → Buy 25 Get 1 FREE ──
     if (isJellyProduct(name) && qty >= 25) {
       const key = `jelly_${name.replace(/\s+/g, "_")}`;
       if (!isPromoClaimed(key)) {
         triggered.push({
           key,
           type: "jelly_promo",
-          emoji: "🍯",
-          title: "Jelly Promo Unlocked!",
-          description: `You've added ${qty} cartons of ${name}. You qualify for Buy 25 Get 1 FREE!`,
+          iconType: "gift",          // ✅ used by PromoModal to pick icon
+          title: "Jelly Promo Unlocked",
+          description:
+            `You have added ${qty} cartons of ${name} and qualify for the Buy 25 Get 1 FREE offer.`,
           rewardText: `1 FREE carton of ${name}`,
           freeItem: {
-            name: item.name,
-            image: item.image,
-            price: 0,
-            quantity: 1,
-            productId: item.productId,
-            slug: item.slug,
-            isPromo: true,
-            promoTag: "🎁 FREE - Jelly Promo",
+            name:      item.name,
+            image:     item.image,
+            price:     0,
+            quantity:  1,
+            // ✅ FIXED: multiple fallbacks so identifier is never null
+            productId: item.productId ?? item.id ?? null,
+            slug:      item.slug ?? item.raw?.slug ?? null,
+            isPromo:   true,
+            promoTag:  "FREE — Jelly Promo",
           },
         });
       }
     }
 
-    // ── PROMO 2: Power Mint → 25 = 1 FREE ──
-    if (
-      name?.toUpperCase().includes("POWER MINT") &&
-      qty >= 25
-    ) {
+    // ── PROMO 2: Power Mint → Buy 25 Get 1 FREE ──
+    if (name?.toUpperCase().includes("POWER MINT") && qty >= 25) {
       const key = "power_mint_promo";
       if (!isPromoClaimed(key)) {
         triggered.push({
           key,
           type: "power_mint_promo",
-          emoji: "🌿",
-          title: "Power Mint Promo Unlocked!",
-          description: `You've added ${qty} cartons of Power Mint. You qualify for 1 FREE carton!`,
+          iconType: "leaf",          // ✅ used by PromoModal to pick icon
+          title: "Power Mint Promo Unlocked",
+          description:
+            `You have added ${qty} cartons of Power Mint and qualify for 1 FREE carton.`,
           rewardText: "1 FREE carton of POWER MINT",
           freeItem: {
-            name: item.name,
-            image: `${IK}/food/Food23-sweet.png?updatedAt=1771851133865`,
-            price: 0,
-            quantity: 1,
-            productId: item.productId,
-            slug: item.slug,
-            isPromo: true,
-            promoTag: "🎁 FREE - Power Mint Promo",
+            name:      item.name,
+            image:     `${IK}/food/Food23-sweet.png?updatedAt=1771851133865`,
+            price:     0,
+            quantity:  1,
+            // ✅ FIXED: multiple fallbacks
+            productId: item.productId ?? item.id ?? null,
+            slug:      item.slug ?? item.raw?.slug ?? null,
+            isPromo:   true,
+            promoTag:  "FREE — Power Mint Promo",
           },
         });
       }
     }
 
-    // ── PROMO 3: Beverage → 500 = 5% FREE ──
+    // ── PROMO 3: Beverage → 500 Packs = 5% FREE ──
     if (isBeverageProduct(name) && qty >= 500) {
       const key = `beverage_${name.replace(/\s+/g, "_")}`;
       if (!isPromoClaimed(key)) {
@@ -139,17 +140,19 @@ export const checkPromos = (cartItems) => {
         triggered.push({
           key,
           type: "beverage_promo",
-          emoji: "🥤",
-          title: "Beverage Promo Unlocked!",
-          description: `You've added ${qty} packs of ${name}. You qualify for 5% FREE!`,
-          rewardText: `${fivePercent} FREE packs — choose any beverages!`,
+          iconType: "box",           // ✅ used by PromoModal to pick icon
+          title: "Beverage Bonus Unlocked",
+          description:
+            `You have added ${qty} packs of ${name} and qualify for 5% FREE stock.`,
+          rewardText: `${fivePercent} FREE packs — select any beverages`,
           freeQty: fivePercent,
-          redirectTo: "/all-products?category=beverage&promo=beverage_500",
+          redirectTo:
+            "/all-products?category=beverage&promo=beverage_500",
         });
       }
     }
 
-    // ── PROMO 4: Care → 300 = 3% FREE ──
+    // ── PROMO 4: Care → 300 Units = 3% FREE ──
     if (isCareProduct(name) && qty >= 300) {
       const key = `care_${name.replace(/\s+/g, "_")}`;
       if (!isPromoClaimed(key)) {
@@ -157,12 +160,14 @@ export const checkPromos = (cartItems) => {
         triggered.push({
           key,
           type: "care_promo",
-          emoji: "🧴",
-          title: "Care Products Promo!",
-          description: `You've added ${qty} units of ${name}. You qualify for 3% FREE care products!`,
-          rewardText: `${threePercent} FREE units — choose any care products!`,
+          iconType: "shield",        // ✅ used by PromoModal to pick icon
+          title: "Care Products Promo Unlocked",
+          description:
+            `You have added ${qty} units of ${name} and qualify for 3% FREE care products.`,
+          rewardText: `${threePercent} FREE units — select any care products`,
           freeQty: threePercent,
-          redirectTo: "/all-products?category=care&promo=care_300",
+          redirectTo:
+            "/all-products?category=care&promo=care_300",
         });
       }
     }

@@ -2,7 +2,6 @@
 
 const IK = "https://ik.imagekit.io/ljwnlcbqyu";
 
-// ── Product Lists ─────────────────────────
 export const JELLY_PRODUCTS = [
   "MAMA'S LOVE COCOA 150g*48",
   "NOVA JELLY 125g*48",
@@ -19,9 +18,7 @@ export const isJellyProduct = (name) =>
   );
 
 export const isBeverageProduct = (name) => {
-  const BEVERAGE_KEYWORDS = [
-    "POP ", "INFINITE POWER", "ZIZOU", "FIZZY",
-  ];
+  const BEVERAGE_KEYWORDS = ["POP ", "INFINITE POWER", "ZIZOU", "FIZZY"];
   return BEVERAGE_KEYWORDS.some((k) =>
     name?.toUpperCase().includes(k.toUpperCase())
   );
@@ -49,9 +46,7 @@ const PROMO_STORAGE_KEY = "chiamoorder_claimed_promos";
 
 export const getClaimedPromos = () => {
   try {
-    return JSON.parse(
-      localStorage.getItem(PROMO_STORAGE_KEY) || "[]"
-    );
+    return JSON.parse(localStorage.getItem(PROMO_STORAGE_KEY) || "[]");
   } catch {
     return [];
   }
@@ -78,28 +73,35 @@ export const checkPromos = (cartItems) => {
     const name = item.name || "";
     const qty  = item.quantity || 0;
 
-    // ── PROMO 1: Any Jelly → Buy 25 Get 1 FREE ──
+    // ✅ Skip items that are already promo/free items
+    // so we never double-count them
+    if (item.isPromoFreeItem === true) return;
+
+    // ── PROMO 1: Jelly → Buy 25 Get 1 FREE ──
     if (isJellyProduct(name) && qty >= 25) {
       const key = `jelly_${name.replace(/\s+/g, "_")}`;
       if (!isPromoClaimed(key)) {
         triggered.push({
           key,
           type: "jelly_promo",
-          iconType: "gift",          // ✅ used by PromoModal to pick icon
           title: "Jelly Promo Unlocked",
           description:
             `You have added ${qty} cartons of ${name} and qualify for the Buy 25 Get 1 FREE offer.`,
           rewardText: `1 FREE carton of ${name}`,
           freeItem: {
-            name:      item.name,
-            image:     item.image,
-            price:     0,
-            quantity:  1,
-            // ✅ FIXED: multiple fallbacks so identifier is never null
-            productId: item.productId ?? item.id ?? null,
-            slug:      item.slug ?? item.raw?.slug ?? null,
-            isPromo:   true,
-            promoTag:  "FREE — Jelly Promo",
+            name:            item.name,
+            image:           item.image,
+            // ✅ Price is the actual price but marked free
+            originalPrice:   item.price,
+            price:           0,
+            quantity:        1,
+            productId:       item.productId ?? item.id ?? null,
+            slug:            item.slug ?? item.raw?.slug ?? null,
+            // ✅ IMPORTANT FLAGS
+            isPromoFreeItem: true,
+            isFree:          true,
+            promoTag:        "FREE — Jelly Promo",
+            promoType:       "jelly_promo",
           },
         });
       }
@@ -112,21 +114,23 @@ export const checkPromos = (cartItems) => {
         triggered.push({
           key,
           type: "power_mint_promo",
-          iconType: "leaf",          // ✅ used by PromoModal to pick icon
           title: "Power Mint Promo Unlocked",
           description:
             `You have added ${qty} cartons of Power Mint and qualify for 1 FREE carton.`,
           rewardText: "1 FREE carton of POWER MINT",
           freeItem: {
-            name:      item.name,
-            image:     `${IK}/food/Food23-sweet.png?updatedAt=1771851133865`,
-            price:     0,
-            quantity:  1,
-            // ✅ FIXED: multiple fallbacks
-            productId: item.productId ?? item.id ?? null,
-            slug:      item.slug ?? item.raw?.slug ?? null,
-            isPromo:   true,
-            promoTag:  "FREE — Power Mint Promo",
+            name:            item.name,
+            image:           `${IK}/food/Food23-sweet.png?updatedAt=1771851133865`,
+            originalPrice:   item.price,
+            price:           0,
+            quantity:        1,
+            productId:       item.productId ?? item.id ?? null,
+            slug:            item.slug ?? item.raw?.slug ?? null,
+            // ✅ IMPORTANT FLAGS
+            isPromoFreeItem: true,
+            isFree:          true,
+            promoTag:        "FREE — Power Mint Promo",
+            promoType:       "power_mint_promo",
           },
         });
       }
@@ -139,15 +143,12 @@ export const checkPromos = (cartItems) => {
         const fivePercent = Math.floor(qty * 0.05);
         triggered.push({
           key,
-          type: "beverage_promo",
-          iconType: "box",           // ✅ used by PromoModal to pick icon
-          title: "Beverage Bonus Unlocked",
-          description:
-            `You have added ${qty} packs of ${name} and qualify for 5% FREE stock.`,
-          rewardText: `${fivePercent} FREE packs — select any beverages`,
-          freeQty: fivePercent,
-          redirectTo:
-            "/all-products?category=beverage&promo=beverage_500",
+          type:        "beverage_promo",
+          title:       "Beverage Bonus Unlocked",
+          description: `You have added ${qty} packs of ${name} and qualify for 5% FREE stock.`,
+          rewardText:  `${fivePercent} FREE packs — select any beverages`,
+          freeQty:     fivePercent,
+          redirectTo:  "/all-products?category=beverage&promo=beverage_500",
         });
       }
     }
@@ -159,15 +160,12 @@ export const checkPromos = (cartItems) => {
         const threePercent = Math.floor(qty * 0.03);
         triggered.push({
           key,
-          type: "care_promo",
-          iconType: "shield",        // ✅ used by PromoModal to pick icon
-          title: "Care Products Promo Unlocked",
-          description:
-            `You have added ${qty} units of ${name} and qualify for 3% FREE care products.`,
-          rewardText: `${threePercent} FREE units — select any care products`,
-          freeQty: threePercent,
-          redirectTo:
-            "/all-products?category=care&promo=care_300",
+          type:        "care_promo",
+          title:       "Care Products Promo Unlocked",
+          description: `You have added ${qty} units of ${name} and qualify for 3% FREE care products.`,
+          rewardText:  `${threePercent} FREE units — select any care products`,
+          freeQty:     threePercent,
+          redirectTo:  "/all-products?category=care&promo=care_300",
         });
       }
     }

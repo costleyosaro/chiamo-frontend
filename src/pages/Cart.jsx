@@ -113,18 +113,59 @@ const EmptyCart = ({ onShop }) => (
 );
 
 // ✅ Cart Item Component - OPTIMISTIC QUANTITY UPDATES
-const CartItem = ({ item, onUpdateQty, onRemove, pendingQty }) => {
+const CartItem = ({ 
+  item, 
+  onUpdateQty, 
+  onRemove, 
+  pendingQty,
+  isPromoFreeItem,  // ✅ NEW
+  promoType,        // ✅ NEW
+}) => {
   const price = parsePrice(item.price);
-  const qty = pendingQty !== undefined ? pendingQty : (Number(item.quantity) || 1);
-  const total = price * qty;
+  const qty = pendingQty !== undefined 
+    ? pendingQty 
+    : (Number(item.quantity) || 1);
+  
+  // ✅ Free items show 0 in total
+  const total = isPromoFreeItem ? 0 : price * qty;
 
-  // ✅ Detect promo item
-  const isPromoItem = item.isPromo === true || price === 0;
-  const promoThemeClass = item.raw?.promoTag?.includes("Power Mint")
-    ? "power-mint-promo"
-    : item.raw?.promoTag?.includes("Jelly")
-    ? "jelly-promo"
-    : "";
+  // ✅ Theme based on promo type
+  const promoTheme = {
+    power_mint_promo: {
+      badgeBg:    "#d4a017",
+      badgeColor: "#000000",
+      borderColor:"#d4a017",
+      cardBg:     "linear-gradient(135deg, #fffbeb, #fef3c7)",
+      freeColor:  "#b8880f",
+    },
+    jelly_promo: {
+      badgeBg:    "#7c3aed",
+      badgeColor: "#ffffff",
+      borderColor:"#7c3aed",
+      cardBg:     "linear-gradient(135deg, #faf5ff, #f3e8ff)",
+      freeColor:  "#7c3aed",
+    },
+    // ✅ Beverage promo free items selected by user
+    beverage_promo: {
+      badgeBg:    "#8b0000",
+      badgeColor: "#ffffff",
+      borderColor:"#8b0000",
+      cardBg:     "linear-gradient(135deg, #fff5f5, #ffe4e4)",
+      freeColor:  "#8b0000",
+    },
+    // ✅ Care promo free items selected by user
+    care_promo: {
+      badgeBg:    "#064e3b",
+      badgeColor: "#ffffff",
+      borderColor:"#064e3b",
+      cardBg:     "linear-gradient(135deg, #f0fdf4, #dcfce7)",
+      freeColor:  "#064e3b",
+    },
+  };
+
+  const theme = promoType 
+    ? promoTheme[promoType] 
+    : null;
 
   const [isRemoving, setIsRemoving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -135,20 +176,12 @@ const CartItem = ({ item, onUpdateQty, onRemove, pendingQty }) => {
     setIsRemoving(true);
     setTimeout(() => {
       onRemove(item.productId);
-      toast.success("Item removed from cart", {
-        position: 'bottom-center',
-      });
+      toast.success("Item removed from cart", { position: "bottom-center" });
     }, 300);
   };
 
-  const handleDeleteClick = () => {
-    setShowDeleteConfirm(true);
-  };
-
-  const confirmDelete = () => {
-    setShowDeleteConfirm(false);
-    handleRemove();
-  };
+  const handleDeleteClick  = () => setShowDeleteConfirm(true);
+  const confirmDelete      = () => { setShowDeleteConfirm(false); handleRemove(); };
 
   const handleInputChange = (e) => {
     const val = e.target.value.replace(/[^0-9]/g, "");
@@ -158,66 +191,56 @@ const CartItem = ({ item, onUpdateQty, onRemove, pendingQty }) => {
   const handleInputBlur = () => {
     setIsEditing(false);
     const newQty = parseInt(editValue, 10);
-    if (!newQty || newQty < 1) {
-      setEditValue(String(qty));
-      return;
-    }
-    if (newQty !== qty) {
-      onUpdateQty(item.productId, newQty);
-    }
+    if (!newQty || newQty < 1) { setEditValue(String(qty)); return; }
+    if (newQty !== qty) onUpdateQty(item.productId, newQty);
     setEditValue(String(newQty));
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      e.target.blur();
-    }
-  };
+  const handleKeyDown = (e) => { if (e.key === "Enter") e.target.blur(); };
+  const handleQtyClick = () => { setEditValue(String(qty)); setIsEditing(true); };
 
-  const handleQtyClick = () => {
-    setEditValue(String(qty));
-    setIsEditing(true);
-  };
-
-  // ✅ Update edit value when qty changes
   useEffect(() => {
-    if (!isEditing) {
-      setEditValue(String(qty));
-    }
+    if (!isEditing) setEditValue(String(qty));
   }, [qty, isEditing]);
 
-  
-
-   return (
+  return (
     <>
       <div
-        className={`cart-item 
-          ${isRemoving ? "removing" : ""} 
-          ${isPromoItem ? `promo-item ${promoThemeClass}` : ""}
-        `}
+        className={`cart-item ${isRemoving ? "removing" : ""} ${isPromoFreeItem ? "promo-free-item" : ""}`}
+        style={
+          isPromoFreeItem && theme
+            ? {
+                border:     `2px solid ${theme.borderColor}`,
+                background: theme.cardBg,
+                borderRadius: "14px",
+                overflow:   "visible",
+                marginTop:  "18px",
+              }
+            : {}
+        }
       >
-        {/* ✅ Floating promo badge */}
-        {isPromoItem && (
-          <div className="cart-promo-item-badge">
-            🎁 FREE Promo Item
+        {/* ✅ FREE PROMO BADGE — floating above card */}
+        {isPromoFreeItem && theme && (
+          <div
+            className="cart-promo-free-badge"
+            style={{
+              background: theme.badgeBg,
+              color:      theme.badgeColor,
+            }}
+          >
+            Free Promo Item
           </div>
         )}
 
-        <div className="cart-item-image-wrapper" style={{ position: "relative" }}>
+        {/* Image */}
+        <div className="cart-item-image-wrapper">
           <img
             src={imageUrl(item.image || item.image_url)}
             alt={item.name || "Product"}
             className="cart-item-image"
             loading="lazy"
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = PLACEHOLDER;
-            }}
+            onError={(e) => { e.target.onerror = null; e.target.src = PLACEHOLDER; }}
           />
-          {/* ✅ Gift badge on image */}
-          {isPromoItem && (
-            <div className="cart-promo-img-badge">🎁</div>
-          )}
         </div>
 
         <div className="cart-item-content">
@@ -232,10 +255,26 @@ const CartItem = ({ item, onUpdateQty, onRemove, pendingQty }) => {
             </button>
           </div>
 
-          {/* ✅ Show FREE instead of price for promo items */}
+          {/* ✅ Price — strikethrough for free items */}
           <p className="cart-item-price">
-            {isPromoItem ? (
-              <span className="cart-item-free-label">🎁 FREE Item</span>
+            {isPromoFreeItem ? (
+              <span className="cart-item-price-free-wrap">
+                <span
+                  className="cart-item-price-struck"
+                  style={{ color: theme?.freeColor }}
+                >
+                  {formatCurrency(price)}
+                </span>
+                <span
+                  className="cart-item-free-tag"
+                  style={{
+                    background: theme?.badgeBg,
+                    color:      theme?.badgeColor,
+                  }}
+                >
+                  FREE
+                </span>
+              </span>
             ) : (
               `${formatCurrency(price)} / carton`
             )}
@@ -261,7 +300,10 @@ const CartItem = ({ item, onUpdateQty, onRemove, pendingQty }) => {
                   autoFocus
                 />
               ) : (
-                <span className="cart-qty-value" onClick={handleQtyClick}>
+                <span
+                  className="cart-qty-value"
+                  onClick={handleQtyClick}
+                >
                   {qty}
                 </span>
               )}
@@ -272,10 +314,15 @@ const CartItem = ({ item, onUpdateQty, onRemove, pendingQty }) => {
               >+</button>
             </div>
 
-            {/* ✅ Show FREE for promo total */}
+            {/* ✅ Total — FREE for promo items */}
             <span className="cart-item-total">
-              {isPromoItem ? (
-                <span className="cart-item-free-total">FREE 🎉</span>
+              {isPromoFreeItem ? (
+                <span
+                  className="cart-item-total-free"
+                  style={{ color: theme?.freeColor }}
+                >
+                  FREE
+                </span>
               ) : (
                 formatCurrency(total)
               )}
@@ -284,7 +331,6 @@ const CartItem = ({ item, onUpdateQty, onRemove, pendingQty }) => {
         </div>
       </div>
 
-      {/* Delete modal - unchanged */}
       {showDeleteConfirm && (
         <div
           className="cart-modal-overlay"
@@ -306,7 +352,7 @@ const CartItem = ({ item, onUpdateQty, onRemove, pendingQty }) => {
               <button
                 className="cart-modal-btn confirm"
                 onClick={confirmDelete}
-              >🗑️ Remove</button>
+              >Remove</button>
             </div>
           </div>
         </div>
@@ -317,23 +363,50 @@ const CartItem = ({ item, onUpdateQty, onRemove, pendingQty }) => {
 
 
 // ✅ Cart Items Section
-const CartItemsSection = ({ cart, onUpdateQty, onRemove, onClearAll, pendingQuantities }) => (
+const CartItemsSection = ({ 
+  cart, 
+  onUpdateQty, 
+  onRemove, 
+  onClearAll, 
+  pendingQuantities,
+  promoFreeItems   // ✅ ADD THIS
+}) => (
   <section className="cart-items-section">
     <div className="cart-items-header">
       <button className="cart-clear-all-btn" onClick={onClearAll}>
-        🗑️ Clear All Items
+        Clear All Items
       </button>
     </div>
     <div className="cart-items">
-      {cart.map((item) => (
-        <CartItem
-          key={item.productId || item.id}
-          item={item}
-          onUpdateQty={onUpdateQty}
-          onRemove={onRemove}
-          pendingQty={pendingQuantities[item.productId]}
-        />
-      ))}
+      {cart.map((item) => {
+        // ✅ Determine if this item is a promo free item
+        const productId = item.productId || item.id;
+        const isPromoFree =
+          item.isPromoFreeItem === true ||
+          item.isFree === true ||
+          promoFreeItems.some(
+            (p) =>
+              p.slug === item.slug ||
+              p.productId === productId
+          );
+
+        return (
+          <CartItem
+            key={item.productId || item.id}
+            item={item}
+            onUpdateQty={onUpdateQty}
+            onRemove={onRemove}
+            pendingQty={pendingQuantities[item.productId]}
+            isPromoFreeItem={isPromoFree}         // ✅ ADD THIS
+            promoType={
+              promoFreeItems.find(
+                (p) => p.slug === item.slug ||
+                       p.productId === productId
+              )?.promoType || null
+            }                                      // ✅ ADD THIS
+          />
+        );
+      })}
     </div>
   </section>
 );
@@ -585,6 +658,49 @@ const CheckoutButton = ({ total, processing, disabled, onClick }) => (
 // ============ MAIN COMPONENT ============
 export default function Cart() {
   const navigate = useNavigate();
+
+  // ✅ Replace the promoFreeItems useState with this:
+  const [promoFreeItems, setPromoFreeItems] = useState(() => {
+    try {
+      const stored = localStorage.getItem("promo_free_items");
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // ✅ Add this useEffect to persist whenever it changes:
+  useEffect(() => {
+    localStorage.setItem(
+      "promo_free_items",
+      JSON.stringify(promoFreeItems)
+    );
+  }, [promoFreeItems]);
+
+  // ✅ Clear promo free items when cart is cleared
+  // In your confirmClearAll function, add:
+  const confirmClearAll = async () => {
+    setShowClearConfirm(false);
+    Object.values(debounceTimers.current).forEach(clearTimeout);
+    debounceTimers.current = {};
+    setPendingQuantities({});
+
+    try {
+      await clearCart();
+      itemOrderRef.current = [];
+      // ✅ Also clear promo free items tracking
+      setPromoFreeItems([]);
+      localStorage.removeItem("promo_free_items");
+      toast.success("Cart cleared successfully!", {
+        icon: "🗑️",
+        position: "bottom-center",
+      });
+    } catch {
+      toast.error("Failed to clear cart", { position: "bottom-center" });
+    }
+  };
+
+// with FREE styling and are excluded from totals
   const { cart, updateQty, removeFromCart, clearCart, addToCart } = useCart();
   const smartListsContext = useSmartLists();
   const setOrders = smartListsContext?.setOrders;
@@ -637,53 +753,60 @@ export default function Cart() {
     };
   }, []);
 
-  // ✅ PROMO CHECKER — pendingQuantities is now declared above
-  // ✅ PROMO CHECKER — shows once, saved in localStorage
-useEffect(() => {
-  if (!cart || cart.length === 0) return;
+  // ✅ PROMO CHECKER — only runs on Cart page, fires after cart loads
+  useEffect(() => {
+    if (!cart || cart.length === 0) return;
 
-  const cartWithPending = cart.map((item) => {
-    const productId = item.productId || item.id;
-    return {
-      ...item,
-      quantity:
-        pendingQuantities[productId] !== undefined
-          ? pendingQuantities[productId]
-          : Number(item.quantity) || 1,
-    };
-  });
+    // ✅ Small delay ensures cart data is fully loaded from API
+    const timer = setTimeout(() => {
+      const cartWithPending = cart.map((item) => {
+        const productId = item.productId || item.id;
+        return {
+          ...item,
+          quantity:
+            pendingQuantities[productId] !== undefined
+              ? pendingQuantities[productId]
+              : Number(item.quantity) || 1,
+        };
+      });
 
-  const triggered = checkPromos(cartWithPending);
+      // ✅ Only check non-free items
+      const regularItems = cartWithPending.filter(
+        (item) => !item.isPromoFreeItem
+      );
 
-  // Show first untriggered promo
-  const nextPromo = triggered.find(
-    (p) =>
-      !shownPromos.has(p.key) &&
-      !claimedPromos.includes(p.key)
-  );
+      const triggered = checkPromos(regularItems);
 
-  if (nextPromo && !activePromo) {
-    setActivePromo(nextPromo);
-    setShownPromos((prev) => new Set([...prev, nextPromo.key]));
-  }
-}, [cart, pendingQuantities]);
+      const nextPromo = triggered.find(
+        (p) =>
+          !shownPromos.has(p.key) &&
+          !claimedPromos.includes(p.key)
+      );
 
-  // ✅ HANDLE PROMO ACCEPT
+      if (nextPromo && !activePromo) {
+        setActivePromo(nextPromo);
+        setShownPromos((prev) => new Set([...prev, nextPromo.key]));
+      }
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [cart, pendingQuantities]);
+
   const handlePromoAccept = async (promo) => {
   if (!promo) return;
 
-  // ✅ Save to localStorage - never show again
+  // ✅ Save claimed so it never shows again
   saveClaimedPromo(promo.key);
   setClaimedPromos((prev) => [...prev, promo.key]);
 
-  // ✅ Notify
+  // ✅ Notification
   await createPromoNotification(
-    `🎁 ${promo.title}`,
+    `${promo.title}`,
     `You unlocked: ${promo.rewardText}. Check your cart!`
   );
   playNotificationSound();
 
-  // ✅ JELLY / POWERMINT: Add 1 free item to cart
+  // ✅ JELLY / POWERMINT — add 1 FREE item as SEPARATE cart entry
   if (promo.freeItem) {
     try {
       const identifier =
@@ -694,55 +817,38 @@ useEffect(() => {
         return;
       }
 
-      // ✅ Check if same product already in cart
-      const existingItem = cart.find(
-        (c) =>
-          c.slug === promo.freeItem.slug ||
-          c.productId === promo.freeItem.productId
-      );
+      // ✅ Add to backend cart with qty 1
+      // This adds a NEW separate line item, not modifying the 25
+      await addToCart(identifier, 1, promo.freeItem.name);
 
-      if (existingItem) {
-        // ✅ Already in cart → increase qty by 1 (optimistic)
-        const currentQty =
-          pendingQuantities[existingItem.productId] !== undefined
-            ? pendingQuantities[existingItem.productId]
-            : Number(existingItem.quantity) || 1;
+      // ✅ Also store locally so we can mark it as FREE
+      // and exclude from totals
+      setPromoFreeItems((prev) => {
+        const exists = prev.find(
+          (p) => p.slug === promo.freeItem.slug ||
+                 p.productId === promo.freeItem.productId
+        );
+        if (exists) return prev;
+        return [...prev, {
+          ...promo.freeItem,
+          isPromoFreeItem: true,
+          isFree:          true,
+          promoType:       promo.type,
+        }];
+      });
 
-        const newQty = currentQty + 1;
-
-        // Show optimistic update immediately
-        setPendingQuantities((prev) => ({
-          ...prev,
-          [existingItem.productId]: newQty,
-        }));
-
-        // Sync to backend
-        await updateQty(identifier, newQty);
-
-        // Clear pending
-        setPendingQuantities((prev) => {
-          const updated = { ...prev };
-          delete updated[existingItem.productId];
-          return updated;
-        });
-
-      } else {
-        // ✅ NOT in cart → add as brand new item
-        await addToCart(identifier, 1, promo.freeItem.name);
-      }
-
-      // ✅ Themed success toast
+      // ✅ Themed success toast - NO emojis
       const isGoldTheme = promo.type === "power_mint_promo";
       toast.success(
-        `🎁 1 FREE ${promo.freeItem.name} added to your cart!`,
+        `1 FREE ${promo.freeItem.name} added to your cart`,
         {
           duration: 5000,
           position: "bottom-center",
           style: {
-            background: isGoldTheme ? "#d4a017" : "#7c3aed",
-            color: isGoldTheme ? "#000000" : "#ffffff",
-            fontWeight: "700",
-            borderRadius: "12px",
+            background:  isGoldTheme ? "#d4a017" : "#7c3aed",
+            color:       isGoldTheme ? "#000000" : "#ffffff",
+            fontWeight:  "700",
+            borderRadius:"12px",
           },
         }
       );
@@ -753,10 +859,9 @@ useEffect(() => {
     }
   }
 
-  // ✅ BEVERAGE / CARE: No item added here
-  // User will select items themselves on AllProducts page
-  // The redirect happens in PromoModal's handleRedirect with &promobag=true
-};
+  // ✅ BEVERAGE / CARE — redirect to select free items
+  // No item added here, user selects on AllProducts page
+};  
 
   // ✅ Stable-sorted cart
   const stableCart = useMemo(() => {
@@ -807,17 +912,32 @@ useEffect(() => {
   );
 
   // ✅ Subtotal with pending quantities
+  // ✅ FIXED subtotal — excludes promo free items
   const subtotal = useMemo(() => {
     return cart.reduce((sum, item) => {
-      const price = parsePrice(item.price);
+      // ✅ Check if this item is a promo free item
       const productId = item.productId || item.id;
+      const isPromoFree =
+        item.isPromoFreeItem === true ||
+        item.isFree === true ||
+        promoFreeItems.some(
+          (p) =>
+            p.slug === item.slug ||
+            p.productId === productId
+        );
+
+      // ✅ Skip free items from total calculation
+      if (isPromoFree) return sum;
+
+      const price = parsePrice(item.price);
       const qty =
         pendingQuantities[productId] !== undefined
           ? pendingQuantities[productId]
           : Number(item.quantity) || 1;
+
       return sum + price * qty;
     }, 0);
-  }, [cart, pendingQuantities]);
+  }, [cart, pendingQuantities, promoFreeItems]);  
 
   const deliveryFee = getDeliveryFee(subtotal, deliveryMethod);
   const grandTotal = subtotal + deliveryFee;
@@ -1021,6 +1141,7 @@ useEffect(() => {
               onRemove={removeFromCart}
               onClearAll={handleClearAll}
               pendingQuantities={pendingQuantities}
+              promoFreeItems={promoFreeItems}
             />
 
             <DeliverySection

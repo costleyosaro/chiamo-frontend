@@ -285,6 +285,61 @@
   margin-top: 20px;
 }
 
+/* ============================================
+   FREE PROMO ITEM IN CART
+   ============================================ */
+
+/* Floating FREE badge above card */
+.cart-promo-free-badge {
+  position: absolute;
+  top: -13px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 16px;
+  border-radius: 20px;
+  white-space: nowrap;
+  z-index: 3;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Price strikethrough wrapper */
+.cart-item-price-free-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Struck-through original price */
+.cart-item-price-struck {
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+  opacity: 0.7;
+}
+
+/* FREE tag next to struck price */
+.cart-item-free-tag {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+/* FREE total at bottom right */
+.cart-item-total-free {
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
 /* ✅ UPDATED: Header now hosts the "Clear All" button only */
 .cart-items-header {
   display: flex;

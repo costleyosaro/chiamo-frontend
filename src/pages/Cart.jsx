@@ -677,28 +677,7 @@ export default function Cart() {
     );
   }, [promoFreeItems]);
 
-  // ✅ Clear promo free items when cart is cleared
-  // In your confirmClearAll function, add:
-  const confirmClearAll = async () => {
-    setShowClearConfirm(false);
-    Object.values(debounceTimers.current).forEach(clearTimeout);
-    debounceTimers.current = {};
-    setPendingQuantities({});
-
-    try {
-      await clearCart();
-      itemOrderRef.current = [];
-      // ✅ Also clear promo free items tracking
-      setPromoFreeItems([]);
-      localStorage.removeItem("promo_free_items");
-      toast.success("Cart cleared successfully!", {
-        icon: "🗑️",
-        position: "bottom-center",
-      });
-    } catch {
-      toast.error("Failed to clear cart", { position: "bottom-center" });
-    }
-  };
+  
 
 // with FREE styling and are excluded from totals
   const { cart, updateQty, removeFromCart, clearCart, addToCart } = useCart();

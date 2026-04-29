@@ -651,14 +651,7 @@ export default function Cart() {
     }
   });
 
-  // ✅ Add this useEffect to persist whenever it changes:
-  useEffect(() => {
-    localStorage.setItem(
-      "promo_free_items",
-      JSON.stringify(promoFreeItems)
-    );
-  }, [promoFreeItems]);
-
+  
   
 
 // with FREE styling and are excluded from totals
@@ -913,18 +906,15 @@ export default function Cart() {
   );
 
   // ✅ FIXED: Use stableCart which has isPromoFreeItem already tagged
-const subtotal = useMemo(() => {
+  const subtotal = useMemo(() => {
   return stableCart.reduce((sum, item) => {
-    // ✅ Skip free items - they don't add to total
     if (item.isPromoFreeItem) return sum;
-
     const price = parsePrice(item.price);
     const productId = item.productId || item.id;
     const qty =
       pendingQuantities[productId] !== undefined
         ? pendingQuantities[productId]
         : Number(item.quantity) || 1;
-
     return sum + price * qty;
   }, 0);
 }, [stableCart, pendingQuantities]);

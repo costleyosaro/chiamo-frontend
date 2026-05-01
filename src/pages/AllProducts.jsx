@@ -942,30 +942,66 @@ export default function AllProducts() {
   const handleAddToCart = async (e, product, quantity = 1) => {
 
   const urlParams = new URLSearchParams(location.search);
-  const promoParam = urlParams.get("promo");
-  const searchParam = urlParams.get("search") || "";
+  const promoParam    = urlParams.get("promo");
+  const searchParam   = urlParams.get("search") || "";
   const categoryParam = urlParams.get("category") || "";
-  const isPromoBagMode = urlParams.get("promobag") === "true"; 
-  // ✅ NEW: "promobag=true" = user is selecting FREE items (normal qty)
-  // NO promobag param = trigger mode (auto 300/500)
+  const isPromoBagMode = urlParams.get("promobag") === "true";
 
-  // ✅ Detect which trigger mode we're in
+  // ✅ ENFORCE FREE ITEM LIMIT for beverage/care promo bag
+  if (isPromoBagMode && promoParam) {
+    try {
+      // Get current cart to count already-added free items
+      const cartRes = await API.get("/orders/cart/");
+      const cartData = cartRes.data ?? {};
+      let cartItems = [];
+      if (Array.isArray(cartData)) cartItems = cartData;
+      else if (Array.isArray(cartData.items)) cartItems = cartData.items;
+      else if (Array.isArray(cartData.cart?.items)) cartItems = cartData.cart.items;
+
+      // ✅ Get the stored free item keys to count what's already free
+      const storedKeys = JSON.parse(
+        localStorage.getItem("promo_free_item_keys") || "[]"
+      );
+
+      // Count items already tagged as free in cart
+      const freeItemsAlreadyAdded = storedKeys.filter((key) =>
+        key.includes(promoParam === "beverage_500" ? "beverage" : "care")
+      ).length;
+
+      // ✅ Get the allowed free qty from localStorage
+      // This was set when the promo was triggered
+      const allowedFreeQty = parseInt(
+        localStorage.getItem(`promo_free_qty_${promoParam}`) || "0"
+      );
+
+      if (
+        allowedFreeQty > 0 &&
+        freeItemsAlreadyAdded >= allowedFreeQty
+      ) {
+        toast.error(
+          `You have reached your free item limit (${allowedFreeQty} items)`,
+          { position: "bottom-center" }
+        );
+        return;
+      }
+    } catch (err) {
+      console.warn("Could not check free item limit:", err);
+    }
+  }
+
+  // ✅ Normal trigger mode qty logic
   const isJellyTrigger =
     categoryParam === "beauty" &&
     searchParam.toLowerCase().includes("jelly");
 
   const isPowerMintTrigger =
     categoryParam === "food" &&
-    searchParam.toLowerCase().includes("power") &&
-    searchParam.toLowerCase().includes("mint");
+    (searchParam.toLowerCase().includes("power") ||
+     searchParam.toLowerCase().includes("mint"));
 
-  const isBeverageTrigger =
-    promoParam === "beverage_500" && !isPromoBagMode;
+  const isBeverageTrigger = promoParam === "beverage_500" && !isPromoBagMode;
+  const isCarePromoTrigger = promoParam === "care_300" && !isPromoBagMode;
 
-  const isCarePromoTrigger =
-    promoParam === "care_300" && !isPromoBagMode;
-
-  // ✅ FIXED: Only force qty in TRIGGER mode, never in promo bag mode
   if (!isPromoBagMode) {
     if (isJellyTrigger || isPowerMintTrigger) {
       quantity = 25;
@@ -975,6 +1011,8 @@ export default function AllProducts() {
       quantity = 300;
     }
   }
+
+  // ✅ REST OF YOUR EXISTING handleAddToCart CODE unchanged...
   // ✅ If isPromoBagMode === true → quantity stays as passed (1 or user-selected)
 
   // ✅ REST OF YOUR CODE UNCHANGED
@@ -1021,6 +1059,25 @@ export default function AllProducts() {
     }
 
     await addToCartContext(identifier, quantity);
+
+    // ✅ Step 6: Tag beverage/care free items when added in promo bag mode
+    if (isPromoBagMode && promoParam) {
+      const productId = String(product.id || identifier);
+      const freeItemKey = `${productId}::${promoParam}`;
+
+      const existingKeys = JSON.parse(
+        localStorage.getItem("promo_free_item_keys") || "[]"
+      );
+
+      if (!existingKeys.includes(freeItemKey)) {
+        const updatedKeys = [...existingKeys, freeItemKey];
+        localStorage.setItem(
+          "promo_free_item_keys",
+          JSON.stringify(updatedKeys)
+        );
+        console.log("✅ Tagged as free item:", freeItemKey);
+      }
+    }
 
     if (activeList) {
       addToActiveList(product);

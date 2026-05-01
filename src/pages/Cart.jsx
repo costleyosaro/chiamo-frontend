@@ -701,23 +701,6 @@ export default function Cart() {
 
   // ✅ Track original item order
   useEffect(() => {
-    const currentIds = cart.map((item) => item.productId || item.id);
-    const existingOrder = itemOrderRef.current.filter((id) =>
-      currentIds.includes(id)
-    );
-    const newIds = currentIds.filter((id) => !existingOrder.includes(id));
-    itemOrderRef.current = [...existingOrder, ...newIds];
-  }, [cart]);
-
-  // ✅ Cleanup debounce timers on unmount
-  useEffect(() => {
-    return () => {
-      Object.values(debounceTimers.current).forEach(clearTimeout);
-    };
-  }, []);
-
-  // ✅ PROMO CHECKER — fires when cart loads
-  useEffect(() => {
     if (!cart || cart.length === 0) return;
 
     const timer = setTimeout(() => {
@@ -732,15 +715,12 @@ export default function Cart() {
         };
       });
 
-      // ✅ Only check regular items, not free promo items
       const regularItems = cartWithPending.filter(
         (item) => !item.isPromoFreeItem
       );
 
       const triggered = checkPromos(regularItems);
 
-      // ✅ FIXED: Check BOTH shownPromos (session)
-      // AND claimedPromos (loaded from localStorage on mount)
       const nextPromo = triggered.find(
         (p) =>
           !shownPromos.has(p.key) &&
@@ -748,13 +728,27 @@ export default function Cart() {
       );
 
       if (nextPromo && !activePromo) {
+        // ✅ Save allowed free qty for beverage/care limit enforcement
+        if (nextPromo.freeQty) {
+          const promoParam = nextPromo.type === "beverage_promo"
+            ? "beverage_500"
+            : "care_300";
+          localStorage.setItem(
+            `promo_free_qty_${promoParam}`,
+            String(nextPromo.freeQty)
+          );
+          console.log(
+            `✅ Saved free qty limit: ${nextPromo.freeQty} for ${promoParam}`
+          );
+        }
+
         setActivePromo(nextPromo);
         setShownPromos((prev) => new Set([...prev, nextPromo.key]));
       }
     }, 600);
 
     return () => clearTimeout(timer);
-  }, [cart, pendingQuantities, claimedPromos]); // ✅ added claimedPromos here
+  }, [cart, pendingQuantities, claimedPromos]);
 
   const handlePromoAccept = async (promo) => {
   if (!promo) return;
@@ -768,32 +762,39 @@ export default function Cart() {
   );
   playNotificationSound();
 
+  // ✅ JELLY / POWERMINT — add 1 separate FREE item
   if (promo.freeItem) {
     try {
       const identifier =
         promo.freeItem.slug || promo.freeItem.productId;
 
       if (!identifier) {
-        toast.error("Could not add promo item — missing product reference.");
+        toast.error("Could not add promo item.");
         return;
       }
 
-      // ✅ Add the free item to backend cart
+      // ✅ Add to cart as NEW separate entry (qty = 1)
       await addToCart(identifier, 1, promo.freeItem.name);
 
-      // ✅ Create a UNIQUE key for this free item
-      // Format: productId::promoKey
-      // This way even if same product, we know WHICH
-      // cart entry is the free one (always the latest added)
-      const freeItemKey = `${promo.freeItem.productId || promo.freeItem.slug}::${promo.key}`;
+      // ✅ CRITICAL: Save the free item key to localStorage
+      // Format: "productId::promoKey"
+      const productId = String(
+        promo.freeItem.productId || promo.freeItem.slug || ""
+      );
+      const freeItemKey = `${productId}::${promo.key}`;
 
-      // ✅ Store the unique key
+      console.log("✅ Saving free item key:", freeItemKey);
+
       setPromoFreeItemKeys((prev) => {
+        // Avoid duplicates
+        if (prev.includes(freeItemKey)) return prev;
         const updated = [...prev, freeItemKey];
+        // ✅ Persist immediately
         localStorage.setItem(
           "promo_free_item_keys",
           JSON.stringify(updated)
         );
+        console.log("✅ Saved to localStorage:", updated);
         return updated;
       });
 
@@ -821,56 +822,73 @@ export default function Cart() {
 
   // ✅ FIXED stableCart - tags the correct item as free
   const stableCart = useMemo(() => {
-    const order = itemOrderRef.current;
+  const order = itemOrderRef.current;
 
-    const sorted = [...cart].sort((a, b) => {
-      const idA = a.productId || a.id;
-      const idB = b.productId || b.id;
-      const indexA = order.indexOf(idA);
-      const indexB = order.indexOf(idB);
-      if (indexA === -1 && indexB === -1) return 0;
-      if (indexA === -1) return 1;
-      if (indexB === -1) return -1;
-      return indexA - indexB;
+  const sorted = [...cart].sort((a, b) => {
+    const idA = a.productId || a.id;
+    const idB = b.productId || b.id;
+    const indexA = order.indexOf(idA);
+    const indexB = order.indexOf(idB);
+    if (indexA === -1 && indexB === -1) return 0;
+    if (indexA === -1) return 1;
+    if (indexB === -1) return -1;
+    return indexA - indexB;
+  });
+
+  return sorted.map((item) => {
+    const productId = String(item.productId || item.id || "");
+    const slug = item.slug || "";
+
+    // ✅ Check promoFreeItemKeys for a match
+    // Key format: "productId::promoKey"
+    const matchingKey = promoFreeItemKeys.find((key) => {
+      const [storedId] = key.split("::");
+      return storedId === productId || storedId === slug;
     });
 
-    // ✅ Now tag free items correctly
-    // For each product that appears in promoFreeItemKeys,
-    // find the cart entry with quantity === 1 and tag it as free
-    // The trigger item (25 cartons) will NOT be tagged
-    return sorted.map((item) => {
-      const productId = item.productId || item.id;
-      const qty = 
-        pendingQuantities[productId] !== undefined
-          ? pendingQuantities[productId]
-          : Number(item.quantity) || 1;
+    if (!matchingKey) {
+      return { ...item, isPromoFreeItem: false, promoType: null };
+    }
 
-      // ✅ Check if this item has a free key stored
-      const matchingFreeKey = promoFreeItemKeys.find((key) => {
-        const [storedProductId] = key.split("::");
-        return (
-          storedProductId === String(productId) ||
-          storedProductId === item.slug
-        );
-      });
+    // ✅ Extract promo type from key
+    // Key format: "productId::power_mint_promo" or "productId::jelly_NOVA..."
+    const promoKey = matchingKey.split("::")[1] || "";
+    const promoType = promoKey.startsWith("power_mint")
+      ? "power_mint_promo"
+      : promoKey.startsWith("jelly")
+      ? "jelly_promo"
+      : promoKey.startsWith("beverage")
+      ? "beverage_promo"
+      : promoKey.startsWith("care")
+      ? "care_promo"
+      : null;
 
-      // ✅ CRITICAL: Only tag as free if quantity is 1
-      // This prevents the 25-carton trigger from being tagged
-      const isThisTheFreeItem =
-        !!matchingFreeKey && qty === 1;
+    // ✅ CRITICAL FIX: For same-product promos (PowerMint/Jelly)
+    // The trigger item has HIGH qty (25+)
+    // The free item has qty exactly 1
+    // We only tag as free if qty is 1
+    const pendingQty = pendingQuantities[productId];
+    const actualQty = pendingQty !== undefined
+      ? pendingQty
+      : Number(item.quantity) || 1;
 
-      // ✅ Get promo type from the key
-      const promoType = matchingFreeKey
-        ? matchingFreeKey.split("::")[1]?.split("_").slice(0, -1).join("_") + "_promo"
-        : null;
+    // ✅ For PowerMint and Jelly: only tag qty=1 as free
+    // For Beverage and Care: all matched items are free
+    const isSameProductPromo =
+      promoType === "power_mint_promo" ||
+      promoType === "jelly_promo";
 
-      return {
-        ...item,
-        isPromoFreeItem: isThisTheFreeItem,
-        promoType: isThisTheFreeItem ? promoType : null,
-      };
-    });
-  }, [cart, pendingQuantities, promoFreeItemKeys]);
+    const isPromoFreeItem = isSameProductPromo
+      ? actualQty === 1  // only the 1-carton entry is free
+      : true;            // beverage/care items are always free
+
+    return {
+      ...item,
+      isPromoFreeItem,
+      promoType: isPromoFreeItem ? promoType : null,
+    };
+  });
+}, [cart, pendingQuantities, promoFreeItemKeys]);
 
   // ✅ OPTIMISTIC QUANTITY UPDATE HANDLER
   const handleOptimisticQtyUpdate = useCallback(
@@ -906,18 +924,22 @@ export default function Cart() {
   );
 
   // ✅ FIXED: Use stableCart which has isPromoFreeItem already tagged
+  // ✅ Excludes ALL free promo items from subtotal
   const subtotal = useMemo(() => {
-  return stableCart.reduce((sum, item) => {
-    if (item.isPromoFreeItem) return sum;
-    const price = parsePrice(item.price);
-    const productId = item.productId || item.id;
-    const qty =
-      pendingQuantities[productId] !== undefined
-        ? pendingQuantities[productId]
-        : Number(item.quantity) || 1;
-    return sum + price * qty;
-  }, 0);
-}, [stableCart, pendingQuantities]);
+    return stableCart.reduce((sum, item) => {
+      // ✅ Skip free items completely
+      if (item.isPromoFreeItem) return sum;
+
+      const price = parsePrice(item.price);
+      const productId = String(item.productId || item.id || "");
+      const qty =
+        pendingQuantities[productId] !== undefined
+          ? pendingQuantities[productId]
+          : Number(item.quantity) || 1;
+
+      return sum + price * qty;
+    }, 0);
+  }, [stableCart, pendingQuantities]);
 
   const deliveryFee = getDeliveryFee(subtotal, deliveryMethod);
   const grandTotal = subtotal + deliveryFee;

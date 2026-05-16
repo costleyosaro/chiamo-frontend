@@ -1565,6 +1565,251 @@
   box-shadow: 0 4px 20px rgba(16, 185, 129, 0.2);
 }
 
+/* ============================================
+   ORDERS PAGE — SKELETON LOADING
+   ============================================ */
+
+/* ── Base shimmer ─────────────────────────── */
+@keyframes ordShimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+
+.ord-skel {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e4e4e4 37%,
+    #f0f0f0 63%
+  );
+  background-size: 800px 100%;
+  animation: ordShimmer 1.4s ease-in-out infinite;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+/* ── Skeleton header ─────────────────────── */
+.ord-skel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ord-skel-back-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+
+.ord-skel-title {
+  width: 130px;
+  height: 18px;
+  border-radius: 8px;
+}
+
+.ord-skel-refresh-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+
+/* ── Skeleton tabs ───────────────────────── */
+.ord-skel-tabs {
+  display: flex;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.ord-skel-tab {
+  flex: 1;
+  height: 40px;
+  border-radius: 10px;
+}
+
+/* ── Skeleton card ───────────────────────── */
+.ord-skel-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 18px 16px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border: 1px solid #f0f0f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* Badge row */
+.ord-skel-badge {
+  width: 90px;
+  height: 22px;
+  border-radius: 20px;
+}
+
+/* Card header */
+.ord-skel-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ord-skel-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.ord-skel-id-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ord-skel-order-id {
+  width: 120px;
+  height: 14px;
+  border-radius: 6px;
+}
+
+.ord-skel-status-badge {
+  width: 80px;
+  height: 22px;
+  border-radius: 20px;
+}
+
+.ord-skel-meta-row {
+  display: flex;
+  gap: 12px;
+}
+
+.ord-skel-meta-item {
+  width: 90px;
+  height: 11px;
+  border-radius: 6px;
+}
+
+.ord-skel-menu-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Summary row */
+.ord-skel-summary-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 12px;
+  background: #f9fafb;
+  border-radius: 12px;
+}
+
+.ord-skel-summary-block {
+  flex: 1;
+  height: 36px;
+  border-radius: 8px;
+}
+
+.ord-skel-summary-divider {
+  width: 1px;
+  height: 36px;
+  background: #e5e7eb !important;
+  animation: none !important;
+  border-radius: 0;
+  flex-shrink: 0;
+}
+
+/* Source + estimate row */
+.ord-skel-source-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ord-skel-source-badge {
+  width: 60px;
+  height: 20px;
+  border-radius: 20px;
+}
+
+.ord-skel-estimate {
+  width: 110px;
+  height: 14px;
+  border-radius: 6px;
+}
+
+/* Timeline */
+.ord-skel-timeline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 4px;
+  overflow: hidden;
+}
+
+.ord-skel-timeline-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ord-skel-timeline-line {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  margin: 0 3px;
+}
+
+/* Action buttons */
+.ord-skel-actions-row {
+  display: flex;
+  gap: 10px;
+}
+
+.ord-skel-action-btn {
+  flex: 1;
+  height: 40px;
+  border-radius: 10px;
+}
+
+/* ── Responsive ──────────────────────────── */
+@media (max-width: 400px) {
+  .ord-skel-card {
+    padding: 14px 12px;
+    gap: 12px;
+    border-radius: 14px;
+  }
+
+  .ord-skel-order-id {
+    width: 100px;
+  }
+
+  .ord-skel-status-badge {
+    width: 65px;
+  }
+
+  .ord-skel-meta-item {
+    width: 75px;
+  }
+
+  .ord-skel-timeline-dot {
+    width: 24px;
+    height: 24px;
+  }
+
+  .ord-skel-action-btn {
+    height: 36px;
+  }
+
+  .ord-skel-title {
+    width: 100px;
+  }
+}
+
 /* ============ ACTIONS ROW ADJUSTMENT ============ */
 .ord-card-actions {
   display: flex;

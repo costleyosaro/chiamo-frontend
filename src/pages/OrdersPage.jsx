@@ -4,8 +4,6 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import API from "../services/api";
 import { useAuth } from "../context/AuthContext";
-import PageLoader from "../components/LoadingScreen";
-import smartlistAnimation from "../assets/animations/smart-list.json";
 import "./Order.css";
 
 // Icons
@@ -115,6 +113,159 @@ const getStatusLabel = (progress) => {
   const step = ORDER_STEPS[progress - 1];
   return step ? step.label : "Confirmed";
 };
+
+// ============ ORDERS SKELETON ============
+const OrdersSkeleton = () => (
+  <div className="ord-page">
+    {/* Skeleton Header */}
+    <header className="ord-header ord-skel-header">
+      <div className="ord-skel ord-skel-back-btn" />
+      <div className="ord-skel ord-skel-title" />
+      <div className="ord-skel ord-skel-refresh-btn" />
+    </header>
+
+    {/* Skeleton Tabs */}
+    <div className="ord-tabs ord-skel-tabs">
+      <div className="ord-skel ord-skel-tab" />
+      <div className="ord-skel ord-skel-tab" />
+    </div>
+
+    {/* Skeleton Cards */}
+    <div className="ord-content">
+      <div className="ord-list">
+
+        {/* Card 1 */}
+        <div className="ord-skel-card">
+          {/* Badge row */}
+          <div className="ord-skel ord-skel-badge" />
+
+          {/* Card header */}
+          <div className="ord-skel-card-header">
+            <div className="ord-skel-card-info">
+              <div className="ord-skel-id-row">
+                <div className="ord-skel ord-skel-order-id" />
+                <div className="ord-skel ord-skel-status-badge" />
+              </div>
+              <div className="ord-skel-meta-row">
+                <div className="ord-skel ord-skel-meta-item" />
+                <div className="ord-skel ord-skel-meta-item" />
+              </div>
+            </div>
+            <div className="ord-skel ord-skel-menu-btn" />
+          </div>
+
+          {/* Summary row */}
+          <div className="ord-skel-summary-row">
+            <div className="ord-skel ord-skel-summary-block" />
+            <div className="ord-skel ord-skel-summary-divider" />
+            <div className="ord-skel ord-skel-summary-block" />
+          </div>
+
+          {/* Source + estimate */}
+          <div className="ord-skel-source-row">
+            <div className="ord-skel ord-skel-source-badge" />
+            <div className="ord-skel ord-skel-estimate" />
+          </div>
+
+          {/* Timeline */}
+          <div className="ord-skel-timeline">
+            <div className="ord-skel ord-skel-timeline-dot" />
+            <div className="ord-skel ord-skel-timeline-line" />
+            <div className="ord-skel ord-skel-timeline-dot" />
+            <div className="ord-skel ord-skel-timeline-line" />
+            <div className="ord-skel ord-skel-timeline-dot" />
+            <div className="ord-skel ord-skel-timeline-line" />
+            <div className="ord-skel ord-skel-timeline-dot" />
+            <div className="ord-skel ord-skel-timeline-line" />
+            <div className="ord-skel ord-skel-timeline-dot" />
+          </div>
+
+          {/* Action buttons */}
+          <div className="ord-skel-actions-row">
+            <div className="ord-skel ord-skel-action-btn" />
+            <div className="ord-skel ord-skel-action-btn" />
+          </div>
+        </div>
+
+        {/* Card 2 */}
+        <div className="ord-skel-card">
+          <div className="ord-skel-card-header">
+            <div className="ord-skel-card-info">
+              <div className="ord-skel-id-row">
+                <div className="ord-skel ord-skel-order-id" />
+                <div className="ord-skel ord-skel-status-badge" />
+              </div>
+              <div className="ord-skel-meta-row">
+                <div className="ord-skel ord-skel-meta-item" />
+                <div className="ord-skel ord-skel-meta-item" />
+              </div>
+            </div>
+            <div className="ord-skel ord-skel-menu-btn" />
+          </div>
+
+          <div className="ord-skel-summary-row">
+            <div className="ord-skel ord-skel-summary-block" />
+            <div className="ord-skel ord-skel-summary-divider" />
+            <div className="ord-skel ord-skel-summary-block" />
+          </div>
+
+          <div className="ord-skel-source-row">
+            <div className="ord-skel ord-skel-source-badge" />
+            <div className="ord-skel ord-skel-estimate" />
+          </div>
+
+          <div className="ord-skel-timeline">
+            <div className="ord-skel ord-skel-timeline-dot" />
+            <div className="ord-skel ord-skel-timeline-line" />
+            <div className="ord-skel ord-skel-timeline-dot" />
+            <div className="ord-skel ord-skel-timeline-line" />
+            <div className="ord-skel ord-skel-timeline-dot" />
+            <div className="ord-skel ord-skel-timeline-line" />
+            <div className="ord-skel ord-skel-timeline-dot" />
+            <div className="ord-skel ord-skel-timeline-line" />
+            <div className="ord-skel ord-skel-timeline-dot" />
+          </div>
+
+          <div className="ord-skel-actions-row">
+            <div className="ord-skel ord-skel-action-btn" />
+            <div className="ord-skel ord-skel-action-btn" />
+          </div>
+        </div>
+
+        {/* Card 3 — shorter, no timeline */}
+        <div className="ord-skel-card">
+          <div className="ord-skel-card-header">
+            <div className="ord-skel-card-info">
+              <div className="ord-skel-id-row">
+                <div className="ord-skel ord-skel-order-id" />
+                <div className="ord-skel ord-skel-status-badge" />
+              </div>
+              <div className="ord-skel-meta-row">
+                <div className="ord-skel ord-skel-meta-item" />
+                <div className="ord-skel ord-skel-meta-item" />
+              </div>
+            </div>
+            <div className="ord-skel ord-skel-menu-btn" />
+          </div>
+
+          <div className="ord-skel-summary-row">
+            <div className="ord-skel ord-skel-summary-block" />
+            <div className="ord-skel ord-skel-summary-divider" />
+            <div className="ord-skel ord-skel-summary-block" />
+          </div>
+
+          <div className="ord-skel-actions-row">
+            <div className="ord-skel ord-skel-action-btn" />
+            <div className="ord-skel ord-skel-action-btn" />
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div className="ord-bottom-spacer" />
+  </div>
+);
 
 // ============ SUB-COMPONENTS ============
 
@@ -915,14 +1066,9 @@ export default function OrdersPage() {
   };
 
   // Loading State
+  // Loading State — Skeleton
   if (loading) {
-    return (
-      <PageLoader
-        animation={smartlistAnimation}
-        message="Loading your orders..."
-        size={260}
-      />
-    );
+    return <OrdersSkeleton />;
   }
 
   // Error State

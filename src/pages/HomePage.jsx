@@ -267,6 +267,16 @@ const PromoBanner = () => {
     <section className="hp-promo-section">
       <div className="hp-promo-banner">
         <div className="hp-promo-bg"></div>
+
+        {/* Watermark layer */}
+        <div className="hp-promo-watermark" aria-hidden="true">
+          {Array.from({ length: 20 }, (_, i) => (
+            <span key={i} className="hp-watermark-text">
+              ChiamoOrder
+            </span>
+          ))}
+        </div>
+
         <div className="hp-promo-content">
           <div className="hp-promo-badge">
             <HiOutlineSparkles />

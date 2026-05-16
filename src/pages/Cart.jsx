@@ -10,13 +10,9 @@ import TransactionPinModal from "../components/TransactionPinModal";
 import SetTransactionPinModal from "../components/SetTransactionPinModal";
 import { imageUrl, PLACEHOLDER } from "../utils/image";
 import "./Cart.css";
-import {
-  checkPromos,
-  saveClaimedPromo,
-} from "../hooks/usePromoChecker";
+import { checkPromos } from "../hooks/usePromoChecker";
 import PromoModal from "../components/PromoModal";
 
-// Icons — removed FiChevronLeft (replaced with simple arrow)
 import {
   FiShoppingCart,
   FiPackage,
@@ -36,10 +32,10 @@ import { BiStore } from "react-icons/bi";
 const FREE_DELIVERY_THRESHOLD = 50000;
 
 const DELIVERY_TIERS = [
-  { min: 50000, fee: 0, label: "Free Delivery 🎉" },
+  { min: 50000, fee: 0,    label: "Free Delivery" },
   { min: 25000, fee: 1000, label: "₦1,000" },
   { min: 10000, fee: 1500, label: "₦1,500" },
-  { min: 0, fee: 2000, label: "₦2,000" },
+  { min: 0,     fee: 2000, label: "₦2,000" },
 ];
 
 const getDeliveryFee = (subtotal, method) => {
@@ -54,7 +50,11 @@ const getNextTier = (subtotal) => {
   const sortedTiers = [...DELIVERY_TIERS].sort((a, b) => a.min - b.min);
   for (const tier of sortedTiers) {
     if (subtotal < tier.min) {
-      return { threshold: tier.min, fee: tier.fee, remaining: tier.min - subtotal };
+      return {
+        threshold: tier.min,
+        fee: tier.fee,
+        remaining: tier.min - subtotal,
+      };
     }
   }
   return null;
@@ -72,9 +72,40 @@ const formatCurrency = (val) =>
     maximumFractionDigits: 2,
   })}`;
 
+// ============ PROMO THEME MAP ============
+const PROMO_THEME = {
+  power_mint_promo: {
+    badgeBg:     "#d4a017",
+    badgeColor:  "#000000",
+    borderColor: "#d4a017",
+    cardBg:      "linear-gradient(135deg, #fffbeb, #fef3c7)",
+    freeColor:   "#b8880f",
+  },
+  jelly_promo: {
+    badgeBg:     "#7c3aed",
+    badgeColor:  "#ffffff",
+    borderColor: "#7c3aed",
+    cardBg:      "linear-gradient(135deg, #faf5ff, #f3e8ff)",
+    freeColor:   "#7c3aed",
+  },
+  beverage_promo: {
+    badgeBg:     "#8b0000",
+    badgeColor:  "#ffffff",
+    borderColor: "#8b0000",
+    cardBg:      "linear-gradient(135deg, #fff5f5, #ffe4e4)",
+    freeColor:   "#8b0000",
+  },
+  care_promo: {
+    badgeBg:     "#064e3b",
+    badgeColor:  "#ffffff",
+    borderColor: "#064e3b",
+    cardBg:      "linear-gradient(135deg, #f0fdf4, #dcfce7)",
+    freeColor:   "#064e3b",
+  },
+};
+
 // ============ SUB-COMPONENTS ============
 
-// ✅ Header Component - SIMPLE BACK ARROW
 const CartHeader = ({ itemCount, onBack }) => (
   <header className="cart-header">
     <button className="cart-back-btn" onClick={onBack} aria-label="Go back">
@@ -89,13 +120,14 @@ const CartHeader = ({ itemCount, onBack }) => (
     <div className="cart-header-right">
       <div className="cart-icon-display">
         <FiShoppingCart />
-        {itemCount > 0 && <span className="cart-badge">{itemCount}</span>}
+        {itemCount > 0 && (
+          <span className="cart-badge">{itemCount}</span>
+        )}
       </div>
     </div>
   </header>
 );
 
-// Empty Cart State
 const EmptyCart = ({ onShop }) => (
   <div className="cart-empty">
     <div className="cart-empty-icon">
@@ -112,80 +144,48 @@ const EmptyCart = ({ onShop }) => (
   </div>
 );
 
-// ✅ Cart Item Component - OPTIMISTIC QUANTITY UPDATES
-const CartItem = ({ 
-  item, 
-  onUpdateQty, 
-  onRemove, 
+// ============ CART ITEM ============
+const CartItem = ({
+  item,
+  onUpdateQty,
+  onRemove,
+  onRemoveVirtual,
   pendingQty,
-  isPromoFreeItem,  // ✅ NEW
-  promoType,        // ✅ NEW
 }) => {
-  const price = parsePrice(item.price);
-  const qty = pendingQty !== undefined 
-    ? pendingQty 
-    : (Number(item.quantity) || 1);
-  
-  // ✅ Free items show 0 in total
-  const total = isPromoFreeItem ? 0 : price * qty;
+  const isPromoFreeItem = item.isPromoFreeItem === true;
+  const isVirtual       = item.isVirtual === true;
+  const theme           = isPromoFreeItem ? PROMO_THEME[item.promoType] : null;
 
-  // ✅ Theme based on promo type
-  const promoTheme = {
-    power_mint_promo: {
-      badgeBg:    "#d4a017",
-      badgeColor: "#000000",
-      borderColor:"#d4a017",
-      cardBg:     "linear-gradient(135deg, #fffbeb, #fef3c7)",
-      freeColor:  "#b8880f",
-    },
-    jelly_promo: {
-      badgeBg:    "#7c3aed",
-      badgeColor: "#ffffff",
-      borderColor:"#7c3aed",
-      cardBg:     "linear-gradient(135deg, #faf5ff, #f3e8ff)",
-      freeColor:  "#7c3aed",
-    },
-    // ✅ Beverage promo free items selected by user
-    beverage_promo: {
-      badgeBg:    "#8b0000",
-      badgeColor: "#ffffff",
-      borderColor:"#8b0000",
-      cardBg:     "linear-gradient(135deg, #fff5f5, #ffe4e4)",
-      freeColor:  "#8b0000",
-    },
-    // ✅ Care promo free items selected by user
-    care_promo: {
-      badgeBg:    "#064e3b",
-      badgeColor: "#ffffff",
-      borderColor:"#064e3b",
-      cardBg:     "linear-gradient(135deg, #f0fdf4, #dcfce7)",
-      freeColor:  "#064e3b",
-    },
-  };
+  const displayPrice = parsePrice(item.originalPrice ?? item.price);
+  const qty   = pendingQty !== undefined ? pendingQty : (Number(item.quantity) || 1);
+  const total = isPromoFreeItem ? 0 : displayPrice * qty;
 
-  const theme = promoType 
-    ? promoTheme[promoType] 
-    : null;
+  const [isRemoving,       setIsRemoving]       = useState(false);
+  const [isEditing,        setIsEditing]        = useState(false);
+  const [editValue,        setEditValue]        = useState(String(qty));
+  const [showDeleteConfirm,setShowDeleteConfirm]= useState(false);
 
-  const [isRemoving, setIsRemoving] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editValue, setEditValue] = useState(String(qty));
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  useEffect(() => {
+    if (!isEditing) setEditValue(String(qty));
+  }, [qty, isEditing]);
 
   const handleRemove = () => {
     setIsRemoving(true);
     setTimeout(() => {
-      onRemove(item.productId);
+      if (isVirtual) {
+        onRemoveVirtual?.(item.virtualId);
+      } else {
+        onRemove(item.productId);
+      }
       toast.success("Item removed from cart", { position: "bottom-center" });
     }, 300);
   };
 
-  const handleDeleteClick  = () => setShowDeleteConfirm(true);
-  const confirmDelete      = () => { setShowDeleteConfirm(false); handleRemove(); };
+  const handleDeleteClick = () => setShowDeleteConfirm(true);
+  const confirmDelete     = () => { setShowDeleteConfirm(false); handleRemove(); };
 
   const handleInputChange = (e) => {
-    const val = e.target.value.replace(/[^0-9]/g, "");
-    setEditValue(val);
+    setEditValue(e.target.value.replace(/[^0-9]/g, ""));
   };
 
   const handleInputBlur = () => {
@@ -196,12 +196,8 @@ const CartItem = ({
     setEditValue(String(newQty));
   };
 
-  const handleKeyDown = (e) => { if (e.key === "Enter") e.target.blur(); };
-  const handleQtyClick = () => { setEditValue(String(qty)); setIsEditing(true); };
-
-  useEffect(() => {
-    if (!isEditing) setEditValue(String(qty));
-  }, [qty, isEditing]);
+  const handleKeyDown  = (e) => { if (e.key === "Enter") e.target.blur(); };
+  const handleQtyClick = ()  => { setEditValue(String(qty)); setIsEditing(true); };
 
   return (
     <>
@@ -210,23 +206,20 @@ const CartItem = ({
         style={
           isPromoFreeItem && theme
             ? {
-                border:     `2px solid ${theme.borderColor}`,
-                background: theme.cardBg,
+                border:       `2px solid ${theme.borderColor}`,
+                background:   theme.cardBg,
                 borderRadius: "14px",
-                overflow:   "visible",
-                marginTop:  "18px",
+                overflow:     "visible",
+                marginTop:    "18px",
               }
             : {}
         }
       >
-        {/* ✅ FREE PROMO BADGE — floating above card */}
+        {/* Floating FREE badge */}
         {isPromoFreeItem && theme && (
           <div
             className="cart-promo-free-badge"
-            style={{
-              background: theme.badgeBg,
-              color:      theme.badgeColor,
-            }}
+            style={{ background: theme.badgeBg, color: theme.badgeColor }}
           >
             Free Promo Item
           </div>
@@ -243,6 +236,7 @@ const CartItem = ({
           />
         </div>
 
+        {/* Content */}
         <div className="cart-item-content">
           <div className="cart-item-header">
             <h3 className="cart-item-name">{item.name}</h3>
@@ -255,7 +249,7 @@ const CartItem = ({
             </button>
           </div>
 
-          {/* ✅ Price — strikethrough for free items */}
+          {/* Price row */}
           <p className="cart-item-price">
             {isPromoFreeItem ? (
               <span className="cart-item-price-free-wrap">
@@ -263,32 +257,35 @@ const CartItem = ({
                   className="cart-item-price-struck"
                   style={{ color: theme?.freeColor }}
                 >
-                  {formatCurrency(price)}
+                  {formatCurrency(displayPrice)}
                 </span>
                 <span
                   className="cart-item-free-tag"
-                  style={{
-                    background: theme?.badgeBg,
-                    color:      theme?.badgeColor,
-                  }}
+                  style={{ background: theme?.badgeBg, color: theme?.badgeColor }}
                 >
                   FREE
                 </span>
               </span>
             ) : (
-              `${formatCurrency(price)} / carton`
+              `${formatCurrency(displayPrice)} / carton`
             )}
           </p>
 
+          {/* Footer: qty + total */}
           <div className="cart-item-footer">
             <div className="cart-qty-selector">
               <button
                 className="cart-qty-btn minus"
                 onClick={() => onUpdateQty(item.productId, Math.max(1, qty - 1))}
-                disabled={qty <= 1}
-              >−</button>
+                disabled={qty <= 1 || isPromoFreeItem}
+                aria-label="Decrease quantity"
+              >
+                −
+              </button>
 
-              {isEditing ? (
+              {isPromoFreeItem ? (
+                <span className="cart-qty-value">{qty}</span>
+              ) : isEditing ? (
                 <input
                   type="text"
                   inputMode="numeric"
@@ -303,6 +300,7 @@ const CartItem = ({
                 <span
                   className="cart-qty-value"
                   onClick={handleQtyClick}
+                  title="Click to type quantity"
                 >
                   {qty}
                 </span>
@@ -311,10 +309,13 @@ const CartItem = ({
               <button
                 className="cart-qty-btn plus"
                 onClick={() => onUpdateQty(item.productId, qty + 1)}
-              >+</button>
+                disabled={isPromoFreeItem}
+                aria-label="Increase quantity"
+              >
+                +
+              </button>
             </div>
 
-            {/* ✅ Total — FREE for promo items */}
             <span className="cart-item-total">
               {isPromoFreeItem ? (
                 <span
@@ -331,6 +332,7 @@ const CartItem = ({
         </div>
       </div>
 
+      {/* Delete confirm modal */}
       {showDeleteConfirm && (
         <div
           className="cart-modal-overlay"
@@ -348,11 +350,15 @@ const CartItem = ({
               <button
                 className="cart-modal-btn cancel"
                 onClick={() => setShowDeleteConfirm(false)}
-              >Cancel</button>
+              >
+                Cancel
+              </button>
               <button
                 className="cart-modal-btn confirm"
                 onClick={confirmDelete}
-              >Remove</button>
+              >
+                Remove
+              </button>
             </div>
           </div>
         </div>
@@ -361,13 +367,14 @@ const CartItem = ({
   );
 };
 
-
+// ============ CART ITEMS SECTION ============
 const CartItemsSection = ({
   cart,
   onUpdateQty,
   onRemove,
   onClearAll,
   pendingQuantities,
+  onRemoveVirtual,
 }) => (
   <section className="cart-items-section">
     <div className="cart-items-header">
@@ -378,25 +385,23 @@ const CartItemsSection = ({
     <div className="cart-items">
       {cart.map((item) => (
         <CartItem
-          key={`${item.productId || item.id}-${item.isPromoFreeItem ? "free" : "regular"}`}
+          key={item.virtualId || `${item.productId || item.id}`}
           item={item}
           onUpdateQty={onUpdateQty}
           onRemove={onRemove}
+          onRemoveVirtual={onRemoveVirtual}
           pendingQty={pendingQuantities[item.productId]}
-          // ✅ These come directly from stableCart tagging
-          isPromoFreeItem={item.isPromoFreeItem || false}
-          promoType={item.promoType || null}
         />
       ))}
     </div>
   </section>
 );
 
-// ============ DELIVERY METHOD SELECTOR ============
+// ============ DELIVERY SECTION ============
 const DeliverySection = ({ method, setMethod, subtotal }) => {
-  const deliveryFee = getDeliveryFee(subtotal, "delivery");
-  const nextTier = getNextTier(subtotal);
-  const progress = Math.min((subtotal / FREE_DELIVERY_THRESHOLD) * 100, 100);
+  const deliveryFee    = getDeliveryFee(subtotal, "delivery");
+  const nextTier       = getNextTier(subtotal);
+  const progress       = Math.min((subtotal / FREE_DELIVERY_THRESHOLD) * 100, 100);
   const isFreeDelivery = subtotal >= FREE_DELIVERY_THRESHOLD;
 
   return (
@@ -411,24 +416,18 @@ const DeliverySection = ({ method, setMethod, subtotal }) => {
           className={`cart-delivery-option ${method === "delivery" ? "active" : ""}`}
           onClick={() => setMethod("delivery")}
         >
-          <div className="cart-delivery-option-icon">
-            <FiTruck />
-          </div>
+          <div className="cart-delivery-option-icon"><FiTruck /></div>
           <div className="cart-delivery-option-info">
             <span className="cart-delivery-option-name">Delivery</span>
-            <span className="cart-delivery-option-desc">
-              Port Harcourt axis
-            </span>
+            <span className="cart-delivery-option-desc">Port Harcourt axis</span>
           </div>
           <span className="cart-delivery-option-fee">
-            {isFreeDelivery ? (
-              <span className="free-badge">FREE</span>
-            ) : (
-              formatCurrency(deliveryFee)
-            )}
+            {isFreeDelivery
+              ? <span className="free-badge">FREE</span>
+              : formatCurrency(deliveryFee)}
           </span>
           <div className="cart-delivery-radio">
-            <div className="cart-delivery-radio-inner"></div>
+            <div className="cart-delivery-radio-inner" />
           </div>
         </button>
 
@@ -436,20 +435,16 @@ const DeliverySection = ({ method, setMethod, subtotal }) => {
           className={`cart-delivery-option ${method === "pickup" ? "active" : ""}`}
           onClick={() => setMethod("pickup")}
         >
-          <div className="cart-delivery-option-icon pickup-icon">
-            <BiStore />
-          </div>
+          <div className="cart-delivery-option-icon pickup-icon"><BiStore /></div>
           <div className="cart-delivery-option-info">
             <span className="cart-delivery-option-name">Pickup</span>
-            <span className="cart-delivery-option-desc">
-              Collect from warehouse
-            </span>
+            <span className="cart-delivery-option-desc">Collect from warehouse</span>
           </div>
           <span className="cart-delivery-option-fee">
             <span className="free-badge">FREE</span>
           </span>
           <div className="cart-delivery-radio">
-            <div className="cart-delivery-radio-inner"></div>
+            <div className="cart-delivery-radio-inner" />
           </div>
         </button>
       </div>
@@ -458,24 +453,15 @@ const DeliverySection = ({ method, setMethod, subtotal }) => {
         <div className="cart-delivery-progress">
           <div className="cart-delivery-progress-header">
             <span className="cart-delivery-progress-text">
-              {nextTier && nextTier.threshold === FREE_DELIVERY_THRESHOLD ? (
-                <>
-                  🚚 Add <strong>{formatCurrency(nextTier.remaining)}</strong> more
-                  for <strong>FREE delivery!</strong>
-                </>
+              {nextTier?.threshold === FREE_DELIVERY_THRESHOLD ? (
+                <>Add <strong>{formatCurrency(nextTier.remaining)}</strong> more for <strong>FREE delivery!</strong></>
               ) : nextTier ? (
-                <>
-                  📦 Add <strong>{formatCurrency(nextTier.remaining)}</strong> more
-                  to reduce delivery to <strong>{formatCurrency(nextTier.fee)}</strong>
-                </>
+                <>Add <strong>{formatCurrency(nextTier.remaining)}</strong> more to reduce delivery to <strong>{formatCurrency(nextTier.fee)}</strong></>
               ) : null}
             </span>
           </div>
           <div className="cart-delivery-progress-bar">
-            <div
-              className="cart-delivery-progress-fill"
-              style={{ width: `${progress}%` }}
-            ></div>
+            <div className="cart-delivery-progress-fill" style={{ width: `${progress}%` }} />
           </div>
           <div className="cart-delivery-tiers">
             <span className={subtotal >= 10000 ? "tier-done" : ""}>₦10K</span>
@@ -507,7 +493,7 @@ const DeliverySection = ({ method, setMethod, subtotal }) => {
   );
 };
 
-// ============ DELIVERY PRICING TABLE ============
+// ============ DELIVERY PRICING INFO ============
 const DeliveryPricingInfo = () => {
   const [showInfo, setShowInfo] = useState(false);
 
@@ -538,7 +524,7 @@ const DeliveryPricingInfo = () => {
           </div>
           <div className="delivery-tier-row highlight">
             <span>₦50,000 and above</span>
-            <span className="tier-fee free">FREE 🎉</span>
+            <span className="tier-fee free">FREE</span>
           </div>
           <div className="delivery-tier-row pickup-row">
             <span>Warehouse Pickup</span>
@@ -550,29 +536,21 @@ const DeliveryPricingInfo = () => {
   );
 };
 
-// Order Summary Component
+// ============ ORDER SUMMARY ============
 const OrderSummary = ({ subtotal, deliveryFee, deliveryMethod, total }) => (
   <div className="cart-summary">
     <h3 className="cart-summary-title">Order Summary</h3>
-
     <div className="cart-summary-rows">
       <div className="cart-summary-row">
         <span>Subtotal</span>
         <span>{formatCurrency(subtotal)}</span>
       </div>
-
       <div className="cart-summary-row">
         <span className="cart-summary-label">
           {deliveryMethod === "pickup" ? (
-            <>
-              <BiStore className="cart-summary-icon" />
-              Pickup
-            </>
+            <><BiStore className="cart-summary-icon" />Pickup</>
           ) : (
-            <>
-              <FiTruck className="cart-summary-icon" />
-              Delivery Fee
-            </>
+            <><FiTruck className="cart-summary-icon" />Delivery Fee</>
           )}
         </span>
         <span className={deliveryFee === 0 ? "summary-free" : ""}>
@@ -580,9 +558,7 @@ const OrderSummary = ({ subtotal, deliveryFee, deliveryMethod, total }) => (
         </span>
       </div>
     </div>
-
-    <div className="cart-summary-divider"></div>
-
+    <div className="cart-summary-divider" />
     <div className="cart-summary-row total">
       <span>Total</span>
       <span>{formatCurrency(total)}</span>
@@ -590,25 +566,16 @@ const OrderSummary = ({ subtotal, deliveryFee, deliveryMethod, total }) => (
   </div>
 );
 
-// Trust Badges
+// ============ TRUST BADGES ============
 const TrustBadges = () => (
   <div className="cart-trust">
-    <div className="cart-trust-item">
-      <FiShield />
-      <span>Secure Payment</span>
-    </div>
-    <div className="cart-trust-item">
-      <FiTruck />
-      <span>Own Fleet</span>
-    </div>
-    <div className="cart-trust-item">
-      <FiPackage />
-      <span>Carton Packs</span>
-    </div>
+    <div className="cart-trust-item"><FiShield /><span>Secure Payment</span></div>
+    <div className="cart-trust-item"><FiTruck /><span>Own Fleet</span></div>
+    <div className="cart-trust-item"><FiPackage /><span>Carton Packs</span></div>
   </div>
 );
 
-// Checkout Button
+// ============ CHECKOUT BUTTON ============
 const CheckoutButton = ({ total, processing, disabled, onClick }) => (
   <div className="cart-checkout-bar">
     <div className="cart-checkout-total">
@@ -621,85 +588,103 @@ const CheckoutButton = ({ total, processing, disabled, onClick }) => (
       onClick={onClick}
     >
       {processing ? (
-        <>
-          <span className="cart-btn-loader"></span>
-          Processing...
-        </>
+        <><span className="cart-btn-loader" />Processing...</>
       ) : (
-        <>
-          <FiCreditCard />
-          Checkout
-          <FiChevronRight />
-        </>
+        <><FiCreditCard />Checkout<FiChevronRight /></>
       )}
     </button>
   </div>
 );
 
-// ============ MAIN COMPONENT ============
+// ============ MAIN CART COMPONENT ============
 export default function Cart() {
   const navigate = useNavigate();
-
-  // ✅ Store unique keys that identify FREE items
-
-  const [promoFreeItemKeys, setPromoFreeItemKeys] = useState(() => {
-    try {
-      const stored = localStorage.getItem("promo_free_item_keys");
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  
-  
-
-// with FREE styling and are excluded from totals
   const { cart, updateQty, removeFromCart, clearCart, addToCart } = useCart();
   const smartListsContext = useSmartLists();
   const setOrders = smartListsContext?.setOrders;
-  const { addNotification, playNotificationSound,createPromoNotification, } = useNotifications();
+  const { addNotification, playNotificationSound, createPromoNotification } = useNotifications();
 
-  const [processing, setProcessing] = useState(false);
-  const [showPinModal, setShowPinModal] = useState(false);
-  const [showSetPinModal, setShowSetPinModal] = useState(false);
-  const [deliveryMethod, setDeliveryMethod] = useState("delivery");
+  // ── UI state ──────────────────────────────────────────────────────────────
+  const [processing,       setProcessing]       = useState(false);
+  const [showPinModal,     setShowPinModal]      = useState(false);
+  const [showSetPinModal,  setShowSetPinModal]   = useState(false);
+  const [deliveryMethod,   setDeliveryMethod]   = useState("delivery");
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
-  // ✅ PROMO STATE
-  const [activePromo, setActivePromo] = useState(null);
-  const [shownPromos, setShownPromos] = useState(new Set());
-  
-  const [claimedPromos, setClaimedPromos] = useState(() => {
+  // ── Promo state ───────────────────────────────────────────────────────────
+
+  // Which promo modal is currently open
+  const [activePromo,  setActivePromo]  = useState(null);
+
+  // Promos already shown this SESSION (resets on page reload)
+  const [shownPromos,  setShownPromos]  = useState(new Set());
+
+  // Promos the user has accepted this SESSION
+  // Using sessionStorage so it resets when user closes browser
+  const [acceptedPromos, setAcceptedPromos] = useState(() => {
     try {
-      return JSON.parse(
-        localStorage.getItem("chiamoorder_claimed_promos") || "[]"
-      );
-    } catch {
-      return [];
-    }
+      return JSON.parse(sessionStorage.getItem("cart_accepted_promos") || "[]");
+    } catch { return []; }
   });
 
-  // ✅ OPTIMISTIC QUANTITY STATE — must be declared BEFORE any useEffect that uses it
-  const [pendingQuantities, setPendingQuantities] = useState({});
+  // Virtual frontend-only free rows for Jelly / PowerMint
+  // (same product as trigger so we never add to backend)
+  const [sameProductPromoItems, setSameProductPromoItems] = useState(() => {
+    try {
+      return JSON.parse(sessionStorage.getItem("same_product_promo_items") || "[]");
+    } catch { return []; }
+  });
 
-  // ✅ DEBOUNCE TIMERS
+  // Keys for Beverage / Care free items (added to real backend cart)
+  const [promoFreeItemKeys, setPromoFreeItemKeys] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("promo_free_item_keys") || "[]");
+    } catch { return []; }
+  });
+
+  // ── Optimistic qty state ──────────────────────────────────────────────────
+  const [pendingQuantities, setPendingQuantities] = useState({});
   const debounceTimers = useRef({});
   const DEBOUNCE_DELAY = 800;
+  const itemOrderRef   = useRef([]);
 
-  // ✅ Other refs
-  const itemOrderRef = useRef([]);
-
+  // ── Auth ──────────────────────────────────────────────────────────────────
   const storedUser = JSON.parse(localStorage.getItem("auth_user") || "{}");
   const customerId =
-    storedUser?.id ||
-    storedUser?.user_id ||
+    storedUser?.id          ||
+    storedUser?.user_id     ||
     storedUser?.customer_id ||
-    storedUser?.pk ||
+    storedUser?.pk          ||
     storedUser?.profile?.id ||
     null;
 
-  // ✅ Track original item order
+  // ── Persist acceptedPromos + sameProductPromoItems to sessionStorage ──────
+  useEffect(() => {
+    sessionStorage.setItem("cart_accepted_promos", JSON.stringify(acceptedPromos));
+  }, [acceptedPromos]);
+
+  useEffect(() => {
+    sessionStorage.setItem("same_product_promo_items", JSON.stringify(sameProductPromoItems));
+  }, [sameProductPromoItems]);
+
+  // ── Track cart item order (for stable sort) ───────────────────────────────
+  useEffect(() => {
+    const currentIds = cart.map((item) => item.productId || item.id);
+    const existingOrder = itemOrderRef.current.filter((id) =>
+      currentIds.includes(id)
+    );
+    const newIds = currentIds.filter((id) => !existingOrder.includes(id));
+    itemOrderRef.current = [...existingOrder, ...newIds];
+  }, [cart]);
+
+  // ── Cleanup debounce timers ───────────────────────────────────────────────
+  useEffect(() => {
+    return () => {
+      Object.values(debounceTimers.current).forEach(clearTimeout);
+    };
+  }, []);
+
+  // ── PROMO CHECKER ─────────────────────────────────────────────────────────
   useEffect(() => {
     if (!cart || cart.length === 0) return;
 
@@ -715,184 +700,174 @@ export default function Cart() {
         };
       });
 
+      // Only run checkPromos on real (non-virtual) items
       const regularItems = cartWithPending.filter(
         (item) => !item.isPromoFreeItem
       );
 
       const triggered = checkPromos(regularItems);
+      const eligibleKeys = triggered.map((p) => p.key);
 
+      // Clean up accepted promos that no longer qualify
+      setAcceptedPromos((prev) =>
+        prev.filter((key) => eligibleKeys.includes(key))
+      );
+
+      // Clean up virtual promo rows that no longer qualify
+      setSameProductPromoItems((prev) =>
+        prev.filter((item) => eligibleKeys.includes(item.promoKey))
+      );
+
+      // Find next promo to show
       const nextPromo = triggered.find(
         (p) =>
           !shownPromos.has(p.key) &&
-          !claimedPromos.includes(p.key)
+          !acceptedPromos.includes(p.key)
       );
 
       if (nextPromo && !activePromo) {
-        // ✅ Save allowed free qty for beverage/care limit enforcement
+        // Save free qty limit for beverage/care
         if (nextPromo.freeQty) {
-          const promoParam = nextPromo.type === "beverage_promo"
-            ? "beverage_500"
-            : "care_300";
+          const promoParam =
+            nextPromo.type === "beverage_promo" ? "beverage_500" : "care_300";
           localStorage.setItem(
             `promo_free_qty_${promoParam}`,
             String(nextPromo.freeQty)
-          );
-          console.log(
-            `✅ Saved free qty limit: ${nextPromo.freeQty} for ${promoParam}`
           );
         }
 
         setActivePromo(nextPromo);
         setShownPromos((prev) => new Set([...prev, nextPromo.key]));
       }
-    }, 600);
+    }, 500);
 
     return () => clearTimeout(timer);
-  }, [cart, pendingQuantities, claimedPromos]);
+  }, [cart, pendingQuantities, acceptedPromos, activePromo]);
 
+  // ── HANDLE PROMO ACCEPT ───────────────────────────────────────────────────
   const handlePromoAccept = async (promo) => {
-  if (!promo) return;
+    if (!promo) return;
 
-  saveClaimedPromo(promo.key);
-  setClaimedPromos((prev) => [...prev, promo.key]);
+    // Mark as accepted this session
+    setAcceptedPromos((prev) =>
+      prev.includes(promo.key) ? prev : [...prev, promo.key]
+    );
 
-  await createPromoNotification(
-    `${promo.title}`,
-    `You unlocked: ${promo.rewardText}. Check your cart!`
-  );
-  playNotificationSound();
-
-  // ✅ JELLY / POWERMINT — add 1 separate FREE item
-  if (promo.freeItem) {
-    try {
-      const identifier =
-        promo.freeItem.slug || promo.freeItem.productId;
-
-      if (!identifier) {
-        toast.error("Could not add promo item.");
-        return;
-      }
-
-      // ✅ Add to cart as NEW separate entry (qty = 1)
-      await addToCart(identifier, 1, promo.freeItem.name);
-
-      // ✅ CRITICAL: Save the free item key to localStorage
-      // Format: "productId::promoKey"
-      const productId = String(
-        promo.freeItem.productId || promo.freeItem.slug || ""
+    // Send notification
+    if (createPromoNotification) {
+      await createPromoNotification(
+        promo.title,
+        `You unlocked: ${promo.rewardText}.`
       );
-      const freeItemKey = `${productId}::${promo.key}`;
+    }
+    playNotificationSound();
 
-      console.log("✅ Saving free item key:", freeItemKey);
+    // ── Jelly / PowerMint ──
+    // Add a VIRTUAL frontend-only row (do NOT add to backend cart
+    // because backend will merge it with the trigger item)
+    if (
+      promo.type === "jelly_promo" ||
+      promo.type === "power_mint_promo"
+    ) {
+      const originalPrice =
+        parsePrice(promo.freeItem?.originalPrice) ||
+        parsePrice(promo.freeItem?.price)         ||
+        0;
 
-      setPromoFreeItemKeys((prev) => {
-        // Avoid duplicates
-        if (prev.includes(freeItemKey)) return prev;
-        const updated = [...prev, freeItemKey];
-        // ✅ Persist immediately
-        localStorage.setItem(
-          "promo_free_item_keys",
-          JSON.stringify(updated)
-        );
-        console.log("✅ Saved to localStorage:", updated);
-        return updated;
+      const virtualItem = {
+        virtualId:       `virtual-${promo.key}`,
+        promoKey:        promo.key,
+        productId:       promo.freeItem?.productId,
+        slug:            promo.freeItem?.slug,
+        name:            promo.freeItem?.name,
+        image:           promo.freeItem?.image,
+        price:           originalPrice,
+        originalPrice:   originalPrice,
+        quantity:        1,
+        isPromoFreeItem: true,
+        isVirtual:       true,
+        promoType:       promo.type,
+      };
+
+      setSameProductPromoItems((prev) => {
+        // Replace if already exists for this promo key
+        const filtered = prev.filter((i) => i.promoKey !== promo.key);
+        return [...filtered, virtualItem];
       });
 
-      const isGoldTheme = promo.type === "power_mint_promo";
       toast.success(
-        `1 FREE ${promo.freeItem.name} added to your cart`,
+        `1 FREE ${promo.freeItem?.name} added to your cart`,
         {
-          duration: 5000,
+          duration: 4000,
           position: "bottom-center",
           style: {
-            background:   isGoldTheme ? "#d4a017" : "#7c3aed",
-            color:        isGoldTheme ? "#000000" : "#ffffff",
+            background:   promo.type === "power_mint_promo" ? "#d4a017" : "#7c3aed",
+            color:        promo.type === "power_mint_promo" ? "#000000" : "#ffffff",
             fontWeight:   "700",
             borderRadius: "12px",
           },
         }
       );
 
-    } catch (err) {
-      console.error("Failed to add promo item:", err);
-      toast.error("Could not add promo item. Please contact support.");
+      return; // done for jelly/powermint
     }
-  }
-};
 
-  // ✅ FIXED stableCart - tags the correct item as free
+    // ── Beverage / Care ──
+    // The user will be redirected to AllProducts to select free items.
+    // PromoModal's handleRedirect (with &promobag=true) handles navigation.
+    // Nothing extra to do here.
+  };
+
+  // ── STABLE + TAGGED CART ──────────────────────────────────────────────────
   const stableCart = useMemo(() => {
-  const order = itemOrderRef.current;
+    const order = itemOrderRef.current;
 
-  const sorted = [...cart].sort((a, b) => {
-    const idA = a.productId || a.id;
-    const idB = b.productId || b.id;
-    const indexA = order.indexOf(idA);
-    const indexB = order.indexOf(idB);
-    if (indexA === -1 && indexB === -1) return 0;
-    if (indexA === -1) return 1;
-    if (indexB === -1) return -1;
-    return indexA - indexB;
-  });
-
-  return sorted.map((item) => {
-    const productId = String(item.productId || item.id || "");
-    const slug = item.slug || "";
-
-    // ✅ Check promoFreeItemKeys for a match
-    // Key format: "productId::promoKey"
-    const matchingKey = promoFreeItemKeys.find((key) => {
-      const [storedId] = key.split("::");
-      return storedId === productId || storedId === slug;
+    const sorted = [...cart].sort((a, b) => {
+      const idA    = a.productId || a.id;
+      const idB    = b.productId || b.id;
+      const indexA = order.indexOf(idA);
+      const indexB = order.indexOf(idB);
+      if (indexA === -1 && indexB === -1) return 0;
+      if (indexA === -1) return 1;
+      if (indexB === -1) return -1;
+      return indexA - indexB;
     });
 
-    if (!matchingKey) {
-      return { ...item, isPromoFreeItem: false, promoType: null };
-    }
+    return sorted.map((item) => {
+      const productId = String(item.productId || item.id || "");
+      const slug      = item.slug || "";
 
-    // ✅ Extract promo type from key
-    // Key format: "productId::power_mint_promo" or "productId::jelly_NOVA..."
-    const promoKey = matchingKey.split("::")[1] || "";
-    const promoType = promoKey.startsWith("power_mint")
-      ? "power_mint_promo"
-      : promoKey.startsWith("jelly")
-      ? "jelly_promo"
-      : promoKey.startsWith("beverage")
-      ? "beverage_promo"
-      : promoKey.startsWith("care")
-      ? "care_promo"
-      : null;
+      // Only tag Beverage/Care bag items (not Jelly/PowerMint — those are virtual)
+      const matchingKey = promoFreeItemKeys.find((key) => {
+        const [storedId, promoParam] = key.split("::");
+        const isBagPromo =
+          promoParam === "beverage_500" || promoParam === "care_300";
+        return isBagPromo && (storedId === productId || storedId === slug);
+      });
 
-    // ✅ CRITICAL FIX: For same-product promos (PowerMint/Jelly)
-    // The trigger item has HIGH qty (25+)
-    // The free item has qty exactly 1
-    // We only tag as free if qty is 1
-    const pendingQty = pendingQuantities[productId];
-    const actualQty = pendingQty !== undefined
-      ? pendingQty
-      : Number(item.quantity) || 1;
+      let promoType = null;
+      if (matchingKey?.includes("beverage_500")) promoType = "beverage_promo";
+      if (matchingKey?.includes("care_300"))     promoType = "care_promo";
 
-    // ✅ For PowerMint and Jelly: only tag qty=1 as free
-    // For Beverage and Care: all matched items are free
-    const isSameProductPromo =
-      promoType === "power_mint_promo" ||
-      promoType === "jelly_promo";
+      return {
+        ...item,
+        isPromoFreeItem: !!matchingKey,
+        promoType,
+      };
+    });
+  }, [cart, promoFreeItemKeys]);
 
-    const isPromoFreeItem = isSameProductPromo
-      ? actualQty === 1  // only the 1-carton entry is free
-      : true;            // beverage/care items are always free
+  // Combine real cart items with virtual promo rows
+  const renderedCart = useMemo(() => {
+    return [...stableCart, ...sameProductPromoItems];
+  }, [stableCart, sameProductPromoItems]);
 
-    return {
-      ...item,
-      isPromoFreeItem,
-      promoType: isPromoFreeItem ? promoType : null,
-    };
-  });
-}, [cart, pendingQuantities, promoFreeItemKeys]);
-
-  // ✅ OPTIMISTIC QUANTITY UPDATE HANDLER
+  // ── OPTIMISTIC QTY UPDATE ────────────────────────────────────────────────
   const handleOptimisticQtyUpdate = useCallback(
     (productId, newQty) => {
+      // Ignore updates for virtual items
+      if (!productId) return;
+
       setPendingQuantities((prev) => ({ ...prev, [productId]: newQty }));
 
       if (debounceTimers.current[productId]) {
@@ -908,7 +883,7 @@ export default function Cart() {
             return updated;
           });
         } catch (error) {
-          console.error(`❌ Failed to sync qty:`, error);
+          console.error("Failed to sync qty:", error);
           setPendingQuantities((prev) => {
             const updated = { ...prev };
             delete updated[productId];
@@ -923,227 +898,220 @@ export default function Cart() {
     [updateQty]
   );
 
-  // ✅ FIXED: Use stableCart which has isPromoFreeItem already tagged
-  // ✅ Excludes ALL free promo items from subtotal
+  // ── SUBTOTAL (excludes ALL free promo items) ──────────────────────────────
+  // We use stableCart (not renderedCart) so virtual items are never counted
   const subtotal = useMemo(() => {
     return stableCart.reduce((sum, item) => {
-      // ✅ Skip free items completely
-      if (item.isPromoFreeItem) return sum;
-
-      const price = parsePrice(item.price);
-      const productId = String(item.productId || item.id || "");
+      if (item.isPromoFreeItem) return sum; // skip tagged free items
+      const price     = parsePrice(item.price);
+      const productId = item.productId || item.id;
       const qty =
         pendingQuantities[productId] !== undefined
           ? pendingQuantities[productId]
           : Number(item.quantity) || 1;
-
       return sum + price * qty;
     }, 0);
   }, [stableCart, pendingQuantities]);
 
   const deliveryFee = getDeliveryFee(subtotal, deliveryMethod);
-  const grandTotal = subtotal + deliveryFee;
+  const grandTotal  = subtotal + deliveryFee;
 
-  // ✅ Create order after PIN validation with notification
+  // ── CREATE ORDER ──────────────────────────────────────────────────────────
   const createOrder = async () => {
     setProcessing(true);
-    
-    // ✅ Flush any pending quantity updates before checkout
-    const pendingProductIds = Object.keys(pendingQuantities);
-    if (pendingProductIds.length > 0) {
-      // Clear all pending timers and sync immediately
-      for (const productId of pendingProductIds) {
+
+    // Flush pending qty updates before checkout
+    const pendingIds = Object.keys(pendingQuantities);
+    if (pendingIds.length > 0) {
+      for (const productId of pendingIds) {
         if (debounceTimers.current[productId]) {
           clearTimeout(debounceTimers.current[productId]);
         }
-        const qty = pendingQuantities[productId];
         try {
-          await updateQty(productId, qty);
+          await updateQty(productId, pendingQuantities[productId]);
         } catch (err) {
-          console.error(`Failed to sync qty before checkout:`, err);
+          console.error("Failed to sync qty before checkout:", err);
         }
       }
       setPendingQuantities({});
     }
-    
+
     try {
       const res = await API.post("/orders/checkout/", {
         delivery_method: deliveryMethod,
-        delivery_fee: deliveryFee,
+        delivery_fee:    deliveryFee,
       });
 
       const orderId =
-        res.data?.order_id ||
-        res.data?.order?.order_id ||
-        res.data?.order?.id ||
-        res.data?.reference ||
+        res.data?.order_id         ||
+        res.data?.order?.order_id  ||
+        res.data?.order?.id        ||
+        res.data?.reference        ||
         res.data?.order?.reference ||
         `ORD-${Date.now()}`;
 
-      // ✅ Create notification for successful order
-      const notification = {
-        id: Date.now(),
-        type: "order_placed",
-        title: "Order Placed Successfully! 🎉",
-        message: `Your order ${orderId} has been placed and is being processed. Total: ${formatCurrency(grandTotal)}`,
-        order_id: orderId,
-        is_read: false,
-        created_at: new Date().toISOString(),
+      addNotification({
+        id:              Date.now(),
+        type:            "order_placed",
+        title:           "Order Placed Successfully!",
+        message:         `Your order ${orderId} has been placed. Total: ${formatCurrency(grandTotal)}`,
+        order_id:        orderId,
+        is_read:         false,
+        created_at:      new Date().toISOString(),
         delivery_method: deliveryMethod,
-        total: grandTotal,
-      };
-
-      addNotification(notification);
+        total:           grandTotal,
+      });
       playNotificationSound();
 
-      // ✅ Clear cart BEFORE navigating
+      // Clear cart
       await clearCart().catch(() => {});
       itemOrderRef.current = [];
 
+      // Clear all promo tracking on successful order
+      setAcceptedPromos([]);
+      setSameProductPromoItems([]);
+      setPromoFreeItemKeys([]);
+      sessionStorage.removeItem("cart_accepted_promos");
+      sessionStorage.removeItem("same_product_promo_items");
+      localStorage.removeItem("promo_free_item_keys");
+      localStorage.removeItem("promo_free_qty_beverage_500");
+      localStorage.removeItem("promo_free_qty_care_300");
+
       toast.success(`Order ${orderId} placed successfully!`, {
         duration: 4000,
-        icon: "🎉",
-        position: 'bottom-center',
-        style: {
-          background: "#10b981",
-          color: "#fff",
-        },
+        position: "bottom-center",
+        style: { background: "#10b981", color: "#fff" },
       });
 
       if (typeof setOrders === "function") {
-        const optimisticOrder = {
-          id:
-            res.data?.order?.id ||
-            orderId ||
-            Math.random().toString(36).slice(2, 9),
-          order_id: orderId,
-          source: "cart",
-          status: res.data?.order?.status || "pending",
-          created_at: new Date().toISOString(),
-          items: cart.map((item) => ({
-            name: item.name,
-            quantity: item.quantity,
-            price: parsePrice(item.price),
-          })),
-          total: res.data?.order?.total || grandTotal,
-          delivery_method: deliveryMethod,
-          isNew: true,
-        };
-        setOrders((prev) => [optimisticOrder, ...(prev || [])]);
+        setOrders((prev) => [
+          {
+            id:              res.data?.order?.id || orderId,
+            order_id:        orderId,
+            source:          "cart",
+            status:          res.data?.order?.status || "pending",
+            created_at:      new Date().toISOString(),
+            items:           cart.map((item) => ({
+              name:     item.name,
+              quantity: item.quantity,
+              price:    parsePrice(item.price),
+            })),
+            total:           res.data?.order?.total || grandTotal,
+            delivery_method: deliveryMethod,
+            isNew:           true,
+          },
+          ...(prev || []),
+        ]);
       }
 
-      // ✅ Follow-up notification
       setTimeout(() => {
-        const followUpNotification = {
-          id: Date.now() + 1,
-          type: "order_confirmed",
-          title: "Order Confirmed! 📦",
-          message: `Order ${orderId} has been confirmed and will be processed shortly. You'll receive updates on delivery status.`,
-          order_id: orderId,
-          is_read: false,
+        addNotification({
+          id:         Date.now() + 1,
+          type:       "order_confirmed",
+          title:      "Order Confirmed!",
+          message:    `Order ${orderId} confirmed and will be processed shortly.`,
+          order_id:   orderId,
+          is_read:    false,
           created_at: new Date().toISOString(),
-        };
-        addNotification(followUpNotification);
+        });
       }, 2000);
 
-      // ✅ Redirect to orders page
       setTimeout(
         () => navigate("/orders", { state: { newOrderId: orderId } }),
         3000
       );
     } catch (err) {
       console.error("Order creation error:", err);
-
-      const errorNotification = {
-        id: Date.now(),
-        type: "payment_failed",
-        title: "Order Failed ❌",
-        message:
-          "There was an issue processing your order. Please try again or contact support.",
-        is_read: false,
+      addNotification({
+        id:         Date.now(),
+        type:       "payment_failed",
+        title:      "Order Failed",
+        message:    "There was an issue processing your order. Please try again.",
+        is_read:    false,
         created_at: new Date().toISOString(),
-      };
-      addNotification(errorNotification);
-
-      const msg =
+      });
+      toast.error(
         err?.response?.data?.error ||
         err?.response?.data?.detail ||
-        "Failed to place order. Please try again.";
-      toast.error(msg, {
-        position: 'bottom-center',
-        style: {
-          background: "#ef4444",
-          color: "#fff",
-        },
-      });
+        "Failed to place order. Please try again.",
+        { position: "bottom-center", style: { background: "#ef4444", color: "#fff" } }
+      );
     } finally {
       setProcessing(false);
     }
   };
 
-  // Handle checkout click
+  // ── CHECKOUT CLICK ────────────────────────────────────────────────────────
   const handleCheckoutClick = async () => {
     if (cart.length === 0) {
-      toast.error("Your cart is empty", { position: 'bottom-center' });
+      toast.error("Your cart is empty", { position: "bottom-center" });
       return;
     }
-
     try {
-      const res = await API.get(
-        `customers/has-transaction-pin/${customerId}/`
-      );
+      const res = await API.get(`customers/has-transaction-pin/${customerId}/`);
       if (res.data.has_pin) {
         setShowPinModal(true);
       } else {
         setShowSetPinModal(true);
       }
-    } catch (err) {
-      toast.error("Could not verify PIN status", { position: 'bottom-center' });
+    } catch {
+      toast.error("Could not verify PIN status", { position: "bottom-center" });
     }
   };
 
-  // ✅ Handle clear all cart
-  const handleClearAll = () => {
-    setShowClearConfirm(true);
-  };
+  // ── CLEAR ALL ─────────────────────────────────────────────────────────────
+  const handleClearAll = () => setShowClearConfirm(true);
 
   const confirmClearAll = async () => {
-  setShowClearConfirm(false);
-  Object.values(debounceTimers.current).forEach(clearTimeout);
-  debounceTimers.current = {};
-  setPendingQuantities({});
+    setShowClearConfirm(false);
+    Object.values(debounceTimers.current).forEach(clearTimeout);
+    debounceTimers.current = {};
+    setPendingQuantities({});
 
-  try {
-    await clearCart();
-    itemOrderRef.current = [];
-    // ✅ Clear both old and new promo tracking
-    setPromoFreeItemKeys([]);
-    localStorage.removeItem("promo_free_item_keys");
-    localStorage.removeItem("promo_free_items"); // clean up old key too
-    toast.success("Cart cleared successfully!", {
-      position: "bottom-center",
-    });
-  } catch {
-    toast.error("Failed to clear cart", { position: "bottom-center" });
-  }
-};
+    try {
+      await clearCart();
+      itemOrderRef.current = [];
 
+      // Clear all promo tracking
+      setAcceptedPromos([]);
+      setSameProductPromoItems([]);
+      setPromoFreeItemKeys([]);
+      sessionStorage.removeItem("cart_accepted_promos");
+      sessionStorage.removeItem("same_product_promo_items");
+      localStorage.removeItem("promo_free_item_keys");
+      localStorage.removeItem("promo_free_qty_beverage_500");
+      localStorage.removeItem("promo_free_qty_care_300");
+
+      toast.success("Cart cleared successfully!", { position: "bottom-center" });
+    } catch {
+      toast.error("Failed to clear cart", { position: "bottom-center" });
+    }
+  };
+
+  // ── RENDER ────────────────────────────────────────────────────────────────
   return (
     <div className="cart-page">
-      <CartHeader itemCount={cart.length} onBack={() => navigate(-1)} />
+      <CartHeader
+        itemCount={renderedCart.length}
+        onBack={() => navigate(-1)}
+      />
 
       <div className="cart-content">
-        {cart.length === 0 ? (
+        {cart.length === 0 && sameProductPromoItems.length === 0 ? (
           <EmptyCart onShop={() => navigate("/all-products")} />
         ) : (
           <>
-            {/* ✅ Pass optimistic update handler and pending quantities */}
             <CartItemsSection
-              cart={stableCart}
+              cart={renderedCart}
               onUpdateQty={handleOptimisticQtyUpdate}
               onRemove={removeFromCart}
               onClearAll={handleClearAll}
               pendingQuantities={pendingQuantities}
+              onRemoveVirtual={(virtualId) =>
+                setSameProductPromoItems((prev) =>
+                  prev.filter((item) => item.virtualId !== virtualId)
+                )
+              }
             />
 
             <DeliverySection
@@ -1166,7 +1134,7 @@ export default function Cart() {
         )}
       </div>
 
-      {cart.length > 0 && (
+      {(cart.length > 0 || sameProductPromoItems.length > 0) && (
         <CheckoutButton
           total={grandTotal}
           processing={processing}
@@ -1175,21 +1143,18 @@ export default function Cart() {
         />
       )}
 
-      {/* ✅ Clear All Cart Confirmation Modal */}
+      {/* Clear All Modal */}
       {showClearConfirm && (
         <div
           className="cart-modal-overlay"
           onClick={() => setShowClearConfirm(false)}
         >
           <div className="cart-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="cart-modal-icon warning">
-              <FiAlertCircle />
-            </div>
+            <div className="cart-modal-icon warning"><FiAlertCircle /></div>
             <h3 className="cart-modal-title">Clear Entire Cart?</h3>
             <p className="cart-modal-text">
-              This will remove all {cart.length} item
-              {cart.length > 1 ? "s" : ""} from your cart. This action cannot be
-              undone.
+              This will remove all {cart.length} item{cart.length !== 1 ? "s" : ""} from your cart.
+              This action cannot be undone.
             </p>
             <div className="cart-modal-actions">
               <button
@@ -1202,14 +1167,14 @@ export default function Cart() {
                 className="cart-modal-btn confirm"
                 onClick={confirmClearAll}
               >
-                🗑️ Clear All
+                Clear All
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Transaction PIN Modal */}
+      {/* Transaction PIN */}
       <TransactionPinModal
         isOpen={showPinModal}
         onClose={() => setShowPinModal(false)}
@@ -1226,12 +1191,13 @@ export default function Cart() {
         onClose={() => setShowSetPinModal(false)}
         customerId={customerId}
         onSuccess={() => {
-          toast.success("PIN set successfully!", { position: 'bottom-center' });
+          toast.success("PIN set successfully!", { position: "bottom-center" });
           setShowSetPinModal(false);
           setShowPinModal(true);
         }}
       />
 
+      {/* Promo Modal */}
       <PromoModal
         isOpen={!!activePromo}
         onClose={() => setActivePromo(null)}
@@ -1240,8 +1206,7 @@ export default function Cart() {
         promoData={activePromo}
       />
 
-
-      <div className="cart-bottom-spacer"></div>
+      <div className="cart-bottom-spacer" />
     </div>
   );
 }

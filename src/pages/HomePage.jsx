@@ -477,140 +477,19 @@ const FlashSaleSection = ({ addToCart }) => {
   };
 
   if (loading) {
-  return (
-    <div className="hp-page">
-      <div className="hp-container">
-        {/* Skeleton Header */}
-        <header className="hp-header hp-skeleton-header">
-          <div className="hp-header-left">
-            <div className="hp-skel hp-skel-avatar" />
-            <div className="hp-skel-greeting-group">
-              <div className="hp-skel hp-skel-line hp-skel-line-sm" />
-              <div className="hp-skel hp-skel-line hp-skel-line-md" />
-            </div>
-          </div>
-          <div className="hp-header-right">
-            <div className="hp-skel hp-skel-icon-btn" />
-            <div className="hp-skel hp-skel-icon-btn" />
-            <div className="hp-skel hp-skel-icon-btn" />
-          </div>
-        </header>
-
-        {/* Skeleton Search */}
-        <div className="hp-skel hp-skel-search" />
-
-        {/* Skeleton Promo Banner */}
-        <div className="hp-skel hp-skel-banner" />
-
-        {/* Skeleton Quick Actions */}
-        <section className="hp-skel-section">
-          <div className="hp-skel hp-skel-line hp-skel-line-title" />
-          <div className="hp-skel-quick-grid">
-            <div className="hp-skel hp-skel-quick-item" />
-            <div className="hp-skel hp-skel-quick-item" />
-            <div className="hp-skel hp-skel-quick-item" />
-            <div className="hp-skel hp-skel-quick-item" />
-          </div>
-        </section>
-
-        {/* Skeleton Categories */}
-        <section className="hp-skel-section">
-          <div className="hp-skel-section-header">
-            <div className="hp-skel hp-skel-line hp-skel-line-title" />
-            <div className="hp-skel hp-skel-line hp-skel-line-sm" />
-          </div>
-          <div className="hp-skel-categories-scroll">
-            <div className="hp-skel-category-item">
-              <div className="hp-skel hp-skel-category-img" />
-              <div className="hp-skel hp-skel-line hp-skel-line-xs" />
-            </div>
-            <div className="hp-skel-category-item">
-              <div className="hp-skel hp-skel-category-img" />
-              <div className="hp-skel hp-skel-line hp-skel-line-xs" />
-            </div>
-            <div className="hp-skel-category-item">
-              <div className="hp-skel hp-skel-category-img" />
-              <div className="hp-skel hp-skel-line hp-skel-line-xs" />
-            </div>
-            <div className="hp-skel-category-item">
-              <div className="hp-skel hp-skel-category-img" />
-              <div className="hp-skel hp-skel-line hp-skel-line-xs" />
-            </div>
-            <div className="hp-skel-category-item">
-              <div className="hp-skel hp-skel-category-img" />
-              <div className="hp-skel hp-skel-line hp-skel-line-xs" />
-            </div>
-          </div>
-        </section>
-
-        {/* Skeleton Flash Sale */}
-        <section className="hp-skel-section">
-          <div className="hp-skel-section-header">
-            <div className="hp-skel hp-skel-line hp-skel-line-title" />
-            <div className="hp-skel hp-skel-line hp-skel-line-sm" />
-          </div>
-          <div className="hp-skel-products-scroll">
-            <div className="hp-skel-product-card">
-              <div className="hp-skel hp-skel-product-img" />
-              <div className="hp-skel-product-info">
-                <div className="hp-skel hp-skel-line hp-skel-line-md" />
-                <div className="hp-skel hp-skel-line hp-skel-line-sm" />
-                <div className="hp-skel hp-skel-line hp-skel-line-xs" />
-              </div>
-            </div>
-            <div className="hp-skel-product-card">
-              <div className="hp-skel hp-skel-product-img" />
-              <div className="hp-skel-product-info">
-                <div className="hp-skel hp-skel-line hp-skel-line-md" />
-                <div className="hp-skel hp-skel-line hp-skel-line-sm" />
-                <div className="hp-skel hp-skel-line hp-skel-line-xs" />
-              </div>
-            </div>
-            <div className="hp-skel-product-card">
-              <div className="hp-skel hp-skel-product-img" />
-              <div className="hp-skel-product-info">
-                <div className="hp-skel hp-skel-line hp-skel-line-md" />
-                <div className="hp-skel hp-skel-line hp-skel-line-sm" />
-                <div className="hp-skel hp-skel-line hp-skel-line-xs" />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Skeleton Promos */}
-        <section className="hp-skel-section">
-          <div className="hp-skel-section-header">
-            <div className="hp-skel hp-skel-line hp-skel-line-title" />
-          </div>
-          <div className="hp-skel-products-scroll">
-            <div className="hp-skel hp-skel-promo-card" />
-            <div className="hp-skel hp-skel-promo-card" />
-          </div>
-        </section>
-
-        {/* Skeleton Features */}
-        <section className="hp-skel-section">
-          <div className="hp-skel hp-skel-line hp-skel-line-title" />
-          <div className="hp-skel-features-grid">
-            <div className="hp-skel hp-skel-feature-card" />
-            <div className="hp-skel hp-skel-feature-card" />
-          </div>
-        </section>
-
-        {/* Skeleton Trust Badges */}
-        <div className="hp-skel-trust-grid">
-          <div className="hp-skel hp-skel-trust-item" />
-          <div className="hp-skel hp-skel-trust-item" />
-          <div className="hp-skel hp-skel-trust-item" />
-          <div className="hp-skel hp-skel-trust-item" />
+    return (
+      <section className="hp-section">
+        <div className="hp-flash-loading">
+          <Lottie
+            animationData={FlashAnimation}
+            loop
+            className="hp-flash-loader"
+          />
+          <p>Loading hot deals...</p>
         </div>
-
-        <div className="hp-bottom-spacer" />
-      </div>
-      <BottomNav />
-    </div>
-  );
-}
+      </section>
+    );
+  }
 
   if (products.length === 0) return null;
 
@@ -851,13 +730,140 @@ export default function HomePage() {
   };
 
   if (loading) {
-    return (
-      <div className="hp-loading">
-        <div className="hp-loading-spinner"></div>
-        <p>Loading your dashboard...</p>
+  return (
+    <div className="hp-page">
+      <div className="hp-container">
+        {/* Skeleton Header */}
+        <header className="hp-header hp-skeleton-header">
+          <div className="hp-header-left">
+            <div className="hp-skel hp-skel-avatar" />
+            <div className="hp-skel-greeting-group">
+              <div className="hp-skel hp-skel-line hp-skel-line-sm" />
+              <div className="hp-skel hp-skel-line hp-skel-line-md" />
+            </div>
+          </div>
+          <div className="hp-header-right">
+            <div className="hp-skel hp-skel-icon-btn" />
+            <div className="hp-skel hp-skel-icon-btn" />
+            <div className="hp-skel hp-skel-icon-btn" />
+          </div>
+        </header>
+
+        {/* Skeleton Search */}
+        <div className="hp-skel hp-skel-search" />
+
+        {/* Skeleton Promo Banner */}
+        <div className="hp-skel hp-skel-banner" />
+
+        {/* Skeleton Quick Actions */}
+        <section className="hp-skel-section">
+          <div className="hp-skel hp-skel-line hp-skel-line-title" />
+          <div className="hp-skel-quick-grid">
+            <div className="hp-skel hp-skel-quick-item" />
+            <div className="hp-skel hp-skel-quick-item" />
+            <div className="hp-skel hp-skel-quick-item" />
+            <div className="hp-skel hp-skel-quick-item" />
+          </div>
+        </section>
+
+        {/* Skeleton Categories */}
+        <section className="hp-skel-section">
+          <div className="hp-skel-section-header">
+            <div className="hp-skel hp-skel-line hp-skel-line-title" />
+            <div className="hp-skel hp-skel-line hp-skel-line-sm" />
+          </div>
+          <div className="hp-skel-categories-scroll">
+            <div className="hp-skel-category-item">
+              <div className="hp-skel hp-skel-category-img" />
+              <div className="hp-skel hp-skel-line hp-skel-line-xs" />
+            </div>
+            <div className="hp-skel-category-item">
+              <div className="hp-skel hp-skel-category-img" />
+              <div className="hp-skel hp-skel-line hp-skel-line-xs" />
+            </div>
+            <div className="hp-skel-category-item">
+              <div className="hp-skel hp-skel-category-img" />
+              <div className="hp-skel hp-skel-line hp-skel-line-xs" />
+            </div>
+            <div className="hp-skel-category-item">
+              <div className="hp-skel hp-skel-category-img" />
+              <div className="hp-skel hp-skel-line hp-skel-line-xs" />
+            </div>
+            <div className="hp-skel-category-item">
+              <div className="hp-skel hp-skel-category-img" />
+              <div className="hp-skel hp-skel-line hp-skel-line-xs" />
+            </div>
+          </div>
+        </section>
+
+        {/* Skeleton Flash Sale */}
+        <section className="hp-skel-section">
+          <div className="hp-skel-section-header">
+            <div className="hp-skel hp-skel-line hp-skel-line-title" />
+            <div className="hp-skel hp-skel-line hp-skel-line-sm" />
+          </div>
+          <div className="hp-skel-products-scroll">
+            <div className="hp-skel-product-card">
+              <div className="hp-skel hp-skel-product-img" />
+              <div className="hp-skel-product-info">
+                <div className="hp-skel hp-skel-line hp-skel-line-md" />
+                <div className="hp-skel hp-skel-line hp-skel-line-sm" />
+                <div className="hp-skel hp-skel-line hp-skel-line-xs" />
+              </div>
+            </div>
+            <div className="hp-skel-product-card">
+              <div className="hp-skel hp-skel-product-img" />
+              <div className="hp-skel-product-info">
+                <div className="hp-skel hp-skel-line hp-skel-line-md" />
+                <div className="hp-skel hp-skel-line hp-skel-line-sm" />
+                <div className="hp-skel hp-skel-line hp-skel-line-xs" />
+              </div>
+            </div>
+            <div className="hp-skel-product-card">
+              <div className="hp-skel hp-skel-product-img" />
+              <div className="hp-skel-product-info">
+                <div className="hp-skel hp-skel-line hp-skel-line-md" />
+                <div className="hp-skel hp-skel-line hp-skel-line-sm" />
+                <div className="hp-skel hp-skel-line hp-skel-line-xs" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Skeleton Promos */}
+        <section className="hp-skel-section">
+          <div className="hp-skel-section-header">
+            <div className="hp-skel hp-skel-line hp-skel-line-title" />
+          </div>
+          <div className="hp-skel-products-scroll">
+            <div className="hp-skel hp-skel-promo-card" />
+            <div className="hp-skel hp-skel-promo-card" />
+          </div>
+        </section>
+
+        {/* Skeleton Features */}
+        <section className="hp-skel-section">
+          <div className="hp-skel hp-skel-line hp-skel-line-title" />
+          <div className="hp-skel-features-grid">
+            <div className="hp-skel hp-skel-feature-card" />
+            <div className="hp-skel hp-skel-feature-card" />
+          </div>
+        </section>
+
+        {/* Skeleton Trust Badges */}
+        <div className="hp-skel-trust-grid">
+          <div className="hp-skel hp-skel-trust-item" />
+          <div className="hp-skel hp-skel-trust-item" />
+          <div className="hp-skel hp-skel-trust-item" />
+          <div className="hp-skel hp-skel-trust-item" />
+        </div>
+
+        <div className="hp-bottom-spacer" />
       </div>
-    );
-  }
+      <BottomNav />
+    </div>
+  );
+}
 
   if (error) {
     return (

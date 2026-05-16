@@ -5,7 +5,7 @@ import API from "../services/api";
 import toast from "react-hot-toast";
 import html2pdf from "html2pdf.js";
 import "./InvoicePage.css";
-import { FiChevronLeft, FiDownload, FiMail, FiCheck } from "react-icons/fi";
+import { FiChevronLeft, FiDownload, FiMail, FiCheck, FiGift } from "react-icons/fi";
 
 // ============ HELPERS ============
 const formatCurrency = (val) =>
@@ -59,45 +59,17 @@ const getItemPrice = (item) =>
 
 const getItemQty = (item) => Number(item?.quantity || item?.qty || 1);
 
-/**
- * Calculate delivery fee based on subtotal and delivery method
- *
- * Pricing Structure:
- * - Warehouse Pickup: Always FREE
- * - Below ₦10,000: ₦2,000 delivery fee
- * - ₦10,000 - ₦24,999: ₦1,500 delivery fee
- * - ₦25,000 - ₦49,999: ₦1,000 delivery fee
- * - ₦50,000 and above: FREE delivery
- */
 const calculateDeliveryFee = (subtotal, deliveryMethod) => {
   const isPickup =
     deliveryMethod === "pickup" || deliveryMethod === "warehouse_pickup";
-  if (isPickup) {
-    return 0;
-  }
-
-  if (subtotal >= 50000) {
-    return 0;
-  } else if (subtotal >= 25000) {
-    return 1000;
-  } else if (subtotal >= 10000) {
-    return 1500;
-  } else {
-    return 2000;
-  }
+  if (isPickup) return 0;
+  if (subtotal >= 50000) return 0;
+  else if (subtotal >= 25000) return 1000;
+  else if (subtotal >= 10000) return 1500;
+  else return 2000;
 };
 
-/**
- * Smart Location Resolver
- * Priority:
- * 1. User's registered location (from registration) - HIGHEST PRIORITY
- * 2. User's saved addresses (from addresses section)
- * 3. Order's delivery address
- * 4. "Location not specified" - FALLBACK
- */
 const getCustomerLocation = (user, order, addresses = []) => {
-  // ===== PRIORITY 1: User's registered location (set during registration) =====
-  // Check various possible field names for the registered location
   const registeredLocation =
     user?.location ||
     user?.registered_location ||
@@ -106,30 +78,21 @@ const getCustomerLocation = (user, order, addresses = []) => {
     user?.primary_location;
 
   if (registeredLocation && String(registeredLocation).trim()) {
-    return {
-      value: String(registeredLocation).trim(),
-      source: "registered",
-    };
+    return { value: String(registeredLocation).trim(), source: "registered" };
   }
 
-  // Also check if location is built from registration fields
   const registrationParts = [
     user?.street_address || user?.street,
     user?.area || user?.neighborhood,
     user?.city,
     user?.state,
-    user?.lga, // Local Government Area (Nigeria specific)
+    user?.lga,
   ].filter((part) => part && String(part).trim());
 
   if (registrationParts.length > 0) {
-    return {
-      value: registrationParts.join(", "),
-      source: "registered",
-    };
+    return { value: registrationParts.join(", "), source: "registered" };
   }
 
-  // ===== PRIORITY 2: User's saved addresses =====
-  // First, try to find a default/primary address
   const defaultAddress = addresses.find(
     (addr) =>
       addr?.is_default === true ||
@@ -140,27 +103,14 @@ const getCustomerLocation = (user, order, addresses = []) => {
 
   if (defaultAddress) {
     const addressString = formatAddress(defaultAddress);
-    if (addressString) {
-      return {
-        value: addressString,
-        source: "addresses",
-      };
-    }
+    if (addressString) return { value: addressString, source: "addresses" };
   }
 
-  // If no default, use the first address
   if (addresses.length > 0) {
-    const firstAddress = addresses[0];
-    const addressString = formatAddress(firstAddress);
-    if (addressString) {
-      return {
-        value: addressString,
-        source: "addresses",
-      };
-    }
+    const addressString = formatAddress(addresses[0]);
+    if (addressString) return { value: addressString, source: "addresses" };
   }
 
-  // Also check user object for address fields
   const userAddress =
     user?.address ||
     user?.delivery_address ||
@@ -168,13 +118,9 @@ const getCustomerLocation = (user, order, addresses = []) => {
     user?.saved_address;
 
   if (userAddress && String(userAddress).trim()) {
-    return {
-      value: String(userAddress).trim(),
-      source: "addresses",
-    };
+    return { value: String(userAddress).trim(), source: "addresses" };
   }
 
-  // ===== PRIORITY 3: Order's delivery address =====
   const orderAddress =
     order?.delivery_address ||
     order?.shipping_address ||
@@ -183,41 +129,24 @@ const getCustomerLocation = (user, order, addresses = []) => {
     order?.customer_address;
 
   if (orderAddress && String(orderAddress).trim()) {
-    return {
-      value: String(orderAddress).trim(),
-      source: "order",
-    };
+    return { value: String(orderAddress).trim(), source: "order" };
   }
 
-  // ===== FALLBACK: No location found =====
-  return {
-    value: null,
-    source: "none",
-  };
+  return { value: null, source: "none" };
 };
 
-/**
- * Format an address object into a readable string
- */
 const formatAddress = (address) => {
   if (!address) return null;
-
-  // If address is already a string
-  if (typeof address === "string") {
-    return address.trim() || null;
-  }
-
-  // If address is an object, build the string
+  if (typeof address === "string") return address.trim() || null;
   const parts = [
     address?.street_address || address?.street || address?.address_line_1,
     address?.address_line_2,
     address?.area || address?.neighborhood || address?.district,
     address?.city || address?.town,
-    address?.lga, // Local Government Area
+    address?.lga,
     address?.state,
     address?.country,
   ].filter((part) => part && String(part).trim());
-
   return parts.length > 0 ? parts.join(", ") : null;
 };
 
@@ -237,7 +166,30 @@ export default function InvoicePage() {
   const [emailSent, setEmailSent] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // Get customer info from localStorage
+  // ✅ Load promo free items from sessionStorage and localStorage
+  const [promoFreeItems, setPromoFreeItems] = useState(() => {
+    try {
+      // Virtual items (Jelly / PowerMint)
+      const virtual = JSON.parse(
+        sessionStorage.getItem("same_product_promo_items") || "[]"
+      );
+      return virtual;
+    } catch {
+      return [];
+    }
+  });
+
+  // Also load beverage/care free item keys
+  const [promoFreeItemKeys] = useState(() => {
+    try {
+      return JSON.parse(
+        localStorage.getItem("promo_free_item_keys") || "[]"
+      );
+    } catch {
+      return [];
+    }
+  });
+
   const storedUser = JSON.parse(localStorage.getItem("auth_user") || "{}");
 
   const customerName =
@@ -252,7 +204,6 @@ export default function InvoicePage() {
   const customerEmail = storedUser.email || storedUser.user_email || "";
   const customerPhone = storedUser.phone || storedUser.phone_number || "";
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -269,24 +220,19 @@ export default function InvoicePage() {
     };
   }, [showDropdown]);
 
-  // Fetch order and addresses
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch order if not passed via state
         let orderData = order;
         if (!orderData) {
           const orderRes = await API.get(`orders/user-orders/${orderId}/`);
           orderData = orderRes.data;
           setOrder(orderData);
         }
-
-        // Fetch user's saved addresses
         try {
           const addressRes = await API.get("/customers/addresses/");
           const addressData = addressRes.data;
-          // Handle both array and paginated response
           setAddresses(
             Array.isArray(addressData)
               ? addressData
@@ -304,34 +250,28 @@ export default function InvoicePage() {
         setLoading(false);
       }
     };
-
     fetchData();
   }, [orderId, order, navigate]);
 
-  // Get delivery method and check if pickup
   const deliveryMethod = order?.delivery_method || "delivery";
   const isPickup =
     deliveryMethod === "pickup" || deliveryMethod === "warehouse_pickup";
 
-  // Get customer location using smart resolver
   const locationResult = getCustomerLocation(storedUser, order, addresses);
   const customerLocation = locationResult.value;
-  const locationSource = locationResult.source;
 
-  // Calculate totals
+  // ✅ Regular items only (exclude free promo items from totals)
   const items = order?.items || [];
+
+  // ✅ Calculate subtotal from regular items only
   const subtotal = items.reduce(
     (sum, item) => sum + getItemPrice(item) * getItemQty(item),
     0
   );
 
-  // Calculate delivery fee using the pricing structure
   const deliveryFee = calculateDeliveryFee(subtotal, deliveryMethod);
-
-  // Calculate grand total
   const grandTotal = subtotal + deliveryFee;
 
-  // Invoice metadata
   const invoiceNumber =
     order?.order_id || order?.invoice_number || `INV-${orderId}`;
   const invoiceDate =
@@ -344,7 +284,6 @@ export default function InvoicePage() {
     setShowDropdown(false);
     setDownloading(true);
     const toastId = toast.loading("Generating PDF...");
-
     try {
       const element = invoiceRef.current;
       const options = {
@@ -377,12 +316,10 @@ export default function InvoicePage() {
   const handleSendEmail = async () => {
     if (sendingEmail || emailSent) return;
     setShowDropdown(false);
-
     if (!customerEmail) {
       toast.error("No email address found on your account");
       return;
     }
-
     setSendingEmail(true);
     try {
       await API.post(`orders/user-orders/${orderId}/send-invoice/`, {
@@ -393,11 +330,11 @@ export default function InvoicePage() {
       setTimeout(() => setEmailSent(false), 5000);
     } catch (err) {
       console.error("Failed to send invoice:", err);
-      const errorMsg =
+      toast.error(
         err?.response?.data?.detail ||
         err?.response?.data?.error ||
-        "Failed to send invoice. Please try again.";
-      toast.error(errorMsg);
+        "Failed to send invoice. Please try again."
+      );
     } finally {
       setSendingEmail(false);
     }
@@ -427,7 +364,7 @@ export default function InvoicePage() {
 
         <h2 className="inv-topbar-title">Invoice</h2>
 
-        {/* ✅ Desktop: inline buttons (visible ≥820px) */}
+        {/* Desktop buttons */}
         <div className="inv-topbar-inline">
           <button
             className={`inv-btn inv-btn-download ${downloading ? "inv-btn-loading" : ""}`}
@@ -435,15 +372,9 @@ export default function InvoicePage() {
             disabled={downloading}
           >
             {downloading ? (
-              <>
-                <span className="inv-btn-spinner" />
-                Generating...
-              </>
+              <><span className="inv-btn-spinner" />Generating...</>
             ) : (
-              <>
-                <FiDownload />
-                Download PDF
-              </>
+              <><FiDownload />Download PDF</>
             )}
           </button>
 
@@ -453,25 +384,16 @@ export default function InvoicePage() {
             disabled={sendingEmail || emailSent}
           >
             {sendingEmail ? (
-              <>
-                <span className="inv-btn-spinner" />
-                Sending...
-              </>
+              <><span className="inv-btn-spinner" />Sending...</>
             ) : emailSent ? (
-              <>
-                <FiCheck />
-                Sent!
-              </>
+              <><FiCheck />Sent!</>
             ) : (
-              <>
-                <FiMail />
-                Send to Email
-              </>
+              <><FiMail />Send to Email</>
             )}
           </button>
         </div>
 
-        {/* ✅ Mobile: hamburger menu button (visible <820px) */}
+        {/* Mobile dropdown */}
         <div className="inv-topbar-mobile" ref={dropdownRef}>
           <button
             className={`inv-more-btn ${showDropdown ? "active" : ""}`}
@@ -479,13 +401,12 @@ export default function InvoicePage() {
             aria-label="More actions"
           >
             <span className="inv-hamburger">
-              <span className="inv-hamburger-line"></span>
-              <span className="inv-hamburger-line"></span>
-              <span className="inv-hamburger-line"></span>
+              <span className="inv-hamburger-line" />
+              <span className="inv-hamburger-line" />
+              <span className="inv-hamburger-line" />
             </span>
           </button>
 
-          {/* ✅ Dropdown Menu */}
           {showDropdown && (
             <div className="inv-dropdown">
               <button
@@ -503,11 +424,7 @@ export default function InvoicePage() {
               >
                 {emailSent ? <FiCheck /> : <FiMail />}
                 <span>
-                  {sendingEmail
-                    ? "Sending..."
-                    : emailSent
-                      ? "Sent!"
-                      : "Send to Email"}
+                  {sendingEmail ? "Sending..." : emailSent ? "Sent!" : "Send to Email"}
                 </span>
               </button>
             </div>
@@ -518,6 +435,7 @@ export default function InvoicePage() {
       {/* ========== INVOICE BODY ========== */}
       <div className="inv-container">
         <div className="inv-paper" ref={invoiceRef}>
+
           {/* Logo */}
           <div className="inv-logo-section">
             <img
@@ -536,9 +454,9 @@ export default function InvoicePage() {
             <h2 className="inv-title">INVOICE</h2>
           </div>
 
-          {/* ===== BALANCED TWO-COLUMN HEADER GRID ===== */}
+          {/* Header Grid */}
           <div className="inv-header-grid">
-            {/* LEFT COLUMN - Customer Info */}
+            {/* LEFT: Customer Info */}
             <div className="inv-header-col inv-header-left">
               <div className="inv-info-group">
                 <span className="inv-info-label">Bill To:</span>
@@ -546,72 +464,52 @@ export default function InvoicePage() {
                   {customerName}
                 </span>
               </div>
-
               <div className="inv-info-group">
                 <span className="inv-info-label">Email:</span>
                 <span className="inv-info-value">
-                  {customerEmail || (
-                    <span className="inv-nil">Not specified</span>
-                  )}
+                  {customerEmail || <span className="inv-nil">Not specified</span>}
                 </span>
               </div>
-
               <div className="inv-info-group">
                 <span className="inv-info-label">Phone:</span>
                 <span className="inv-info-value">
-                  {customerPhone || (
-                    <span className="inv-nil">Not specified</span>
-                  )}
+                  {customerPhone || <span className="inv-nil">Not specified</span>}
                 </span>
               </div>
-
               <div className="inv-info-group">
                 <span className="inv-info-label">
                   {isPickup ? "Pickup Location:" : "Delivery Address:"}
                 </span>
                 <span className="inv-info-value inv-location">
-                  {isPickup ? (
-                    "ChiamoOrder Warehouse, Port Harcourt"
-                  ) : customerLocation ? (
-                    <>
-                      {customerLocation}
-                      {/* Optional: Show source indicator for debugging */}
-                      {/* <small className="inv-location-source">({locationSource})</small> */}
-                    </>
-                  ) : (
-                    <span className="inv-nil">Location not specified</span>
-                  )}
+                  {isPickup
+                    ? "ChiamoOrder Warehouse, Port Harcourt"
+                    : customerLocation || (
+                        <span className="inv-nil">Location not specified</span>
+                      )}
                 </span>
               </div>
             </div>
 
-            {/* RIGHT COLUMN - Invoice Details */}
+            {/* RIGHT: Invoice Details */}
             <div className="inv-header-col inv-header-right">
               <div className="inv-info-group">
                 <span className="inv-info-label">Invoice No:</span>
-                <span className="inv-info-value inv-order-id">
-                  {invoiceNumber}
-                </span>
+                <span className="inv-info-value inv-order-id">{invoiceNumber}</span>
               </div>
-
               <div className="inv-info-group">
                 <span className="inv-info-label">Date:</span>
-                <span className="inv-info-value">
-                  {formatInvoiceDate(invoiceDate)}
-                </span>
+                <span className="inv-info-value">{formatInvoiceDate(invoiceDate)}</span>
               </div>
-
               <div className="inv-info-group">
                 <span className="inv-info-label">Time:</span>
-                <span className="inv-info-value">
-                  {formatInvoiceTime(invoiceDate)}
-                </span>
+                <span className="inv-info-value">{formatInvoiceTime(invoiceDate)}</span>
               </div>
-
               <div className="inv-info-group">
                 <span className="inv-info-label">Fulfillment:</span>
                 <span
-                  className={`inv-info-value inv-method ${isPickup ? "inv-method-pickup" : "inv-method-delivery"}`}
+                  className={`inv-info-value inv-method ${
+                    isPickup ? "inv-method-pickup" : "inv-method-delivery"
+                  }`}
                 >
                   {deliveryMethodDisplay}
                 </span>
@@ -621,7 +519,7 @@ export default function InvoicePage() {
 
           <div className="inv-divider" />
 
-          {/* Items Table */}
+          {/* ✅ ITEMS TABLE — Regular Items */}
           <table className="inv-table">
             <thead>
               <tr>
@@ -642,30 +540,148 @@ export default function InvoicePage() {
                   <tr key={index} className="inv-tr">
                     <td className="inv-td inv-td-sn">{index + 1}</td>
                     <td className="inv-td inv-td-name">{getItemName(item)}</td>
-                    <td className="inv-td inv-td-cat">
-                      {getItemCategory(item)}
-                    </td>
+                    <td className="inv-td inv-td-cat">{getItemCategory(item)}</td>
                     <td className="inv-td inv-td-qty">{qty}</td>
-                    <td className="inv-td inv-td-price">
-                      {formatCurrency(price)}
-                    </td>
-                    <td className="inv-td inv-td-total">
-                      {formatCurrency(lineTotal)}
-                    </td>
+                    <td className="inv-td inv-td-price">{formatCurrency(price)}</td>
+                    <td className="inv-td inv-td-total">{formatCurrency(lineTotal)}</td>
                   </tr>
                 );
               })}
-              {items.length < 3 &&
-                [...Array(3 - items.length)].map((_, i) => (
-                  <tr key={`empty-${i}`} className="inv-tr inv-tr-empty">
-                    <td className="inv-td">&nbsp;</td>
-                    <td className="inv-td" />
-                    <td className="inv-td" />
-                    <td className="inv-td" />
-                    <td className="inv-td" />
-                    <td className="inv-td" />
+
+              {/* ✅ PROMO FREE ITEMS — Virtual rows (Jelly / PowerMint) */}
+              {promoFreeItems.length > 0 &&
+                promoFreeItems.map((promoItem, index) => (
+                  <tr
+                    key={`promo-virtual-${index}`}
+                    className="inv-tr inv-tr-promo"
+                  >
+                    <td className="inv-td inv-td-sn">
+                      {items.length + index + 1}
+                    </td>
+                    <td className="inv-td inv-td-name">
+                      <span className="inv-promo-item-name">
+                        {promoItem.name}
+                      </span>
+                      <span className="inv-promo-tag">
+                        <FiGift size={10} />
+                        Free Promo Item
+                      </span>
+                    </td>
+                    <td className="inv-td inv-td-cat">—</td>
+                    <td className="inv-td inv-td-qty">1</td>
+                    <td className="inv-td inv-td-price">
+                      <span className="inv-promo-price-struck">
+                        {formatCurrency(promoItem.originalPrice || promoItem.price || 0)}
+                      </span>
+                    </td>
+                    <td className="inv-td inv-td-total inv-promo-free-total">
+                      FREE
+                    </td>
                   </tr>
                 ))}
+
+              {/* ✅ PROMO FREE ITEMS — Beverage / Care (from real cart, tagged via keys) */}
+              {promoFreeItemKeys.length > 0 &&
+                (() => {
+                  // Get the cart items from localStorage
+                  const userId = storedUser?.id;
+                  let cartItems = [];
+                  try {
+                    cartItems = JSON.parse(
+                      localStorage.getItem(`cart_${userId}`) || "[]"
+                    );
+                  } catch {
+                    cartItems = [];
+                  }
+
+                  // Match cart items that are tagged as free
+                  const freeCartItems = cartItems.filter((cartItem) => {
+                    const productId = String(
+                      cartItem.productId || cartItem.id || ""
+                    );
+                    const slug = cartItem.slug || "";
+                    return promoFreeItemKeys.some((key) => {
+                      const [storedId, promoParam] = key.split("::");
+                      const isBagPromo =
+                        promoParam === "beverage_500" ||
+                        promoParam === "care_300";
+                      return (
+                        isBagPromo &&
+                        (storedId === productId || storedId === slug)
+                      );
+                    });
+                  });
+
+                  if (freeCartItems.length === 0) return null;
+
+                  return freeCartItems.map((cartItem, index) => {
+                    const price = parseFloat(cartItem.price) || 0;
+                    const promoKey = promoFreeItemKeys.find((key) => {
+                      const [storedId] = key.split("::");
+                      return (
+                        storedId === String(cartItem.productId || cartItem.id)
+                      );
+                    });
+                    const isBeverage = promoKey?.includes("beverage_500");
+
+                    return (
+                      <tr
+                        key={`promo-bag-${index}`}
+                        className="inv-tr inv-tr-promo"
+                      >
+                        <td className="inv-td inv-td-sn">
+                          {items.length + promoFreeItems.length + index + 1}
+                        </td>
+                        <td className="inv-td inv-td-name">
+                          <span className="inv-promo-item-name">
+                            {cartItem.name}
+                          </span>
+                          <span
+                            className={`inv-promo-tag ${
+                              isBeverage
+                                ? "inv-promo-tag-beverage"
+                                : "inv-promo-tag-care"
+                            }`}
+                          >
+                            <FiGift size={10} />
+                            {isBeverage
+                              ? "Free — Beverage Promo"
+                              : "Free — Care Promo"}
+                          </span>
+                        </td>
+                        <td className="inv-td inv-td-cat">
+                          {isBeverage ? "Beverage" : "Care"}
+                        </td>
+                        <td className="inv-td inv-td-qty">
+                          {cartItem.quantity || 1}
+                        </td>
+                        <td className="inv-td inv-td-price">
+                          <span className="inv-promo-price-struck">
+                            {formatCurrency(price)}
+                          </span>
+                        </td>
+                        <td className="inv-td inv-td-total inv-promo-free-total">
+                          FREE
+                        </td>
+                      </tr>
+                    );
+                  });
+                })()}
+
+              {/* Empty row padding */}
+              {items.length + promoFreeItems.length < 3 &&
+                [...Array(Math.max(0, 3 - items.length - promoFreeItems.length))].map(
+                  (_, i) => (
+                    <tr key={`empty-${i}`} className="inv-tr inv-tr-empty">
+                      <td className="inv-td">&nbsp;</td>
+                      <td className="inv-td" />
+                      <td className="inv-td" />
+                      <td className="inv-td" />
+                      <td className="inv-td" />
+                      <td className="inv-td" />
+                    </tr>
+                  )
+                )}
             </tbody>
           </table>
 
@@ -676,6 +692,18 @@ export default function InvoicePage() {
                 <span>Subtotal</span>
                 <span>{formatCurrency(subtotal)}</span>
               </div>
+
+              {/* ✅ Show promo savings if any */}
+              {(promoFreeItems.length > 0 || promoFreeItemKeys.length > 0) && (
+                <div className="inv-total-row inv-total-promo-savings">
+                  <span className="inv-promo-savings-label">
+                    <FiGift size={12} />
+                    Promo Savings
+                  </span>
+                  <span className="inv-promo-savings-value">FREE</span>
+                </div>
+              )}
+
               <div className="inv-total-row">
                 <span>
                   Delivery Fee
@@ -695,7 +723,7 @@ export default function InvoicePage() {
             </div>
           </div>
 
-          {/* Delivery Fee Info Note (only for delivery, not pickup) */}
+          {/* Delivery note */}
           {!isPickup && (
             <div className="inv-delivery-note">
               <small>
@@ -708,12 +736,12 @@ export default function InvoicePage() {
                   subtotal < 50000 &&
                   "Orders ₦25,000 – ₦49,999 incur a ₦1,000 delivery fee."}
                 {subtotal >= 50000 &&
-                  "🎉 Free delivery on orders ₦50,000 and above!"}
+                  "Free delivery on orders ₦50,000 and above!"}
               </small>
             </div>
           )}
 
-          {/* RAISED Stamp */}
+          {/* Stamp */}
           <div className="inv-stamp-wrapper">
             <span className="inv-stamp">RAISED</span>
           </div>
@@ -733,9 +761,33 @@ export default function InvoicePage() {
             </p>
           </div>
         </div>
+
+        {/* ✅ DOWNLOAD BUTTON BELOW INVOICE */}
+        <div className="inv-download-footer">
+          <button
+            className={`inv-download-footer-btn ${downloading ? "loading" : ""}`}
+            onClick={handleDownload}
+            disabled={downloading}
+          >
+            {downloading ? (
+              <>
+                <span className="inv-btn-spinner" />
+                Generating your invoice...
+              </>
+            ) : (
+              <>
+                <FiDownload size={18} />
+                Download Your Invoice
+              </>
+            )}
+          </button>
+          <p className="inv-download-footer-hint">
+            Save a copy of this invoice to your device
+          </p>
+        </div>
       </div>
 
-      <div className="inv-bottom-spacer"></div>
+      <div className="inv-bottom-spacer" />
     </div>
   );
 }

@@ -1012,3 +1012,163 @@
 [data-theme="dark"] .inv-dropdown-item + .inv-dropdown-item {
   border-top-color: rgba(255, 255, 255, 0.06);
 }
+
+/* ============================================
+   PROMO FREE ITEMS IN INVOICE TABLE
+   ============================================ */
+
+/* Promo row background */
+.inv-tr-promo {
+  background: linear-gradient(135deg, #fafafa, #f5f5ff);
+  border-left: 3px solid #7c3aed;
+}
+
+/* Promo item name */
+.inv-promo-item-name {
+  display: block;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 3px;
+}
+
+/* Promo tag pill */
+.inv-promo-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 8px;
+  background: #7c3aed;
+  color: #ffffff;
+  border-radius: 20px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Beverage promo tag */
+.inv-promo-tag-beverage {
+  background: #8b0000;
+  color: #ffffff;
+}
+
+/* Care promo tag */
+.inv-promo-tag-care {
+  background: #064e3b;
+  color: #ffffff;
+}
+
+/* Strikethrough price */
+.inv-promo-price-struck {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+/* FREE total cell */
+.inv-promo-free-total {
+  font-weight: 800;
+  color: #7c3aed;
+  font-size: 12px;
+  letter-spacing: 0.4px;
+}
+
+/* ============================================
+   PROMO SAVINGS ROW IN TOTALS
+   ============================================ */
+.inv-total-promo-savings {
+  background: linear-gradient(135deg, #faf5ff, #f3e8ff);
+  padding: 6px 10px;
+  border-radius: 8px;
+  border-left: 3px solid #7c3aed;
+}
+
+.inv-promo-savings-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #7c3aed;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.inv-promo-savings-value {
+  color: #7c3aed;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+/* ============================================
+   DOWNLOAD BUTTON FOOTER
+   ============================================ */
+.inv-download-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 20px 32px;
+}
+
+.inv-download-footer-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 32px;
+  background: linear-gradient(135deg, #143a6e, #1b4b8c);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-family: inherit;
+  letter-spacing: 0.3px;
+  box-shadow: 0 4px 14px rgba(20, 58, 110, 0.35);
+  min-width: 240px;
+  justify-content: center;
+}
+
+.inv-download-footer-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(20, 58, 110, 0.45);
+  background: linear-gradient(135deg, #1b4b8c, #143a6e);
+}
+
+.inv-download-footer-btn:active {
+  transform: translateY(0);
+}
+
+.inv-download-footer-btn.loading {
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+.inv-download-footer-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.inv-download-footer-hint {
+  font-size: 12px;
+  color: #9ca3af;
+  margin: 0;
+  text-align: center;
+}
+
+/* ── Responsive ──────────────────────────── */
+@media (max-width: 480px) {
+  .inv-download-footer-btn {
+    min-width: 200px;
+    padding: 13px 24px;
+    font-size: 14px;
+  }
+
+  .inv-promo-tag {
+    font-size: 8px;
+    padding: 2px 6px;
+  }
+}

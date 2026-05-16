@@ -270,7 +270,7 @@ const PromoBanner = () => {
 
         {/* Watermark layer */}
         <div className="hp-promo-watermark" aria-hidden="true">
-          {Array.from({ length: 20 }, (_, i) => (
+          {Array.from({ length: 15 }, (_, i) => (
             <span key={i} className="hp-watermark-text">
               ChiamoOrder
             </span>
@@ -298,6 +298,7 @@ const PromoBanner = () => {
             <FiArrowRight />
           </button>
         </div>
+
         <div className="hp-promo-visual">
           <div className="hp-promo-circle"></div>
           <div className="hp-promo-circle hp-promo-circle-2"></div>
